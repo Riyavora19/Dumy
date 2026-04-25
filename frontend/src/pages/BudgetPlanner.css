@@ -1,0 +1,157 @@
+.budget-planner-page {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.budget-planner-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.planner-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.planner-header h1 {
+  font-size: 2.5rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.planner-header p {
+  font-size: 1.1rem;
+  color: #7f8c8d;
+}
+
+.room-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.room-template-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.room-template-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.template-icon {
+  font-size: 4rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.room-template-card h3 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin: 0;
+  text-align: center;
+}
+
+.template-description {
+  color: #7f8c8d;
+  text-align: center;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.budget-range,
+.recommended-budget {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-top: 1px solid #ecf0f1;
+}
+
+.budget-range .label,
+.recommended-budget .label {
+  font-weight: 600;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.budget-range .range,
+.recommended-budget .amount {
+  font-weight: 700;
+  color: #27ae60;
+  font-size: 1rem;
+}
+
+.items-count {
+  text-align: center;
+  color: #95a5a6;
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+}
+
+.select-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.875rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: auto;
+}
+
+.select-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.loading,
+.error,
+.no-templates {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+  color: #7f8c8d;
+}
+
+.error {
+  color: #e74c3c;
+}
+
+.no-templates {
+  background: white;
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.no-templates p {
+  margin: 0.5rem 0;
+}
+
+@media (max-width: 768px) {
+  .planner-header h1 {
+    font-size: 2rem;
+  }
+
+  .room-templates-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .room-template-card {
+    padding: 1.5rem;
+  }
+}

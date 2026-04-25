@@ -1,0 +1,496 @@
+.about {
+  background: #f7f8fa;
+}
+
+.about__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* Welcome Section */
+.about__welcome {
+  padding: 80px 0;
+  background: #fff;
+}
+
+.about__welcome .about__container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.about__welcome-content h1 {
+  font-size: 48px;
+  font-weight: 800;
+  color: #1f1f35;
+  margin: 0 0 24px;
+  line-height: 1.2;
+}
+
+.about__welcome-content p {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.8;
+  margin: 0 0 20px;
+}
+
+.about__welcome-content p:last-child {
+  margin-bottom: 0;
+}
+
+.about__welcome-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about__image-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #e8899a 0%, #e07a8a 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 120px;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(233, 69, 96, 0.12);
+}
+
+/* Advantages Section */
+.about__advantages {
+  padding: 80px 0;
+  background: #f7f8fa;
+}
+
+.about__advantages h2 {
+  font-size: 42px;
+  font-weight: 800;
+  color: #1f1f35;
+  text-align: center;
+  margin: 0 0 60px;
+}
+
+.about__advantages-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.about__advantage-card {
+  background: #fff;
+  padding: 32px 24px;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.3s;
+  border: 2px solid #f0f0f0;
+}
+
+.about__advantage-card:hover {
+  transform: translateY(-8px);
+  border-color: #e8899a;
+  box-shadow: 0 12px 32px rgba(233, 69, 96, 0.1);
+}
+
+.about__advantage-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.about__advantage-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f1f35;
+  margin: 0 0 12px;
+}
+
+.about__advantage-card p {
+  font-size: 14px;
+  color: #777;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Why Choose Us Section */
+.about__why-choose {
+  padding: 80px 0;
+  background: #fff;
+}
+
+.about__why-choose h2 {
+  font-size: 42px;
+  font-weight: 800;
+  color: #1f1f35;
+  text-align: center;
+  margin: 0 0 60px;
+}
+
+.about__why-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px;
+}
+
+.about__why-card {
+  padding: 40px;
+  background: #f9f9f9;
+  border-radius: 12px;
+  border-left: 4px solid #e8899a;
+  transition: all 0.3s;
+}
+
+.about__why-card:hover {
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.about__why-number {
+  font-size: 48px;
+  font-weight: 800;
+  color: #e8899a;
+  margin-bottom: 16px;
+}
+
+.about__why-card h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f1f35;
+  margin: 0 0 12px;
+}
+
+.about__why-card p {
+  font-size: 15px;
+  color: #777;
+  margin: 0;
+  line-height: 1.7;
+}
+
+/* Founder Section */
+.about__founder {
+  padding: 80px 0;
+  background: #f7f8fa;
+}
+
+.about__founder-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.about__founder-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about__founder-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #9db4d4 0%, #8da5cc 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 120px;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.12);
+}
+
+.about__founder-text h2 {
+  font-size: 42px;
+  font-weight: 800;
+  color: #1f1f35;
+  margin: 0 0 12px;
+}
+
+.about__founder-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e8899a;
+  margin: 0 0 24px;
+}
+
+.about__founder-text p {
+  font-size: 15px;
+  color: #666;
+  line-height: 1.8;
+  margin: 0 0 20px;
+}
+
+.about__founder-signature {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f1f35;
+  margin-top: 24px !important;
+}
+
+/* Manager Section */
+.about__manager {
+  padding: 80px 0;
+  background: #fff;
+}
+
+.about__manager-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.about__manager-text h2 {
+  font-size: 42px;
+  font-weight: 800;
+  color: #1f1f35;
+  margin: 0 0 12px;
+}
+
+.about__manager-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e8899a;
+  margin: 0 0 24px;
+}
+
+.about__manager-text p {
+  font-size: 15px;
+  color: #666;
+  line-height: 1.8;
+  margin: 0 0 20px;
+}
+
+.about__manager-signature {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f1f35;
+  margin-top: 24px !important;
+}
+
+.about__manager-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about__manager-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #e8a5b8 0%, #e09aac 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 120px;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(245, 87, 108, 0.12);
+}
+
+/* Team Section */
+.about__team {
+  padding: 80px 0;
+  background: #f7f8fa;
+}
+
+.about__team h2 {
+  font-size: 42px;
+  font-weight: 800;
+  color: #1f1f35;
+  text-align: center;
+  margin: 0 0 12px;
+}
+
+.about__team-subtitle {
+  font-size: 16px;
+  color: #777;
+  text-align: center;
+  margin: 0 0 60px;
+}
+
+.about__team-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.about__team-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.3s;
+  border: 2px solid #f0f0f0;
+}
+
+.about__team-card:hover {
+  transform: translateY(-8px);
+  border-color: #e8899a;
+  box-shadow: 0 12px 32px rgba(233, 69, 96, 0.1);
+}
+
+.about__team-image {
+  font-size: 80px;
+  margin-bottom: 16px;
+}
+
+.about__team-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f1f35;
+  margin: 0 0 8px;
+}
+
+.about__team-card p {
+  font-size: 14px;
+  color: #e8899a;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Ready to Work Section */
+.about__ready {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #e8899a 0%, #e07a8a 100%);
+}
+
+.about__ready-content {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.about__ready-content h2 {
+  font-size: 42px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 24px;
+}
+
+.about__ready-content p {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.8;
+  margin: 0 0 40px;
+}
+
+.about__ready-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.about__btn {
+  padding: 14px 40px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: inline-block;
+}
+
+.about__btn--primary {
+  background: #fff;
+  color: #e8899a;
+}
+
+.about__btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.about__btn--secondary {
+  background: transparent;
+  color: #fff;
+  border: 2px solid #fff;
+}
+
+.about__btn--secondary:hover {
+  background: #fff;
+  color: #e8899a;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .about__advantages-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about__why-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about__team-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about__welcome .about__container,
+  .about__founder-content,
+  .about__manager-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .about__container {
+    padding: 0 20px;
+  }
+
+  .about__welcome {
+    padding: 60px 0;
+  }
+
+  .about__welcome-content h1 {
+    font-size: 36px;
+  }
+
+  .about__advantages h2,
+  .about__why-choose h2,
+  .about__team h2,
+  .about__ready-content h2 {
+    font-size: 32px;
+  }
+
+  .about__advantages-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about__team-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about__ready-buttons {
+    flex-direction: column;
+  }
+
+  .about__btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .about__welcome-content h1 {
+    font-size: 28px;
+  }
+
+  .about__advantages h2,
+  .about__why-choose h2,
+  .about__team h2,
+  .about__ready-content h2 {
+    font-size: 24px;
+  }
+
+  .about__team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about__why-card {
+    padding: 24px;
+  }
+
+  .about__advantage-card {
+    padding: 24px 16px;
+  }
+}

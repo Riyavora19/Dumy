@@ -1,0 +1,21 @@
+/* Reset #root from Vite defaults */
+#root {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
+  border: none;
+  background: #f7f8fa;
+  min-height: 100vh;
+}
+
+/* Placeholder page styles */
+.page {
+  padding: 60px 40px;
+  min-height: calc(100vh - 64px);
+}
+
+.page h1 {
+  font-size: 2rem;
+  color: #1a1a2e;
+}

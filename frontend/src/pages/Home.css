@@ -1,0 +1,249 @@
+/* ── Hero section ── */
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 80px 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.home h1 {
+  font-size: 42px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -1px;
+  text-align: center;
+  margin: 0;
+}
+
+.home-login-prompt {
+  margin-top: 2rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 2rem 3rem;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.home-login-prompt p {
+  font-size: 1.2rem;
+  margin: 0 0 1.5rem 0;
+  color: white;
+}
+
+.home-login-btn {
+  display: inline-block;
+  background: white;
+  color: #667eea;
+  padding: 1rem 2.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.home-login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  background: #f8f9fa;
+}
+
+/* ── About Us section ── */
+.home-about {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 80px 40px;
+  background: #ffffff;
+  border-top: 1px solid #e8e8e8;
+  box-sizing: border-box;
+}
+
+.home-about__content {
+  max-width: 760px;
+  text-align: center;
+  width: 100%;
+}
+
+.home-about h2 {
+  font-size: 42px;
+  font-weight: 800;
+  color: #1a1a2e;
+  letter-spacing: -0.5px;
+  margin: 0 0 28px;
+}
+
+.home-about p {
+  font-size: 17px;
+  color: #555;
+  line-height: 1.9;
+  margin: 0 0 16px;
+}
+
+.home-about p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Why Choose Us section ── */
+.home-why {
+  background: #f7f8fa;
+  border-top: 1px solid #e8e8e8;
+  padding: 100px 60px;
+  box-sizing: border-box;
+}
+
+.home-why__content {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.home-why__content h2 {
+  font-size: 42px;
+  font-weight: 800;
+  color: #1a1a2e;
+  letter-spacing: -0.5px;
+  margin: 0 0 40px;
+}
+
+.home-why__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.home-why__card {
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 14px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.home-why__card:hover {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+}
+
+.home-why__icon {
+  font-size: 34px;
+  margin-bottom: 14px;
+}
+
+.home-why__card h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 10px;
+}
+
+.home-why__card p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* ── Our Product Range section ── */
+.home-products {
+  background: #fff;
+  border-top: 1px solid #e8e8e8;
+  padding: 100px 60px;
+  box-sizing: border-box;
+}
+
+.home-products__content {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.home-products__content h2 {
+  font-size: 42px;
+  font-weight: 800;
+  color: #1a1a2e;
+  letter-spacing: -0.5px;
+  margin: 0 0 40px;
+  text-align: center;
+}
+
+.home-products__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.home-products__empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
+  font-size: 16px;
+}
+
+.home-products__item {
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.home-products__img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  border-radius: 4px 4px 0 0;
+}
+
+.home-products__info {
+  padding: 12px 8px;
+}
+
+.home-products__info h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+  text-align: center;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .home-why__grid,
+  .home-products__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .home,
+  .home-about,
+  .home-why,
+  .home-products {
+    padding: 40px 20px;
+  }
+
+  .home h1,
+  .home-about h2,
+  .home-why__content h2,
+  .home-products__content h2 {
+    font-size: 30px;
+  }
+
+  .home-why__grid,
+  .home-products__grid {
+    grid-template-columns: 1fr;
+  }
+}
