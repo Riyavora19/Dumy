@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNotification } from '../context/NotificationContext';
 import './AdminRoomTemplates.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function AdminRoomTemplates() {
+  const { showNotification } = useNotification();
   const [templates, setTemplates] = useState([]);
   const [itemTypes, setItemTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ function AdminRoomTemplates() {
       setTemplates(data);
     } catch (error) {
       console.error('Error fetching templates:', error);
-      alert('Failed to fetch templates');
+      showNotification('Failed to fetch templates', 'error');
     } finally {
       setLoading(false);
     }
@@ -151,14 +153,14 @@ function AdminRoomTemplates() {
         throw new Error('Failed to save template');
       }
 
-      alert(`Template ${editingTemplate ? 'updated' : 'created'} successfully!`);
+      showNotification(`Template ${editingTemplate ? 'updated' : 'created'} successfully!`, 'success');
       setShowForm(false);
       setEditingTemplate(null);
       resetForm();
       fetchTemplates();
     } catch (error) {
       console.error('Error saving template:', error);
-      alert('Failed to save template');
+      showNotification('Failed to save template', 'error');
     }
   };
 
@@ -196,11 +198,11 @@ function AdminRoomTemplates() {
         throw new Error('Failed to delete template');
       }
 
-      alert('Template deleted successfully!');
+      showNotification('Template deleted successfully!', 'success');
       fetchTemplates();
     } catch (error) {
       console.error('Error deleting template:', error);
-      alert('Failed to delete template');
+      showNotification('Failed to delete template', 'error');
     }
   };
 

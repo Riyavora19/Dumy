@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotification } from '../context/NotificationContext';
 import './AdminCategories.css';
 
 const AdminCategories = () => {
+  const { showNotification } = useNotification();
   const [categories, setCategories] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [products, setProducts] = useState([]);
@@ -92,20 +94,20 @@ const AdminCategories = () => {
           formData
         );
         if (response.data.success) {
-          alert('Category updated successfully!');
+          showNotification('Category updated successfully!', 'success');
         }
       } else {
         // Create new category
         const response = await axios.post('http://localhost:5000/api/categories', formData);
         if (response.data.success) {
-          alert('Category created successfully!');
+          showNotification('Category created successfully!', 'success');
         }
       }
       
       fetchCategories();
       closeModal();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to save category');
+      showNotification(error.response?.data?.message || 'Failed to save category', 'error');
     }
   };
 
@@ -127,11 +129,11 @@ const AdminCategories = () => {
     try {
       const response = await axios.delete(`http://localhost:5000/api/categories/${id}`);
       if (response.data.success) {
-        alert('Category deleted successfully!');
+        showNotification('Category deleted successfully!', 'success');
         fetchCategories();
       }
     } catch (error) {
-      alert('Failed to delete category');
+      showNotification('Failed to delete category', 'error');
     }
   };
 

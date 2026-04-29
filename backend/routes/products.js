@@ -524,6 +524,8 @@ router.get('/search/:query', async (req, res) => {
   try {
     const { query } = req.params;
 
+    console.log('🔍 Search query:', query);
+
     if (!query || query.trim().length === 0) {
       return res.json({
         success: true,
@@ -531,19 +533,23 @@ router.get('/search/:query', async (req, res) => {
       });
     }
 
-    // Search by product name, description, company, or SKU
+    // Search by product name, description, companyName, or SKU
     const products = await Product.find({
       $or: [
         { name: { $regex: query, $options: 'i' } },
         { description: { $regex: query, $options: 'i' } },
-        { company: { $regex: query, $options: 'i' } },
-        { sku: { $regex: query, $options: 'i' } }
+        { companyName: { $regex: query, $options: 'i' } },
+        { sku: { $regex: query, $options: 'i' } },
+        { variant: { $regex: query, $options: 'i' } }
       ],
       isActive: true
     })
     .populate('category')
+    .populate('company')
     .limit(10)
     .sort({ createdAt: -1 });
+
+    console.log(`✅ Found ${products.length} products`);
 
     res.json({
       success: true,

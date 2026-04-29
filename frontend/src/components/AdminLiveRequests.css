@@ -28,7 +28,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -40,7 +40,7 @@
 
 .admin-live-requests__add-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
 .admin-live-requests__loading {
@@ -75,7 +75,7 @@
 
 .admin-live-requests__search button {
   padding: 0.75rem 1rem;
-  background: #667eea;
+  background: #1e40af;
   color: white;
   border: none;
   border-radius: 8px;
@@ -256,7 +256,7 @@
 }
 
 .admin-live-requests__btn-submit {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
 }
 
@@ -290,7 +290,7 @@
 
 .admin-live-requests__view-actions button {
   padding: 0.75rem 1.5rem;
-  background: #667eea;
+  background: #1e40af;
   color: white;
   border: none;
   border-radius: 8px;
@@ -358,7 +358,7 @@
   padding: 0.5rem;
   background: white;
   border-radius: 6px;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid #1e40af;
 }
 
 .suggestion-grid {
@@ -437,7 +437,7 @@
 }
 
 .btn-add-item {
-  background: #48bb78;
+  background: #1e40af;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -449,7 +449,7 @@
 }
 
 .btn-add-item:hover {
-  background: #38a169;
+  background: #1e3a8a;
   transform: translateY(-1px);
 }
 
@@ -494,12 +494,12 @@
 
 .quotation-items-table input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
 }
 
 .btn-remove-item {
-  background: #fc8181;
+  background: #dc3545;
   color: white;
   border: none;
   width: 28px;
@@ -515,7 +515,7 @@
 }
 
 .btn-remove-item:hover {
-  background: #f56565;
+  background: #c82333;
   transform: scale(1.1);
 }
 
@@ -541,7 +541,7 @@
 
 .grand-total-row td {
   font-size: 1.1rem;
-  color: #667eea;
+  color: #1e40af;
   border-top: 2px solid #cbd5e0;
   padding-top: 1rem !important;
 }
@@ -561,7 +561,7 @@
 }
 
 .quote-summary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
   padding: 1.5rem;
   border-radius: 8px;
@@ -593,11 +593,11 @@
 }
 
 .admin-live-requests__btn-send-quote {
-  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
 }
 
 .admin-live-requests__btn-send-quote:hover {
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
 @media (max-width: 768px) {
@@ -619,3 +619,7 @@
     padding: 0.4rem;
   }
 }
+
+
+
+

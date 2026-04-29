@@ -27,7 +27,7 @@
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -38,7 +38,7 @@
 }
 
 .admin-categories__add-btn:hover {
-  background: #c0392b;
+  background: #1e3a8a;
 }
 
 .admin-categories__loading {
@@ -56,7 +56,7 @@
 }
 
 .admin-categories__empty svg {
-  color: #e94560;
+  color: #1e40af;
   margin-bottom: 20px;
   opacity: 0.5;
 }
@@ -167,13 +167,13 @@
 }
 
 .admin-categories__company-btn:hover {
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
-  border-color: #e94560;
+  border-color: #1e40af;
 }
 
 .admin-categories__company-btn svg:first-child {
-  color: #e94560;
+  color: #1e40af;
 }
 
 .admin-categories__company-btn:hover svg {
@@ -328,7 +328,7 @@
 }
 
 .admin-categories__actions button:first-child:hover {
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
 }
 
@@ -423,7 +423,7 @@
 .admin-categories__field input:focus,
 .admin-categories__field textarea:focus {
   outline: none;
-  border-color: #e94560;
+  border-color: #1e40af;
 }
 
 .admin-categories__icon-picker,
@@ -448,13 +448,13 @@
 }
 
 .admin-categories__icon-option:hover {
-  border-color: #e94560;
+  border-color: #1e40af;
   background: #fff;
 }
 
 .admin-categories__icon-option.selected {
-  border-color: #e94560;
-  background: #ffe4e8;
+  border-color: #1e40af;
+  background: #dbeafe;
 }
 
 .admin-categories__color-option {
@@ -467,12 +467,12 @@
 }
 
 .admin-categories__color-option:hover {
-  border-color: #e94560;
+  border-color: #1e40af;
   transform: scale(1.1);
 }
 
 .admin-categories__color-option.selected {
-  border-color: #e94560;
+  border-color: #1e40af;
   border-width: 3px;
   transform: scale(1.1);
 }
@@ -519,12 +519,12 @@
 }
 
 .admin-categories__btn-submit {
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
 }
 
 .admin-categories__btn-submit:hover {
-  background: #c0392b;
+  background: #1e3a8a;
 }
 
 @media (max-width: 768px) {
@@ -536,3 +536,7 @@
     min-width: 800px;
   }
 }
+
+
+
+

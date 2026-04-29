@@ -50,6 +50,18 @@ app.use('/api/clients', require('./routes/clients'));
 // Live Request routes
 app.use('/api/live-requests', require('./routes/liveRequests'));
 
+// Review routes
+app.use('/api/reviews', require('./routes/reviews'));
+
+// Contact routes
+app.use('/api/contacts', require('./routes/contacts'));
+
+// Relationship routes
+app.use('/api/relationships', require('./routes/relationships'));
+
+// Order routes
+app.use('/api/orders', require('./routes/orders'));
+
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/mernapp';

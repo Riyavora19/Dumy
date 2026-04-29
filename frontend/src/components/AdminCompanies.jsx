@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotification } from '../context/NotificationContext';
 import './AdminCompanies.css';
 
 const AdminCompanies = () => {
+  const { showNotification } = useNotification();
   const [companies, setCompanies] = useState([]);
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
@@ -178,7 +180,7 @@ const AdminCompanies = () => {
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
         if (response.data.success) {
-          alert('Company updated successfully!');
+          showNotification('Company updated successfully!', 'success');
         }
       } else {
         const response = await axios.post(
@@ -187,14 +189,14 @@ const AdminCompanies = () => {
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
         if (response.data.success) {
-          alert('Company created successfully!');
+          showNotification('Company created successfully!', 'success');
         }
       }
       
       fetchCompanies();
       closeModal();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to save company');
+      showNotification(error.response?.data?.message || 'Failed to save company', 'error');
     }
   };
 
@@ -220,11 +222,11 @@ const AdminCompanies = () => {
     try {
       const response = await axios.delete(`http://localhost:5000/api/companies/${id}`);
       if (response.data.success) {
-        alert('Company deleted successfully!');
+        showNotification('Company deleted successfully!', 'success');
         fetchCompanies();
       }
     } catch (error) {
-      alert('Failed to delete company');
+      showNotification('Failed to delete company', 'error');
     }
   };
 

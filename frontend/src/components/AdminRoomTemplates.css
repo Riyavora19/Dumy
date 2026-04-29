@@ -23,7 +23,7 @@
 
 /* Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -35,11 +35,11 @@
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
 .btn-secondary {
-  background: #3498db;
+  background: #1e40af;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -50,11 +50,11 @@
 }
 
 .btn-secondary:hover {
-  background: #2980b9;
+  background: #1e3a8a;
 }
 
 .btn-edit {
-  background: #3498db;
+  background: #1e40af;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -64,11 +64,11 @@
 }
 
 .btn-edit:hover {
-  background: #2980b9;
+  background: #1e3a8a;
 }
 
 .btn-delete {
-  background: #e74c3c;
+  background: #dc3545;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -78,11 +78,11 @@
 }
 
 .btn-delete:hover {
-  background: #c0392b;
+  background: #c82333;
 }
 
 .btn-remove {
-  background: #e74c3c;
+  background: #dc3545;
   color: white;
   border: none;
   padding: 0.25rem 0.75rem;
@@ -92,7 +92,7 @@
 }
 
 .btn-remove:hover {
-  background: #c0392b;
+  background: #c82333;
 }
 
 .btn-cancel {
@@ -110,7 +110,7 @@
 }
 
 .btn-submit {
-  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -121,7 +121,7 @@
 
 .btn-submit:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
 /* Templates Grid */
@@ -345,8 +345,8 @@
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
 }
 
 .checkbox-label {
@@ -384,7 +384,7 @@
 
 .item-number {
   font-weight: 600;
-  color: #667eea;
+  color: #1e40af;
 }
 
 .no-items {
@@ -453,3 +453,7 @@
     width: 100%;
   }
 }
+
+
+
+

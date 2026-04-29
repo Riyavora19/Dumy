@@ -38,9 +38,9 @@
 }
 
 .admin-inquiries__refresh-btn:hover {
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
-  border-color: #e94560;
+  border-color: #1e40af;
 }
 
 .admin-inquiries__refresh-btn svg {
@@ -68,13 +68,13 @@
 
 .admin-inquiries__filter:hover {
   background: #fff;
-  border-color: #e94560;
-  color: #e94560;
+  border-color: #1e40af;
+  color: #1e40af;
 }
 
 .admin-inquiries__filter.active {
-  background: #e94560;
-  border-color: #e94560;
+  background: #1e40af;
+  border-color: #1e40af;
   color: #fff;
 }
 
@@ -93,7 +93,7 @@
 }
 
 .admin-inquiries__empty svg {
-  color: #e94560;
+  color: #1e40af;
   margin-bottom: 20px;
   opacity: 0.5;
 }
@@ -159,7 +159,7 @@
 
 .admin-inquiries__email-link,
 .admin-inquiries__phone-link {
-  color: #e94560;
+  color: #1e40af;
   text-decoration: none;
   font-size: 13px;
 }
@@ -205,7 +205,7 @@
 
 .admin-inquiries__product-thumb:hover {
   transform: scale(1.1);
-  border-color: #e94560;
+  border-color: #1e40af;
   z-index: 10;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -301,7 +301,7 @@
 }
 
 .admin-inquiries__action-btn.view:hover {
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
 }
 
@@ -411,7 +411,7 @@
 }
 
 .admin-inquiries__detail-item a {
-  color: #e94560;
+  color: #1e40af;
   text-decoration: none;
 }
 
@@ -427,7 +427,7 @@
   padding: 16px;
   background: #f9f9f9;
   border-radius: 8px;
-  border-left: 3px solid #e94560;
+  border-left: 3px solid #1e40af;
 }
 
 .admin-inquiries__products-list {
@@ -447,8 +447,8 @@
 }
 
 .admin-inquiries__product-item:hover {
-  border-color: #e94560;
-  box-shadow: 0 2px 8px rgba(233, 69, 96, 0.1);
+  border-color: #1e40af;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.1);
 }
 
 .admin-inquiries__product-image {
@@ -490,7 +490,7 @@
 }
 
 .admin-inquiries__product-company svg {
-  color: #e94560;
+  color: #1e40af;
   flex-shrink: 0;
 }
 
@@ -512,7 +512,7 @@
 .admin-inquiries__product-price {
   font-size: 16px;
   font-weight: 700;
-  color: #e94560;
+  color: #1e40af;
 }
 
 .admin-inquiries__product-qty {
@@ -538,7 +538,7 @@
   padding: 16px;
   background: #fff;
   border-radius: 8px;
-  border: 2px solid #e94560;
+  border: 2px solid #1e40af;
   margin-top: 8px;
 }
 
@@ -549,7 +549,7 @@
 
 .admin-inquiries__grand-total {
   font-size: 20px;
-  color: #e94560;
+  color: #1e40af;
 }
 
 .admin-inquiries__status-buttons {
@@ -572,13 +572,13 @@
 
 .admin-inquiries__status-btn:hover {
   background: #fff;
-  border-color: #e94560;
-  color: #e94560;
+  border-color: #1e40af;
+  color: #1e40af;
 }
 
 .admin-inquiries__status-btn.active {
-  background: #e94560;
-  border-color: #e94560;
+  background: #1e40af;
+  border-color: #1e40af;
   color: #fff;
 }
 
@@ -632,3 +632,7 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+
+

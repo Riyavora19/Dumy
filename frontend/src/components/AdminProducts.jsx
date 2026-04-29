@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotification } from '../context/NotificationContext';
 import './AdminProducts.css';
 
 const AdminProducts = () => {
+  const { showNotification } = useNotification();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -113,7 +115,7 @@ const AdminProducts = () => {
       }
     } catch (error) {
       console.error('Error fetching products:', error);
-      alert('Failed to load products. Please refresh the page.');
+      showNotification('Failed to load products. Please refresh the page.', 'error');
     } finally {
       setLoading(false);
     }
@@ -204,29 +206,25 @@ const AdminProducts = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    alert('Form submitted! Checking data...');
-    
     console.log('Form submitted with data:', formData);
     console.log('Selected files:', selectedFiles);
     console.log('Existing images:', existingImages);
     
     // Validation
     if (!formData.name || !formData.category || !formData.price) {
-      alert('Please fill in all required fields: Name, Category, and Price');
+      showNotification('Please fill in all required fields: Name, Category, and Price', 'error');
       return;
     }
     
     if (!editingProduct && selectedFiles.length === 0) {
-      alert('Please select at least one image for the product');
+      showNotification('Please select at least one image for the product', 'error');
       return;
     }
     
     if (editingProduct && existingImages.length === 0 && selectedFiles.length === 0) {
-      alert('Please select at least one image for the product');
+      showNotification('Please select at least one image for the product', 'error');
       return;
     }
-    
-    alert('Validation passed! Creating product...');
     
     const data = new FormData();
     data.append('name', formData.name);
@@ -268,7 +266,7 @@ const AdminProducts = () => {
         );
         console.log('Update response:', response.data);
         if (response.data.success) {
-          alert('Product updated successfully!');
+          showNotification('Product updated successfully!', 'success');
           fetchProducts();
           closeModal();
         }
@@ -280,7 +278,7 @@ const AdminProducts = () => {
         );
         console.log('Create response:', response.data);
         if (response.data.success) {
-          alert('Product created successfully!');
+          showNotification('Product created successfully!', 'success');
           fetchProducts();
           closeModal();
         }
@@ -288,7 +286,7 @@ const AdminProducts = () => {
     } catch (error) {
       console.error('Error saving product:', error);
       console.error('Error response:', error.response?.data);
-      alert(error.response?.data?.message || 'Failed to save product. Check console for details.');
+      showNotification(error.response?.data?.message || 'Failed to save product. Check console for details.', 'error');
     }
   };
 
@@ -330,11 +328,11 @@ const AdminProducts = () => {
     try {
       const response = await axios.delete(`http://localhost:5000/api/products/${id}`);
       if (response.data.success) {
-        alert('Product deleted successfully!');
+        showNotification('Product deleted successfully!', 'success');
         fetchProducts();
       }
     } catch (error) {
-      alert('Failed to delete product');
+      showNotification('Failed to delete product', 'error');
     }
   };
 
@@ -424,7 +422,7 @@ const AdminProducts = () => {
 
   const removeBulkProduct = (id) => {
     if (bulkProducts.length === 1) {
-      alert('You must have at least one product');
+      showNotification('You must have at least one product', 'warning');
       return;
     }
     setBulkProducts(bulkProducts.filter(p => p.id !== id));
@@ -484,7 +482,7 @@ const AdminProducts = () => {
       }
     }
 
-    alert(`Bulk upload complete!\nSuccess: ${successCount}\nFailed: ${failCount}`);
+    showNotification(`Bulk upload complete!\nSuccess: ${successCount}\nFailed: ${failCount}`, successCount > 0 ? 'success' : 'error');
     fetchProducts();
     closeBulkModal();
   };

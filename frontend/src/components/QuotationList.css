@@ -1,0 +1,113 @@
+.quotation-list {
+  padding: 0;
+}
+
+.quotation-list__container {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.quotation-list__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.quotation-list__table thead {
+  background: #f9f9f9;
+}
+
+.quotation-list__table th {
+  padding: 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.quotation-list__table td {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  color: #555;
+}
+
+.quotation-list__table tbody tr:hover {
+  background: #f9f9f9;
+}
+
+.quotation-list__number {
+  font-weight: 700;
+  color: #1e40af;
+}
+
+.quotation-list__amount {
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.quotation-list__table a {
+  color: #1e40af;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.quotation-list__table a:hover {
+  text-decoration: underline;
+}
+
+.quotation-list__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.quotation-list__btn {
+  padding: 8px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+}
+
+.quotation-list__btn--view:hover {
+  background: #1e40af;
+  color: #fff;
+}
+
+.quotation-list__btn--edit:hover {
+  background: #1e40af;
+  color: #fff;
+}
+
+.quotation-list__btn--delete:hover {
+  background: #dc3545;
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .quotation-list__table {
+    font-size: 12px;
+  }
+
+  .quotation-list__table th,
+  .quotation-list__table td {
+    padding: 12px;
+  }
+
+  .quotation-list__actions {
+    gap: 4px;
+  }
+
+  .quotation-list__btn {
+    padding: 6px;
+  }
+}

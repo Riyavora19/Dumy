@@ -28,7 +28,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -40,7 +40,7 @@
 
 .admin-clients__add-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
 .admin-clients__loading {
@@ -73,7 +73,7 @@
 
 .admin-clients__search button {
   padding: 0.75rem 1rem;
-  background: #667eea;
+  background: #1e40af;
   color: white;
   border: none;
   border-radius: 8px;
@@ -124,7 +124,7 @@
 .admin-clients__avatar {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -161,7 +161,7 @@
 }
 
 .admin-clients__company {
-  color: #667eea;
+  color: #1e40af;
   font-size: 0.875rem;
   font-weight: 600;
   margin: 0 0 1rem 0;
@@ -319,7 +319,7 @@
 .admin-clients__field select:focus,
 .admin-clients__field textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #1e40af;
 }
 
 .admin-clients__row {
@@ -357,13 +357,13 @@
 }
 
 .admin-clients__btn-submit {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
 }
 
 .admin-clients__btn-submit:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
 /* Responsive */
@@ -390,3 +390,7 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+
+

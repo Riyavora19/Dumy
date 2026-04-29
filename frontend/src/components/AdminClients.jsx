@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotification } from '../context/NotificationContext';
 import './AdminClients.css';
 
 const AdminClients = () => {
+  const { showNotification } = useNotification();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -92,19 +94,19 @@ const AdminClients = () => {
           clientData
         );
         if (response.data.success) {
-          alert('Client updated successfully!');
+          showNotification('Client updated successfully!', 'success');
         }
       } else {
         const response = await axios.post('http://localhost:5000/api/clients', clientData);
         if (response.data.success) {
-          alert('Client created successfully!');
+          showNotification('Client created successfully!', 'success');
         }
       }
       
       fetchClients();
       closeModal();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to save client');
+      showNotification(error.response?.data?.message || 'Failed to save client', 'error');
     }
   };
 
@@ -138,11 +140,11 @@ const AdminClients = () => {
     try {
       const response = await axios.delete(`http://localhost:5000/api/clients/${id}`);
       if (response.data.success) {
-        alert('Client deleted successfully!');
+        showNotification('Client deleted successfully!', 'success');
         fetchClients();
       }
     } catch (error) {
-      alert('Failed to delete client');
+      showNotification('Failed to delete client', 'error');
     }
   };
 

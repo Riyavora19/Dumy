@@ -39,7 +39,7 @@
 }
 
 .categories__empty svg {
-  color: #e94560;
+  color: #1e40af;
   margin-bottom: 24px;
   opacity: 0.5;
 }
@@ -74,7 +74,7 @@
 }
 
 .categories__card:hover {
-  border-color: #e94560;
+  border-color: #1e40af;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   transform: translateY(-4px);
 }
@@ -114,7 +114,7 @@
 .categories__card-btn {
   width: 100%;
   padding: 12px 20px;
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -130,9 +130,9 @@
 }
 
 .categories__card-btn:hover {
-  background: #c0392b;
+  background: #1e3a8a;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
 }
 
 .categories__card-btn svg {
@@ -184,3 +184,7 @@
     padding: 30px 16px;
   }
 }
+
+
+
+

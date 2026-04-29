@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useNotification } from '../context/NotificationContext';
 import './BudgetBuilder.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function BudgetBuilder() {
+  const { showNotification } = useNotification();
   const { templateId } = useParams();
   const navigate = useNavigate();
   
@@ -23,13 +25,34 @@ function BudgetBuilder() {
   const fetchTemplate = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
+      console.log('🔍 Fetching template:', templateId);
+      
       const response = await fetch(`${API_URL}/room-templates/${templateId}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('Room template not found. Please go back and select a template again.');
+          console.error('❌ Template not found:', templateId);
+          return;
+        }
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log('✅ Template loaded:', data.name);
       setTemplate(data);
-      setBudget(data.estimatedBudget.recommended || data.estimatedBudget.min);
+      
+      // Set budget with safety checks
+      if (data.estimatedBudget) {
+        setBudget(data.estimatedBudget.recommended || data.estimatedBudget.min || 50000);
+      } else {
+        setBudget(50000);
+      }
     } catch (err) {
       console.error('Error fetching template:', err);
-      setError('Failed to load room template');
+      setError('Failed to load room template. Please go back and try again.');
     } finally {
       setLoading(false);
     }
@@ -39,6 +62,13 @@ function BudgetBuilder() {
     try {
       setGenerating(true);
       setError(null);
+      
+      console.log('🔍 Generating recommendations for:', {
+        templateId,
+        budget,
+        apiUrl: API_URL
+      });
+      
       const response = await fetch(`${API_URL}/budget-plans/generate-recommendations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,11 +78,16 @@ function BudgetBuilder() {
         })
       });
       
+      console.log('📡 Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to generate recommendations');
+        const errorText = await response.text();
+        console.error('❌ Error response:', errorText);
+        throw new Error(`Failed to generate recommendations: ${response.status} - ${errorText}`);
       }
       
       const data = await response.json();
+      console.log('✅ Recommendations received:', data);
       setRecommendations(data);
       
       // Auto-select first budget option for each item
@@ -159,12 +194,12 @@ function BudgetBuilder() {
         localStorage.setItem('myBudgetPlans', JSON.stringify(savedPlanIds));
       }
       
-      alert('Budget plan saved successfully!');
+      showNotification('Budget plan saved successfully!', 'success');
       // Navigate to My Budget Plans page to see the saved plan
       navigate('/my-budget-plans');
     } catch (err) {
       console.error('Error saving plan:', err);
-      alert('Failed to save plan. Please try again.');
+      showNotification('Failed to save plan. Please try again.', 'error');
     }
   };
 
@@ -179,7 +214,12 @@ function BudgetBuilder() {
   if (error && !template) {
     return (
       <main className="budget-builder-page">
-        <div className="error">{error}</div>
+        <div className="error-container">
+          <div className="error">{error}</div>
+          <button className="back-btn" onClick={() => navigate('/budget-planner')}>
+            ← Go Back to Budget Planner
+          </button>
+        </div>
       </main>
     );
   }
@@ -206,8 +246,8 @@ function BudgetBuilder() {
             <div className="budget-slider-container">
               <input
                 type="range"
-                min={template.estimatedBudget.min}
-                max={template.estimatedBudget.max}
+                min={template?.estimatedBudget?.min || 10000}
+                max={template?.estimatedBudget?.max || 500000}
                 step={1000}
                 value={budget}
                 onChange={(e) => setBudget(Number(e.target.value))}
@@ -217,8 +257,8 @@ function BudgetBuilder() {
                 <span className="budget-amount">₹{budget.toLocaleString('en-IN')}</span>
               </div>
               <div className="budget-range-labels">
-                <span>₹{(template.estimatedBudget.min / 1000).toFixed(0)}k</span>
-                <span>₹{(template.estimatedBudget.max / 1000).toFixed(0)}k</span>
+                <span>₹{((template?.estimatedBudget?.min || 10000) / 1000).toFixed(0)}k</span>
+                <span>₹{((template?.estimatedBudget?.max || 500000) / 1000).toFixed(0)}k</span>
               </div>
             </div>
             <button 

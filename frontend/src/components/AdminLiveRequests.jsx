@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotification } from '../context/NotificationContext';
 import './AdminLiveRequests.css';
 
 const AdminLiveRequests = () => {
+  const { showNotification } = useNotification();
   const [requests, setRequests] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -125,19 +127,19 @@ const AdminLiveRequests = () => {
           requestData
         );
         if (response.data.success) {
-          alert('Request updated successfully!');
+          showNotification('Request updated successfully!', 'success');
         }
       } else {
         const response = await axios.post('http://localhost:5000/api/live-requests', requestData);
         if (response.data.success) {
-          alert('Request created successfully!');
+          showNotification('Request created successfully!', 'success');
         }
       }
       
       fetchRequests();
       closeModal();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to save request');
+      showNotification(error.response?.data?.message || 'Failed to save request', 'error');
     }
   };
 
@@ -245,11 +247,11 @@ const AdminLiveRequests = () => {
     try {
       const response = await axios.delete(`http://localhost:5000/api/live-requests/${id}`);
       if (response.data.success) {
-        alert('Request deleted successfully!');
+        showNotification('Request deleted successfully!', 'success');
         fetchRequests();
       }
     } catch (error) {
-      alert('Failed to delete request');
+      showNotification('Failed to delete request', 'error');
     }
   };
 
@@ -338,7 +340,7 @@ const AdminLiveRequests = () => {
     // Validate that at least one item has description and price
     const validItems = quoteData.items.filter(item => item.description && item.unitPrice);
     if (validItems.length === 0) {
-      alert('Please add at least one item with description and price');
+      showNotification('Please add at least one item with description and price', 'error');
       return;
     }
     
@@ -407,20 +409,20 @@ Valid Until: ${quoteData.validUntil}
           );
 
           if (emailResponse.data.success) {
-            alert(`✅ Quotation sent successfully!\n\n📧 Email sent to: ${viewingRequest.clientEmail}\n💰 Grand Total: ₹${quoteData.grandTotal.toLocaleString('en-IN')}\n📅 Valid until: ${quoteData.validUntil}\n\nThe client has received the detailed quotation via email.`);
+            showNotification(`✅ Quotation sent successfully!\n\n📧 Email sent to: ${viewingRequest.clientEmail}\n💰 Grand Total: ₹${quoteData.grandTotal.toLocaleString('en-IN')}\n📅 Valid until: ${quoteData.validUntil}\n\nThe client has received the detailed quotation via email.`, 'success', 5000);
           } else {
-            alert(`✅ Quotation saved successfully!\n\n⚠️ Email sending failed: ${emailResponse.data.message}\n\nThe quotation has been saved but the email could not be sent. Please check your email configuration.`);
+            showNotification(`✅ Quotation saved successfully!\n\n⚠️ Email sending failed: ${emailResponse.data.message}\n\nThe quotation has been saved but the email could not be sent. Please check your email configuration.`, 'warning', 5000);
           }
         } catch (emailError) {
           console.error('Email error:', emailError);
-          alert(`✅ Quotation saved successfully!\n\n⚠️ Email could not be sent: ${emailError.response?.data?.message || emailError.message}\n\nThe quotation has been saved but the email could not be sent. Please check your email configuration.`);
+          showNotification(`✅ Quotation saved successfully!\n\n⚠️ Email could not be sent: ${emailError.response?.data?.message || emailError.message}\n\nThe quotation has been saved but the email could not be sent. Please check your email configuration.`, 'warning', 5000);
         }
         
         fetchRequests();
         closeModal();
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to send quotation');
+      showNotification(error.response?.data?.message || 'Failed to send quotation', 'error');
     }
   };
 

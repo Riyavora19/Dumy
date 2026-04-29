@@ -10,8 +10,12 @@ const AdminDashboard = ({ onNavigate }) => {
     totalClients: 0,
     totalInquiries: 0,
     totalBudgetPlans: 0,
+    totalContacts: 0,
+    totalOrders: 0,
+    totalReferrers: 0,
     recentInquiries: [],
     recentBudgetPlans: [],
+    recentOrders: [],
     lowStockProducts: []
   });
   const [loading, setLoading] = useState(true);
@@ -31,14 +35,18 @@ const AdminDashboard = ({ onNavigate }) => {
         companiesRes,
         clientsRes,
         inquiriesRes,
-        budgetPlansRes
+        budgetPlansRes,
+        contactsRes,
+        ordersRes
       ] = await Promise.all([
         axios.get('http://localhost:5000/api/products'),
         axios.get('http://localhost:5000/api/categories'),
         axios.get('http://localhost:5000/api/companies'),
         axios.get('http://localhost:5000/api/clients'),
         axios.get('http://localhost:5000/api/inquiries'),
-        axios.get('http://localhost:5000/api/budget-plans')
+        axios.get('http://localhost:5000/api/budget-plans'),
+        axios.get('http://localhost:5000/api/contacts'),
+        axios.get('http://localhost:5000/api/orders')
       ]);
 
       // Process products
@@ -53,6 +61,14 @@ const AdminDashboard = ({ onNavigate }) => {
       const budgetPlans = budgetPlansRes.data || [];
       const recentPlans = budgetPlans.slice(0, 5);
 
+      // Process contacts
+      const contacts = contactsRes.data.contacts || [];
+      const referrers = contacts.filter(c => c.isReferrer);
+
+      // Process orders
+      const orders = ordersRes.data.orders || [];
+      const recentOrders = orders.slice(0, 5);
+
       setStats({
         totalProducts: products.length,
         totalCategories: categoriesRes.data.data?.length || 0,
@@ -60,8 +76,12 @@ const AdminDashboard = ({ onNavigate }) => {
         totalClients: clientsRes.data.data?.length || 0,
         totalInquiries: inquiries.length,
         totalBudgetPlans: budgetPlans.length,
+        totalContacts: contacts.length,
+        totalOrders: orders.length,
+        totalReferrers: referrers.length,
         recentInquiries,
         recentBudgetPlans: recentPlans,
+        recentOrders,
         lowStockProducts: lowStock
       });
     } catch (error) {
@@ -166,6 +186,35 @@ const AdminDashboard = ({ onNavigate }) => {
             <p>Budget Plans</p>
           </div>
         </div>
+
+        <div className="admin-dashboard__stat-card" onClick={() => onNavigate('contacts')} style={{ cursor: 'pointer' }}>
+          <div className="admin-dashboard__stat-icon" style={{ background: '#764ba2' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div className="admin-dashboard__stat-content">
+            <h3>{stats.totalContacts}</h3>
+            <p>Contacts ({stats.totalReferrers} Referrers)</p>
+          </div>
+        </div>
+
+        <div className="admin-dashboard__stat-card" onClick={() => onNavigate('orders')} style={{ cursor: 'pointer' }}>
+          <div className="admin-dashboard__stat-icon" style={{ background: '#f093fb' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+          </div>
+          <div className="admin-dashboard__stat-content">
+            <h3>{stats.totalOrders}</h3>
+            <p>Orders</p>
+          </div>
+        </div>
       </div>
 
       {/* Content Grid */}
@@ -229,6 +278,40 @@ const AdminDashboard = ({ onNavigate }) => {
                     </div>
                     <span className={`admin-dashboard__status admin-dashboard__status--${plan.status}`}>
                       {plan.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Orders */}
+        <div className="admin-dashboard__card">
+          <div className="admin-dashboard__card-header">
+            <h2>Recent Orders</h2>
+            <span className="admin-dashboard__badge">{stats.recentOrders.length}</span>
+          </div>
+          <div className="admin-dashboard__card-content">
+            {stats.recentOrders.length === 0 ? (
+              <p className="admin-dashboard__empty">No orders yet</p>
+            ) : (
+              <div className="admin-dashboard__list">
+                {stats.recentOrders.map((order) => (
+                  <div key={order._id} className="admin-dashboard__list-item">
+                    <div className="admin-dashboard__list-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                      </svg>
+                    </div>
+                    <div className="admin-dashboard__list-content">
+                      <h4>{order.orderNumber}</h4>
+                      <p>{order.customerName}</p>
+                      <small>₹{order.total?.toLocaleString('en-IN')}</small>
+                    </div>
+                    <span className={`admin-dashboard__status admin-dashboard__status--${order.status}`}>
+                      {order.status}
                     </span>
                   </div>
                 ))}
@@ -356,6 +439,23 @@ const AdminDashboard = ({ onNavigate }) => {
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
             </svg>
             <span>Budget Plans</span>
+          </button>
+          <button className="admin-dashboard__action-btn" onClick={() => onNavigate('contacts')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>Manage Contacts</span>
+          </button>
+          <button className="admin-dashboard__action-btn" onClick={() => onNavigate('orders')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            <span>Create Order</span>
           </button>
         </div>
       </div>

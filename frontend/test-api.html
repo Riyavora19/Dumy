@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Budget API</title>
+</head>
+<body>
+    <h1>Test Budget Planner API</h1>
+    <button onclick="testAPI()">Test Generate Recommendations</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testAPI() {
+            const resultEl = document.getElementById('result');
+            resultEl.textContent = 'Loading...';
+            
+            try {
+                // First, get room templates
+                const templatesResponse = await fetch('http://localhost:5000/api/room-templates');
+                const templates = await templatesResponse.json();
+                
+                console.log('Templates:', templates);
+                resultEl.textContent = `Found ${templates.length} templates:\n`;
+                templates.forEach(t => {
+                    resultEl.textContent += `- ${t.name} (ID: ${t._id})\n`;
+                });
+                
+                if (templates.length > 0) {
+                    // Test generate recommendations with first template
+                    const templateId = templates[0]._id;
+                    resultEl.textContent += `\nTesting with template: ${templates[0].name}\n`;
+                    
+                    const response = await fetch('http://localhost:5000/api/budget-plans/generate-recommendations', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            roomTemplateId: templateId,
+                            budget: 147000
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                    }
+                    
+                    const data = await response.json();
+                    resultEl.textContent += `\n✅ Success! Got ${data.recommendations.length} recommendations\n\n`;
+                    resultEl.textContent += JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultEl.textContent = `❌ Error: ${error.message}\n${error.stack}`;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

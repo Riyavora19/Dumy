@@ -2,7 +2,7 @@
 .footer {
   background: #1a1a2e;
   color: #ccc;
-  border-top: 3px solid #e94560;
+  border-top: 3px solid #1e40af;
 }
 
 /* Main content */
@@ -26,7 +26,7 @@
 .footer__logo-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #e94560, #c0392b);
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
   color: #fff;
   font-size: 20px;
   font-weight: 800;
@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
 }
 
 .footer__logo-text {
@@ -46,7 +46,7 @@
 
 .footer__tagline {
   font-size: 13px;
-  color: #e94560;
+  color: #1e40af;
   font-weight: 600;
   margin: 0 0 12px;
 }
@@ -85,7 +85,7 @@
 }
 
 .footer__section ul li a:hover {
-  color: #e94560;
+  color: #1e40af;
 }
 
 /* Contact list */
@@ -99,7 +99,7 @@
 }
 
 .footer__contact svg {
-  color: #e94560;
+  color: #1e40af;
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -135,7 +135,7 @@
 }
 
 .footer__social a:hover {
-  color: #e94560;
+  color: #1e40af;
   transform: translateY(-2px);
 }
 
@@ -159,3 +159,7 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+
+

@@ -1,13 +1,20 @@
 import { useState, useEffect } from 'react';
+import { useNotification } from '../context/NotificationContext';
+import AdminBudgetPlanForm from './AdminBudgetPlanForm';
+import AdminOrderForm from './AdminOrderForm';
 import './AdminBudgetPlans.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function AdminBudgetPlans() {
+  const { showNotification } = useNotification();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [showBudgetPlanForm, setShowBudgetPlanForm] = useState(false);
+  const [showConvertToOrderModal, setShowConvertToOrderModal] = useState(false);
+  const [planToConvert, setPlanToConvert] = useState(null);
 
   useEffect(() => {
     fetchPlans();
@@ -25,7 +32,7 @@ function AdminBudgetPlans() {
       setPlans(data);
     } catch (error) {
       console.error('Error fetching budget plans:', error);
-      alert('Failed to fetch budget plans');
+      showNotification('Failed to fetch budget plans', 'error');
     } finally {
       setLoading(false);
     }
@@ -51,7 +58,7 @@ function AdminBudgetPlans() {
         throw new Error('Failed to update status');
       }
 
-      alert('Status updated successfully!');
+      showNotification('Status updated successfully!', 'success');
       fetchPlans();
       if (selectedPlan && selectedPlan._id === planId) {
         const updatedPlan = await response.json();
@@ -59,7 +66,7 @@ function AdminBudgetPlans() {
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Failed to update status');
+      showNotification('Failed to update status', 'error');
     }
   };
 
@@ -75,45 +82,23 @@ function AdminBudgetPlans() {
         throw new Error('Failed to delete plan');
       }
 
-      alert('Budget plan deleted successfully!');
+      showNotification('Budget plan deleted successfully!', 'success');
       fetchPlans();
       if (selectedPlan && selectedPlan._id === planId) {
         setSelectedPlan(null);
       }
     } catch (error) {
       console.error('Error deleting plan:', error);
-      alert('Failed to delete plan');
+      showNotification('Failed to delete plan', 'error');
     }
   };
 
-  const handleConvertToLiveRequest = async (planId) => {
-    if (!confirm('Convert this budget plan to a live request? This will create a new live request and update the plan status to "inquiry_sent".')) return;
-
-    try {
-      const response = await fetch(`${API_URL}/live-requests/from-budget-plan/${planId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to convert to live request');
-      }
-
-      const result = await response.json();
-      
-      alert(`Budget plan converted to live request successfully!\nRequest Number: ${result.data.requestNumber}`);
-      fetchPlans(); // Refresh to show updated status
-      if (selectedPlan && selectedPlan._id === planId) {
-        const updatedPlan = plans.find(p => p._id === planId);
-        if (updatedPlan) {
-          setSelectedPlan({ ...updatedPlan, status: 'inquiry_sent' });
-        }
-      }
-    } catch (error) {
-      console.error('Error converting to live request:', error);
-      alert(error.message || 'Failed to convert to live request');
-    }
+  const handleConvertToOrder = async (plan) => {
+    // Set the plan to convert and open the order form
+    setPlanToConvert(plan);
+    setShowConvertToOrderModal(true);
+    // Close details modal if open
+    setSelectedPlan(null);
   };
 
   const getStatusColor = (status) => {
@@ -144,19 +129,24 @@ function AdminBudgetPlans() {
     <div className="admin-budget-plans">
       <div className="admin-section-header">
         <h2>💰 Budget Plans</h2>
-        <div className="filter-controls">
-          <label>Filter by Status:</label>
-          <select 
-            value={filterStatus} 
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="status-filter"
-          >
-            <option value="all">All Plans</option>
-            <option value="draft">Draft</option>
-            <option value="finalized">Finalized</option>
-            <option value="inquiry_sent">Inquiry Sent</option>
-            <option value="completed">Completed</option>
-          </select>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={() => setShowBudgetPlanForm(true)}>
+            + Create Budget Plan
+          </button>
+          <div className="filter-controls">
+            <label>Filter by Status:</label>
+            <select 
+              value={filterStatus} 
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="status-filter"
+            >
+              <option value="all">All Plans</option>
+              <option value="draft">Draft</option>
+              <option value="finalized">Finalized</option>
+              <option value="inquiry_sent">Inquiry Sent</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -229,11 +219,11 @@ function AdminBudgetPlans() {
                 </button>
                 <button 
                   className="btn-convert"
-                  onClick={() => handleConvertToLiveRequest(plan._id)}
-                  disabled={plan.status === 'inquiry_sent' || plan.status === 'completed'}
-                  title={plan.status === 'inquiry_sent' ? 'Already converted to live request' : 'Convert to live request'}
+                  onClick={() => handleConvertToOrder(plan)}
+                  disabled={plan.status === 'completed'}
+                  title="Convert to order"
                 >
-                  {plan.status === 'inquiry_sent' ? '✓ Converted' : '🔄 Convert'}
+                  {plan.status === 'completed' ? '✓ Completed' : '📦 Convert to Order'}
                 </button>
                 <button 
                   className="btn-delete"
@@ -361,15 +351,41 @@ function AdminBudgetPlans() {
               <div className="details-actions">
                 <button 
                   className="btn-convert-modal"
-                  onClick={() => handleConvertToLiveRequest(selectedPlan._id)}
-                  disabled={selectedPlan.status === 'inquiry_sent' || selectedPlan.status === 'completed'}
+                  onClick={() => handleConvertToOrder(selectedPlan)}
+                  disabled={selectedPlan.status === 'completed'}
                 >
-                  {selectedPlan.status === 'inquiry_sent' ? '✓ Already Converted to Live Request' : '🔄 Convert to Live Request'}
+                  {selectedPlan.status === 'completed' ? '✓ Already Completed' : '📦 Convert to Order'}
                 </button>
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {showBudgetPlanForm && (
+        <AdminBudgetPlanForm
+          onClose={() => setShowBudgetPlanForm(false)}
+          onSuccess={() => {
+            setShowBudgetPlanForm(false);
+            fetchPlans();
+          }}
+        />
+      )}
+
+      {showConvertToOrderModal && planToConvert && (
+        <AdminOrderForm
+          budgetPlan={planToConvert}
+          onClose={() => {
+            setShowConvertToOrderModal(false);
+            setPlanToConvert(null);
+          }}
+          onSuccess={() => {
+            setShowConvertToOrderModal(false);
+            setPlanToConvert(null);
+            fetchPlans();
+            showNotification('Order created successfully from budget plan!', 'success');
+          }}
+        />
       )}
     </div>
   );

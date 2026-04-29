@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotification } from '../context/NotificationContext';
 import './AdminInquiries.css';
 
 const AdminInquiries = () => {
+  const { showNotification } = useNotification();
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -34,11 +36,11 @@ const AdminInquiries = () => {
         if (selectedInquiry?._id === id) {
           setSelectedInquiry(response.data.data);
         }
-        alert('Status updated successfully!');
+        showNotification('Status updated successfully!', 'success');
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Failed to update status');
+      showNotification('Failed to update status', 'error');
     }
   };
 
@@ -53,11 +55,11 @@ const AdminInquiries = () => {
           setShowDetailModal(false);
           setSelectedInquiry(null);
         }
-        alert('Inquiry deleted successfully!');
+        showNotification('Inquiry deleted successfully!', 'success');
       }
     } catch (error) {
       console.error('Error deleting inquiry:', error);
-      alert('Failed to delete inquiry');
+      showNotification('Failed to delete inquiry', 'error');
     }
   };
 
@@ -67,14 +69,14 @@ const AdminInquiries = () => {
     try {
       const response = await axios.post(`http://localhost:5000/api/inquiries/${id}/convert-to-live-request`);
       if (response.data.success) {
-        alert(`✅ Inquiry converted to live request successfully!\n\nRequest Number: ${response.data.data.requestNumber}\n\nYou can now view and manage this request in the Live Requests section.`);
+        showNotification(`✅ Inquiry converted to live request successfully!\n\nRequest Number: ${response.data.data.requestNumber}\n\nYou can now view and manage this request in the Live Requests section.`, 'success', 5000);
         fetchInquiries();
         setShowDetailModal(false);
         setSelectedInquiry(null);
       }
     } catch (error) {
       console.error('Error converting inquiry:', error);
-      alert(error.response?.data?.message || 'Failed to convert inquiry to live request');
+      showNotification(error.response?.data?.message || 'Failed to convert inquiry to live request', 'error');
     }
   };
 

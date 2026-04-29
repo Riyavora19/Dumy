@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useNotification } from '../context/NotificationContext';
 import './MyBudgetPlans.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function MyBudgetPlans() {
+  const { showNotification } = useNotification();
   const navigate = useNavigate();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -66,14 +68,14 @@ function MyBudgetPlans() {
       const updatedIds = savedPlanIds.filter(id => id !== planId);
       localStorage.setItem('myBudgetPlans', JSON.stringify(updatedIds));
 
-      alert('Budget plan deleted successfully!');
+      showNotification('Budget plan deleted successfully!', 'success');
       fetchMyPlans();
       if (selectedPlan && selectedPlan._id === planId) {
         setSelectedPlan(null);
       }
     } catch (error) {
       console.error('Error deleting plan:', error);
-      alert('Failed to delete plan. Please try again.');
+      showNotification('Failed to delete plan. Please try again.', 'error');
     }
   };
 

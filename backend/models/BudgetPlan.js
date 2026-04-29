@@ -21,7 +21,7 @@ const budgetPlanSchema = new mongoose.Schema({
   roomTemplate: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'RoomTemplate',
-    required: true
+    required: false // Optional for admin-created plans
   },
   roomName: {
     type: String,
@@ -37,7 +37,7 @@ const budgetPlanSchema = new mongoose.Schema({
     itemType: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ProductItemType',
-      required: true
+      required: false // Made optional for flexibility
     },
     itemName: {
       type: String,

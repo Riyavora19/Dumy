@@ -88,28 +88,24 @@ const Navbar = () => {
         {/* LEFT: Logo + brand */}
         <div className="header__brand">
           <div className="header__logo-icon">
-            <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" width="68" height="68">
-              <circle cx="30" cy="30" r="28" fill="#e94560" />
-              <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle"
-                fill="#fff" fontSize="26" fontWeight="800" fontFamily="system-ui">K</text>
-            </svg>
+            <img src="/gtss-logo.png" alt="GTSS Logo" />
           </div>
           <div className="header__brand-text">
-            <span className="header__company-name">Company Name</span>
-            <span className="header__subtitle">Premium Products &amp; Supplies</span>
+            <span className="header__company-name">Gujarat Tube & Sanitary Stores</span>
+            <span className="header__subtitle">BATHTUB | CP FITTING | SANITARY WARE | TILES</span>
             <div className="header__contact">
               <span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.82a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 16.92z"/>
                 </svg>
-                +91 98765 43210
+                92272 06063
               </span>
               <span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                   <polyline points="22,6 12,13 2,6"/>
                 </svg>
-                info@kohlar.com
+                gtss47@hotmail.com
               </span>
             </div>
           </div>

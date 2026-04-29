@@ -32,7 +32,7 @@
 .admin__logo-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #e94560, #c0392b);
+  background: linear-gradient(135deg, #1e40af, #1e3a8a);
   color: #fff;
   font-size: 18px;
   font-weight: 800;
@@ -40,7 +40,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
 .admin__logo span {
@@ -79,8 +79,8 @@
 }
 
 .admin__nav-item--active {
-  background: rgba(233, 69, 96, 0.15);
-  color: #e94560;
+  background: rgba(30, 64, 175, 0.15);
+  color: #1e40af;
 }
 
 .admin__nav-item svg {
@@ -103,7 +103,7 @@
 }
 
 .admin__nav-badge {
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
   font-size: 11px;
   font-weight: 700;
@@ -180,8 +180,8 @@
 }
 
 .admin__refresh:hover {
-  border-color: #e94560;
-  color: #e94560;
+  border-color: #1e40af;
+  color: #1e40af;
 }
 
 .admin__filters {
@@ -204,13 +204,13 @@
 }
 
 .admin__filter:hover {
-  border-color: #e94560;
-  color: #e94560;
+  border-color: #1e40af;
+  color: #1e40af;
 }
 
 .admin__filter--active {
-  background: #e94560;
-  border-color: #e94560;
+  background: #1e40af;
+  border-color: #1e40af;
   color: #fff;
 }
 
@@ -248,13 +248,13 @@
 }
 
 .admin__item:hover {
-  border-color: #e94560;
-  background: #fff5f7;
+  border-color: #1e40af;
+  background: #dbeafe;
 }
 
 .admin__item--active {
-  border-color: #e94560;
-  background: #ffe4e8;
+  border-color: #1e40af;
+  background: #dbeafe;
 }
 
 .admin__item-header {
@@ -379,7 +379,7 @@
 }
 
 .admin__detail-row a {
-  color: #e94560;
+  color: #1e40af;
   text-decoration: none;
 }
 
@@ -434,8 +434,8 @@
 }
 
 .admin__status-buttons button:hover {
-  background: #e94560;
-  border-color: #e94560;
+  background: #1e40af;
+  border-color: #1e40af;
   color: #fff;
 }
 
@@ -451,7 +451,7 @@
 }
 
 .admin__placeholder svg {
-  color: #e94560;
+  color: #1e40af;
   margin-bottom: 24px;
   opacity: 0.7;
 }
@@ -502,3 +502,7 @@
     padding: 20px;
   }
 }
+
+
+
+

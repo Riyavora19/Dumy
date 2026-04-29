@@ -1,0 +1,136 @@
+/* Notification Container */
+.notification-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 400px;
+  width: 100%;
+}
+
+/* Notification */
+.notification {
+  background: white;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  animation: slideInRight 0.3s ease;
+  min-width: 300px;
+  position: relative;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.notification__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notification__message {
+  flex: 1;
+  font-size: 0.95rem;
+  color: #1f2937;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.notification__close {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+}
+
+.notification__close:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+/* Success Notification */
+.notification--success {
+  border-left: 4px solid #10b981;
+}
+
+.notification--success .notification__icon {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+/* Error Notification */
+.notification--error {
+  border-left: 4px solid #dc2626;
+}
+
+.notification--error .notification__icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Info Notification */
+.notification--info {
+  border-left: 4px solid #1e40af;
+}
+
+.notification--info .notification__icon {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+/* Warning Notification */
+.notification--warning {
+  border-left: 4px solid #f59e0b;
+}
+
+.notification--warning .notification__icon {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .notification-container {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+
+  .notification {
+    min-width: auto;
+  }
+}
+
+
+
+
+

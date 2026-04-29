@@ -34,7 +34,7 @@
 }
 
 .cart__empty svg {
-  color: #e94560;
+  color: #1e40af;
   margin-bottom: 24px;
   opacity: 0.5;
 }
@@ -54,7 +54,7 @@
 
 .cart__browse-btn {
   padding: 14px 32px;
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -65,7 +65,7 @@
 }
 
 .cart__browse-btn:hover {
-  background: #c0392b;
+  background: #1e3a8a;
 }
 
 .cart__content {
@@ -133,7 +133,7 @@
 }
 
 .cart__item-company svg {
-  color: #e94560;
+  color: #1e40af;
   flex-shrink: 0;
 }
 
@@ -146,7 +146,7 @@
 .cart__item-price {
   font-size: 20px;
   font-weight: 700;
-  color: #e94560;
+  color: #1e40af;
   margin: 0;
 }
 
@@ -176,9 +176,9 @@
 }
 
 .cart__qty-btn:hover {
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
-  border-color: #e94560;
+  border-color: #1e40af;
 }
 
 .cart__qty-value {
@@ -261,13 +261,13 @@
 
 .cart__summary-total strong {
   font-size: 24px;
-  color: #e94560;
+  color: #1e40af;
 }
 
 .cart__inquiry-btn {
   width: 100%;
   padding: 14px 20px;
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -283,7 +283,7 @@
 }
 
 .cart__inquiry-btn:hover {
-  background: #c0392b;
+  background: #1e3a8a;
 }
 
 .cart__clear-btn {
@@ -398,12 +398,12 @@
 .cart__form-field input:focus,
 .cart__form-field textarea:focus {
   outline: none;
-  border-color: #e94560;
+  border-color: #1e40af;
 }
 
 .cart__form-info {
-  background: #f0f8ff;
-  border-left: 3px solid #e94560;
+  background: #dbeafe;
+  border-left: 3px solid #1e40af;
   padding: 12px 16px;
   border-radius: 6px;
   margin-bottom: 20px;
@@ -442,12 +442,12 @@
 }
 
 .cart__btn-submit {
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
 }
 
 .cart__btn-submit:hover {
-  background: #c0392b;
+  background: #1e3a8a;
 }
 
 .cart__btn-submit:disabled {
@@ -502,3 +502,39 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Cart Item Price */
+.cart__item-price {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: #1e40af;
+}
+
+.cart__item-price strong {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.cart__item-subtotal {
+  font-size: 0.875rem;
+  color: #718096;
+  margin-left: 0.5rem;
+}
+
+/* Cart Summary Total */
+.cart__summary-total {
+  padding-top: 1rem;
+  margin-top: 1rem;
+  border-top: 2px solid #e2e8f0;
+  font-size: 1.1rem;
+}
+
+.cart__summary-total strong {
+  color: #1e40af;
+  font-size: 1.3rem;
+}
+
+
+
+

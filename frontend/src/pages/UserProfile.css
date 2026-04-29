@@ -45,7 +45,7 @@
 .user-profile__avatar-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -146,13 +146,13 @@
 .user-profile__action-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border-color: #667eea;
+  border-color: #1e40af;
 }
 
 .user-profile__action-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -185,7 +185,7 @@
 }
 
 .user-profile__action-card:hover svg {
-  color: #667eea;
+  color: #1e40af;
   transform: translateX(4px);
 }
 
@@ -213,7 +213,7 @@
 
 .user-profile__edit-btn {
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
   border: none;
   border-radius: 6px;
@@ -275,7 +275,7 @@
 
 .user-profile__field input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #1e40af;
 }
 
 .user-profile__field small {
@@ -319,13 +319,13 @@
 }
 
 .user-profile__save-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
 }
 
 .user-profile__save-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
 .user-profile__password-info {
@@ -375,3 +375,7 @@
     width: 100%;
   }
 }
+
+
+
+

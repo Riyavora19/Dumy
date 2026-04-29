@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotification } from '../context/NotificationContext';
 import './RequestQuote.css';
 
 const RequestQuote = () => {
+  const { showNotification } = useNotification();
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     clientName: '',
@@ -61,14 +63,19 @@ const RequestQuote = () => {
     setSubmitting(true);
 
     try {
-      const requestData = {
-        ...formData,
-        categoryName: categories.find(c => c._id === formData.category)?.name || '',
-        status: 'new',
-        priority: 'medium'
+      // Map form data to inquiry schema
+      const inquiryData = {
+        name: formData.clientName,
+        email: formData.clientEmail,
+        phone: formData.clientPhone,
+        message: `Request Type: ${formData.requestType}\n\nTitle: ${formData.title}\n\nDescription: ${formData.description}\n\nBudget: ₹${formData.budget.min || 'Not specified'} - ₹${formData.budget.max || 'Not specified'}\n\nUrgency: ${formData.urgency}\n\nPreferred Date: ${formData.preferredDate || 'Not specified'}\n\nLocation: ${formData.location.address ? `${formData.location.address}, ${formData.location.city}, ${formData.location.state} - ${formData.location.pincode}` : 'Not specified'}\n\nCategory: ${categories.find(c => c._id === formData.category)?.name || 'Not specified'}`,
+        status: 'new'
       };
 
-      const response = await axios.post('http://localhost:5000/api/live-requests', requestData);
+      console.log('Submitting inquiry:', inquiryData);
+
+      // Save to inquiries
+      const response = await axios.post('http://localhost:5000/api/inquiries', inquiryData);
       
       if (response.data.success) {
         setSubmitted(true);
@@ -89,8 +96,9 @@ const RequestQuote = () => {
         });
       }
     } catch (error) {
-      console.error('Error submitting request:', error);
-      alert('Failed to submit request. Please try again.');
+      console.error('Error submitting inquiry:', error);
+      console.error('Error response:', error.response?.data);
+      showNotification(error.response?.data?.message || 'Failed to submit request. Please try again.', 'error');
     } finally {
       setSubmitting(false);
     }

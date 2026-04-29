@@ -10,7 +10,7 @@
 
 /* Hero Section */
 .contact__hero {
-  background: linear-gradient(135deg, #1a2a3a 0%, #2d3e4f 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 80px 40px;
   text-align: center;
   color: #fff;
@@ -25,7 +25,7 @@
 
 .contact__hero-content p {
   font-size: 16px;
-  color: #e8899a;
+  color: #fff;
   margin: 0;
   max-width: 700px;
   margin-left: auto;
@@ -123,8 +123,8 @@
 
 .contact__card:hover {
   transform: translateY(-8px);
-  border-color: #e8899a;
-  box-shadow: 0 12px 32px rgba(233, 69, 96, 0.1);
+  border-color: #1e40af;
+  box-shadow: 0 12px 32px rgba(30, 64, 175, 0.1);
 }
 
 .contact__card-icon {
@@ -157,7 +157,7 @@
 .contact__card-btn {
   width: 100%;
   padding: 12px 20px;
-  background: #1f3a52;
+  background: #1e40af;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -169,7 +169,7 @@
 }
 
 .contact__card-btn:hover {
-  background: #152a3f;
+  background: #1e3a8a;
   transform: translateY(-2px);
 }
 
@@ -246,7 +246,7 @@
 }
 
 .contact__hours-closed {
-  color: #e8899a;
+  color: #1e40af;
   font-weight: 700;
 }
 
@@ -337,13 +337,13 @@
 .contact__form-field input:focus,
 .contact__form-field textarea:focus {
   outline: none;
-  border-color: #e8899a;
-  box-shadow: 0 0 0 3px rgba(232, 137, 154, 0.1);
+  border-color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
 }
 
 .contact__submit {
   padding: 14px 32px;
-  background: #e8899a;
+  background: #1e40af;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -355,7 +355,7 @@
 }
 
 .contact__submit:hover {
-  background: #d97a8a;
+  background: #1e3a8a;
   transform: translateY(-2px);
 }
 
@@ -367,7 +367,7 @@
 
 /* CTA Section */
 .contact__cta {
-  background: linear-gradient(135deg, #1a2a3a 0%, #2d3e4f 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 80px 40px;
   text-align: center;
 }
@@ -380,7 +380,7 @@
 .contact__cta-label {
   font-size: 12px;
   font-weight: 700;
-  color: #e8899a;
+  color: #fbbf24;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin: 0 0 16px;
@@ -418,12 +418,12 @@
 }
 
 .contact__cta-btn--primary {
-  background: #e8899a;
+  background: #1e40af;
   color: #fff;
 }
 
 .contact__cta-btn--primary:hover {
-  background: #d97a8a;
+  background: #1e3a8a;
   transform: translateY(-2px);
 }
 
@@ -435,7 +435,7 @@
 
 .contact__cta-btn--secondary:hover {
   background: #fff;
-  color: #1a2a3a;
+  color: #1e40af;
 }
 
 /* Responsive */
@@ -515,3 +515,7 @@
     font-size: 24px;
   }
 }
+
+
+
+

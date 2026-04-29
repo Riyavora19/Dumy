@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotification } from '../context/NotificationContext';
 import './AdminUsers.css';
 
 const AdminUsers = () => {
+  const { showNotification } = useNotification();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,11 +61,11 @@ const AdminUsers = () => {
     try {
       const response = await axios.patch(`http://localhost:5000/api/users/${userId}/toggle-status`);
       if (response.data.success) {
-        alert(response.data.message);
+        showNotification(response.data.message, 'success');
         fetchUsers();
       }
     } catch (error) {
-      alert('Failed to update user status');
+      showNotification('Failed to update user status', 'error');
     }
   };
 
@@ -73,11 +75,11 @@ const AdminUsers = () => {
     try {
       const response = await axios.delete(`http://localhost:5000/api/users/${userId}`);
       if (response.data.success) {
-        alert('User deleted successfully!');
+        showNotification('User deleted successfully!', 'success');
         fetchUsers();
       }
     } catch (error) {
-      alert('Failed to delete user');
+      showNotification('Failed to delete user', 'error');
     }
   };
 
@@ -131,12 +133,12 @@ const AdminUsers = () => {
       );
       
       if (response.data.success) {
-        alert('User updated successfully!');
+        showNotification('User updated successfully!', 'success');
         setEditingUser(null);
         fetchUsers();
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to update user');
+      showNotification(error.response?.data?.message || 'Failed to update user', 'error');
     }
   };
 
@@ -159,12 +161,12 @@ const AdminUsers = () => {
     e.preventDefault();
     
     if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
-      alert('Passwords do not match!');
+      showNotification('Passwords do not match!', 'error');
       return;
     }
 
     if (passwordFormData.newPassword.length < 6) {
-      alert('Password must be at least 6 characters long!');
+      showNotification('Password must be at least 6 characters long!', 'error');
       return;
     }
 
@@ -175,12 +177,12 @@ const AdminUsers = () => {
       );
       
       if (response.data.success) {
-        alert('Password changed successfully!');
+        showNotification('Password changed successfully!', 'success');
         setChangingPassword(null);
         setPasswordFormData({ newPassword: '', confirmPassword: '' });
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to change password');
+      showNotification(error.response?.data?.message || 'Failed to change password', 'error');
     }
   };
 

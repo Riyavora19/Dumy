@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 2rem;
 }
 
@@ -19,7 +19,7 @@
 .admin-login__header {
   text-align: center;
   padding: 3rem 2rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
 }
 
@@ -33,7 +33,7 @@
   width: 80px;
   height: 80px;
   background: white;
-  color: #667eea;
+  color: #1e40af;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -93,14 +93,14 @@
 
 .admin-login__field input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
 }
 
 .admin-login__submit {
   width: 100%;
   padding: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -116,7 +116,7 @@
 
 .admin-login__submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 20px rgba(30, 64, 175, 0.4);
 }
 
 .admin-login__submit:disabled {
@@ -176,3 +176,7 @@
     padding: 1.5rem;
   }
 }
+
+
+
+

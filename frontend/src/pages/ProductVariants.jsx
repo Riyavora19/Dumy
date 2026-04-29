@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
+import ProductReviews from '../components/ProductReviews';
 import './ProductVariants.css';
 
 const ProductVariants = () => {
   const { categoryId, productName, companyName } = useParams();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const companyFilter = searchParams.get('company') || companyName;
   const [allProducts, setAllProducts] = useState([]);
   const [products, setProducts] = useState([]);
@@ -18,7 +20,7 @@ const ProductVariants = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const { addToCart } = useCart();
+  const { addToCart, isInCart, getCartItemQuantity } = useCart();
 
   // Fetch data only when category or product name changes
   useEffect(() => {
@@ -342,27 +344,48 @@ const ProductVariants = () => {
                         <span className="product-variants__stock out-of-stock">Out of Stock</span>
                       )}
                       <div className="product-variants__card-actions">
-                        <button 
-                          className="product-variants__btn product-variants__btn--details"
-                          onClick={() => openModal(product)}
-                        >
-                          View Details
-                        </button>
-                        <button 
-                          className="product-variants__btn product-variants__btn--cart"
-                          onClick={() => {
-                            addToCart(product);
-                            alert('Added to cart!');
-                          }}
-                          disabled={product.stock === 0}
-                        >
-                          Add to Cart
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="9" cy="21" r="1"/>
-                            <circle cx="20" cy="21" r="1"/>
-                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                          </svg>
-                        </button>
+                        {!isInCart(product._id) ? (
+                          <>
+                            <button 
+                              className="product-variants__btn product-variants__btn--details"
+                              onClick={() => openModal(product)}
+                            >
+                              View Details
+                            </button>
+                            <button 
+                              className="product-variants__btn product-variants__btn--cart"
+                              onClick={() => {
+                                addToCart(product);
+                              }}
+                              disabled={product.stock === 0}
+                            >
+                              Add to Cart
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="9" cy="21" r="1"/>
+                                <circle cx="20" cy="21" r="1"/>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                              </svg>
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button 
+                              className="product-variants__btn product-variants__btn--details"
+                              onClick={() => openModal(product)}
+                            >
+                              View Details
+                            </button>
+                            <button 
+                              className="product-variants__btn product-variants__btn--in-cart"
+                              onClick={() => navigate('/cart')}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                              </svg>
+                              In Cart ({getCartItemQuantity(product._id)})
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -501,7 +524,6 @@ const ProductVariants = () => {
                   onClick={() => {
                     addToCart(selectedProduct);
                     closeModal();
-                    alert('Added to cart!');
                   }}
                   disabled={selectedProduct.stock === 0}
                 >
@@ -513,6 +535,11 @@ const ProductVariants = () => {
                   </svg>
                 </button>
               </div>
+            </div>
+
+            {/* Product Reviews Section */}
+            <div className="product-variants__modal-reviews">
+              <ProductReviews productId={selectedProduct._id} />
             </div>
           </div>
         </div>

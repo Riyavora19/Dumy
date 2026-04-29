@@ -108,7 +108,7 @@
 }
 
 .admin-dashboard__badge {
-  background: #667eea;
+  background: #1e40af;
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
@@ -155,7 +155,7 @@
 .admin-dashboard__list-icon {
   width: 40px;
   height: 40px;
-  background: #667eea;
+  background: #1e40af;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -312,7 +312,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1.5rem 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
   border: none;
   border-radius: 10px;
@@ -324,7 +324,7 @@
 
 .admin-dashboard__action-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
 .admin-dashboard__action-btn svg {
@@ -355,3 +355,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+
+
+

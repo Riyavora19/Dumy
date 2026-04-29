@@ -110,21 +110,30 @@ router.delete('/:id', async (req, res) => {
 // Generate budget recommendations
 router.post('/generate-recommendations', async (req, res) => {
   try {
+    console.log('📊 Generate recommendations request:', req.body);
+    
     const { roomTemplateId, budget } = req.body;
     
     if (!roomTemplateId || !budget) {
+      console.log('❌ Missing required fields');
       return res.status(400).json({ 
         message: 'Room template ID and budget are required' 
       });
     }
+    
+    console.log(`🔍 Finding template: ${roomTemplateId}`);
     
     // Get room template with required items
     const template = await RoomTemplate.findById(roomTemplateId)
       .populate('requiredItems.itemType');
     
     if (!template) {
+      console.log('❌ Template not found');
       return res.status(404).json({ message: 'Room template not found' });
     }
+    
+    console.log(`✅ Template found: ${template.name}`);
+    console.log(`📋 Required items: ${template.requiredItems.length}`);
     
     // Generate recommendations for each required item
     const recommendations = [];
@@ -132,6 +141,9 @@ router.post('/generate-recommendations', async (req, res) => {
     for (const item of template.requiredItems) {
       // Calculate budget allocation for this item
       const itemBudget = (budget * item.budgetAllocation) / 100;
+      
+      console.log(`\n🔍 Searching for: ${item.itemName} (${item.itemType?.name})`);
+      console.log(`   Budget: ₹${itemBudget}`);
       
       // Find products for this item type from partner companies only
       const products = await Product.find({
@@ -153,6 +165,8 @@ router.post('/generate-recommendations', async (req, res) => {
       
       // Filter out products with null company (non-partner)
       const partnerProducts = products.filter(p => p.company !== null);
+      
+      console.log(`   Found ${partnerProducts.length} products`);
       
       // Categorize products by price range
       const budgetOptions = partnerProducts.filter(p => p.price <= itemBudget * 0.8);
@@ -176,6 +190,8 @@ router.post('/generate-recommendations', async (req, res) => {
       });
     }
     
+    console.log(`\n✅ Generated ${recommendations.length} recommendations`);
+    
     res.json({
       roomTemplate: template,
       totalBudget: budget,
@@ -183,7 +199,7 @@ router.post('/generate-recommendations', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error generating recommendations:', error);
+    console.error('❌ Error generating recommendations:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

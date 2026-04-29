@@ -49,14 +49,14 @@
 .about__image-placeholder {
   width: 100%;
   aspect-ratio: 1;
-  background: linear-gradient(135deg, #e8899a 0%, #e07a8a 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 120px;
   color: #fff;
-  box-shadow: 0 8px 24px rgba(233, 69, 96, 0.12);
+  box-shadow: 0 8px 24px rgba(30, 64, 175, 0.12);
 }
 
 /* Advantages Section */
@@ -90,8 +90,8 @@
 
 .about__advantage-card:hover {
   transform: translateY(-8px);
-  border-color: #e8899a;
-  box-shadow: 0 12px 32px rgba(233, 69, 96, 0.1);
+  border-color: #1e40af;
+  box-shadow: 0 12px 32px rgba(30, 64, 175, 0.1);
 }
 
 .about__advantage-icon {
@@ -137,7 +137,7 @@
   padding: 40px;
   background: #f9f9f9;
   border-radius: 12px;
-  border-left: 4px solid #e8899a;
+  border-left: 4px solid #1e40af;
   transition: all 0.3s;
 }
 
@@ -149,7 +149,7 @@
 .about__why-number {
   font-size: 48px;
   font-weight: 800;
-  color: #e8899a;
+  color: #1e40af;
   margin-bottom: 16px;
 }
 
@@ -189,14 +189,14 @@
 .about__founder-placeholder {
   width: 100%;
   aspect-ratio: 1;
-  background: linear-gradient(135deg, #9db4d4 0%, #8da5cc 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 120px;
   color: #fff;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.12);
+  box-shadow: 0 8px 24px rgba(30, 64, 175, 0.12);
 }
 
 .about__founder-text h2 {
@@ -209,7 +209,7 @@
 .about__founder-title {
   font-size: 16px;
   font-weight: 600;
-  color: #e8899a;
+  color: #1e40af;
   margin: 0 0 24px;
 }
 
@@ -250,7 +250,7 @@
 .about__manager-title {
   font-size: 16px;
   font-weight: 600;
-  color: #e8899a;
+  color: #1e40af;
   margin: 0 0 24px;
 }
 
@@ -277,7 +277,7 @@
 .about__manager-placeholder {
   width: 100%;
   aspect-ratio: 1;
-  background: linear-gradient(135deg, #e8a5b8 0%, #e09aac 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -325,8 +325,8 @@
 
 .about__team-card:hover {
   transform: translateY(-8px);
-  border-color: #e8899a;
-  box-shadow: 0 12px 32px rgba(233, 69, 96, 0.1);
+  border-color: #1e40af;
+  box-shadow: 0 12px 32px rgba(30, 64, 175, 0.1);
 }
 
 .about__team-image {
@@ -343,7 +343,7 @@
 
 .about__team-card p {
   font-size: 14px;
-  color: #e8899a;
+  color: #1e40af;
   font-weight: 600;
   margin: 0;
 }
@@ -351,7 +351,7 @@
 /* Ready to Work Section */
 .about__ready {
   padding: 80px 0;
-  background: linear-gradient(135deg, #e8899a 0%, #e07a8a 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
 }
 
 .about__ready-content {
@@ -393,7 +393,7 @@
 
 .about__btn--primary {
   background: #fff;
-  color: #e8899a;
+  color: #1e40af;
 }
 
 .about__btn--primary:hover {
@@ -409,7 +409,7 @@
 
 .about__btn--secondary:hover {
   background: #fff;
-  color: #e8899a;
+  color: #1e40af;
 }
 
 /* Responsive */
@@ -494,3 +494,9 @@
     padding: 24px 16px;
   }
 }
+
+
+
+
+
+

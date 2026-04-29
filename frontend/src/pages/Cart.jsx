@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { useNotification } from '../context/NotificationContext';
 import axios from 'axios';
 import './Cart.css';
 
 const Cart = () => {
-  const { cartItems, removeFromCart, updateQuantity, clearCart, getCartTotal } = useCart();
+  const { showNotification } = useNotification();
+  const { cartItems, removeFromCart, updateQuantity, clearCart, getCartTotal, getCartCount, getTotalQuantity } = useCart();
   const navigate = useNavigate();
   const [showInquiryForm, setShowInquiryForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -15,6 +17,9 @@ const Cart = () => {
     message: ''
   });
   const [submitting, setSubmitting] = useState(false);
+
+  console.log('🛒 Cart page - cartItems:', cartItems);
+  console.log('🛒 Cart page - cartItems length:', cartItems.length);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,14 +47,14 @@ const Cart = () => {
       });
 
       if (response.data.success) {
-        alert('Inquiry sent successfully! We will contact you soon.');
+        showNotification('Inquiry sent successfully! We will contact you soon.', 'success');
         clearCart();
         setShowInquiryForm(false);
         navigate('/');
       }
     } catch (error) {
       console.error('Error sending inquiry:', error);
-      alert('Failed to send inquiry. Please try again.');
+      showNotification('Failed to send inquiry. Please try again.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -81,7 +86,7 @@ const Cart = () => {
       <div className="cart__container">
         <header className="cart__header">
           <h1>Your Cart</h1>
-          <p className="cart__subtitle">{cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in cart</p>
+          <p className="cart__subtitle">{cartItems.length} {cartItems.length === 1 ? 'product' : 'products'} in cart</p>
         </header>
 
         <div className="cart__content">
@@ -93,16 +98,26 @@ const Cart = () => {
                 </div>
                 <div className="cart__item-details">
                   <h3>{item.name}</h3>
-                  {item.company && (
+                  {(item.company || item.companyName) && (
                     <p className="cart__item-company">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                         <polyline points="9 22 9 12 15 12 15 22"/>
                       </svg>
-                      {item.company}
+                      {typeof item.company === 'object' && item.company?.name 
+                        ? item.company.name 
+                        : item.companyName || item.company}
                     </p>
                   )}
                   {item.sku && <p className="cart__item-sku">SKU: {item.sku}</p>}
+                  {item.price && (
+                    <p className="cart__item-price">
+                      <strong>₹{item.price.toLocaleString('en-IN')}</strong>
+                      {item.quantity > 1 && (
+                        <span className="cart__item-subtotal"> × {item.quantity} = ₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
+                      )}
+                    </p>
+                  )}
                 </div>
                 <div className="cart__item-quantity">
                   <button 
@@ -138,7 +153,11 @@ const Cart = () => {
               <h2>Cart Summary</h2>
               <div className="cart__summary-row">
                 <span>Total Items:</span>
-                <strong>{cartItems.reduce((sum, item) => sum + item.quantity, 0)}</strong>
+                <strong>{getTotalQuantity()}</strong>
+              </div>
+              <div className="cart__summary-row cart__summary-total">
+                <span>Total Price:</span>
+                <strong>₹{getCartTotal().toLocaleString('en-IN')}</strong>
               </div>
               
               <button 

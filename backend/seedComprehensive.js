@@ -3,6 +3,7 @@ require('dotenv').config();
 const Category = require('./models/Category');
 const Product = require('./models/Product');
 const Company = require('./models/Company');
+const ProductItemType = require('./models/ProductItemType');
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/mernapp';
 
@@ -25,29 +26,62 @@ const companies = [
   { name: 'Parryware', description: 'Trusted bathroom brand', isActive: true, isPartner: false, rating: 4.4 }
 ];
 
+// Item types for each category
+const itemTypes = [
+  { name: 'One Piece Toilet', categoryName: 'Toilet', description: 'One-piece toilet design' },
+  { name: 'Two Piece Toilet', categoryName: 'Toilet', description: 'Two-piece toilet design' },
+  { name: 'Wall Hung Toilet', categoryName: 'Toilet', description: 'Wall-mounted toilet' },
+  { name: 'Smart Toilet', categoryName: 'Toilet', description: 'Smart toilet with advanced features' },
+  
+  { name: 'Shower Head', categoryName: 'Shower', description: 'Shower heads and fixtures' },
+  { name: 'Shower Panel', categoryName: 'Shower', description: 'Complete shower panel systems' },
+  { name: 'Rain Shower', categoryName: 'Shower', description: 'Rain shower systems' },
+  
+  { name: 'Table Top Basin', categoryName: 'Wash Basin', description: 'Table top wash basins' },
+  { name: 'Wall Hung Basin', categoryName: 'Wash Basin', description: 'Wall mounted basins' },
+  { name: 'Pedestal Basin', categoryName: 'Wash Basin', description: 'Pedestal wash basins' },
+  
+  { name: 'Basin Faucet', categoryName: 'Faucet', description: 'Basin faucets and taps' },
+  { name: 'Sensor Faucet', categoryName: 'Faucet', description: 'Touchless sensor faucets' },
+  
+  { name: 'Freestanding Bathtub', categoryName: 'Bathtub', description: 'Freestanding bathtubs' },
+  { name: 'Jacuzzi', categoryName: 'Bathtub', description: 'Jacuzzi and spa bathtubs' },
+  
+  { name: 'LED Mirror', categoryName: 'Mirror', description: 'LED backlit mirrors' },
+  { name: 'Smart Mirror', categoryName: 'Mirror', description: 'Smart mirrors with features' },
+  
+  { name: 'Floor Tiles', categoryName: 'Tiles', description: 'Floor tiles' },
+  { name: 'Wall Tiles', categoryName: 'Tiles', description: 'Wall tiles' },
+  
+  { name: 'Wall Cabinet', categoryName: 'Cabinet', description: 'Wall mounted cabinets' },
+  { name: 'Vanity Cabinet', categoryName: 'Cabinet', description: 'Vanity cabinets with sink' }
+];
+
 // Product templates for each category with multiple companies
 const productTemplates = {
   'Toilet': [
     {
       companies: ['Kohler', 'Jaquar', 'Hindware'],
+      itemTypeName: 'One Piece Toilet',
       variants: [
         { name: 'Basic Toilet', price: 3500, originalPrice: 4500, description: 'Entry-level one-piece toilet' },
         { name: 'Standard Toilet', price: 5000, originalPrice: 6500, description: 'Standard one-piece toilet with efficient flushing' },
         { name: 'Comfort Toilet', price: 7500, originalPrice: 9500, description: 'Comfort height toilet with elongated bowl' },
         { name: 'Premium Toilet', price: 12000, originalPrice: 15000, description: 'Premium toilet with soft-close seat and dual flush' },
         { name: 'Deluxe Toilet', price: 18000, originalPrice: 22000, description: 'Deluxe toilet with advanced flushing technology' },
-        { name: 'Smart Basic Toilet', price: 25000, originalPrice: 30000, description: 'Smart toilet with basic bidet functions' },
-        { name: 'Smart Toilet', price: 35000, originalPrice: 42000, description: 'Smart toilet with bidet, heated seat, and auto functions' },
-        { name: 'Smart Premium Toilet', price: 48000, originalPrice: 58000, description: 'Premium smart toilet with advanced features' },
-        { name: 'Smart Luxury Toilet', price: 65000, originalPrice: 78000, description: 'Luxury smart toilet with all premium features' },
-        { name: 'Smart Elite Toilet', price: 85000, originalPrice: 105000, description: 'Elite smart toilet with customizable settings' },
-        { name: 'Smart Ultimate Toilet', price: 120000, originalPrice: 145000, description: 'Ultimate smart toilet with AI features' }
+        { name: 'Smart Basic Toilet', price: 25000, originalPrice: 30000, description: 'Smart toilet with basic bidet functions', itemTypeName: 'Smart Toilet' },
+        { name: 'Smart Toilet', price: 35000, originalPrice: 42000, description: 'Smart toilet with bidet, heated seat, and auto functions', itemTypeName: 'Smart Toilet' },
+        { name: 'Smart Premium Toilet', price: 48000, originalPrice: 58000, description: 'Premium smart toilet with advanced features', itemTypeName: 'Smart Toilet' },
+        { name: 'Smart Luxury Toilet', price: 65000, originalPrice: 78000, description: 'Luxury smart toilet with all premium features', itemTypeName: 'Smart Toilet' },
+        { name: 'Smart Elite Toilet', price: 85000, originalPrice: 105000, description: 'Elite smart toilet with customizable settings', itemTypeName: 'Smart Toilet' },
+        { name: 'Smart Ultimate Toilet', price: 120000, originalPrice: 145000, description: 'Ultimate smart toilet with AI features', itemTypeName: 'Smart Toilet' }
       ]
     }
   ],
   'Shower': [
     {
       companies: ['Kohler', 'Jaquar', 'Cera'],
+      itemTypeName: 'Shower Head',
       variants: [
         { name: 'Basic Shower', price: 1200, originalPrice: 1600, description: 'Basic shower head with chrome finish' },
         { name: 'Standard Shower', price: 1800, originalPrice: 2400, description: 'Standard shower head with adjustable spray' },
@@ -66,14 +100,15 @@ const productTemplates = {
   'Wash Basin': [
     {
       companies: ['Hindware', 'Cera', 'Parryware'],
+      itemTypeName: 'Table Top Basin',
       variants: [
-        { name: 'Basic Basin', price: 1800, originalPrice: 2400, description: 'Basic wall mounted wash basin' },
+        { name: 'Basic Basin', price: 1800, originalPrice: 2400, description: 'Basic wall mounted wash basin', itemTypeName: 'Wall Hung Basin' },
         { name: 'Table Top Basin Small', price: 2500, originalPrice: 3200, description: 'Small table top wash basin' },
         { name: 'Table Top Basin', price: 3500, originalPrice: 4500, description: 'Modern table top wash basin' },
         { name: 'Table Top Basin Large', price: 4800, originalPrice: 6000, description: 'Large table top wash basin' },
-        { name: 'Wall Hung Basin', price: 4500, originalPrice: 5500, description: 'Space-saving wall mounted basin' },
+        { name: 'Wall Hung Basin', price: 4500, originalPrice: 5500, description: 'Space-saving wall mounted basin', itemTypeName: 'Wall Hung Basin' },
         { name: 'Counter Basin', price: 5500, originalPrice: 7000, description: 'Under counter wash basin' },
-        { name: 'Pedestal Basin', price: 6500, originalPrice: 8000, description: 'Classic pedestal wash basin' },
+        { name: 'Pedestal Basin', price: 6500, originalPrice: 8000, description: 'Classic pedestal wash basin', itemTypeName: 'Pedestal Basin' },
         { name: 'Designer Basin', price: 9500, originalPrice: 12000, description: 'Designer vessel basin' },
         { name: 'Luxury Basin', price: 14000, originalPrice: 18000, description: 'Luxury stone basin' },
         { name: 'Premium Basin', price: 18000, originalPrice: 22000, description: 'Premium marble basin' },
@@ -84,6 +119,7 @@ const productTemplates = {
   'Faucet': [
     {
       companies: ['Jaquar', 'Kohler', 'Cera'],
+      itemTypeName: 'Basin Faucet',
       variants: [
         { name: 'Economy Faucet', price: 600, originalPrice: 900, description: 'Economy chrome faucet' },
         { name: 'Basic Faucet', price: 1000, originalPrice: 1400, description: 'Basic chrome faucet' },
@@ -91,35 +127,37 @@ const productTemplates = {
         { name: 'Premium Faucet', price: 2200, originalPrice: 2800, description: 'Premium brushed nickel faucet' },
         { name: 'Designer Faucet', price: 3200, originalPrice: 4000, description: 'Designer faucet with modern styling' },
         { name: 'Luxury Faucet', price: 4800, originalPrice: 6000, description: 'Luxury matte black faucet' },
-        { name: 'Sensor Faucet Basic', price: 6500, originalPrice: 8000, description: 'Basic touchless sensor faucet' },
-        { name: 'Sensor Faucet', price: 9500, originalPrice: 12000, description: 'Touchless sensor faucet' },
-        { name: 'Sensor Faucet Premium', price: 14000, originalPrice: 17000, description: 'Premium sensor faucet with temperature control' },
-        { name: 'Smart Faucet', price: 22000, originalPrice: 27000, description: 'Smart faucet with voice control' },
-        { name: 'Smart Faucet Elite', price: 32000, originalPrice: 38000, description: 'Elite smart faucet with all features' }
+        { name: 'Sensor Faucet Basic', price: 6500, originalPrice: 8000, description: 'Basic touchless sensor faucet', itemTypeName: 'Sensor Faucet' },
+        { name: 'Sensor Faucet', price: 9500, originalPrice: 12000, description: 'Touchless sensor faucet', itemTypeName: 'Sensor Faucet' },
+        { name: 'Sensor Faucet Premium', price: 14000, originalPrice: 17000, description: 'Premium sensor faucet with temperature control', itemTypeName: 'Sensor Faucet' },
+        { name: 'Smart Faucet', price: 22000, originalPrice: 27000, description: 'Smart faucet with voice control', itemTypeName: 'Sensor Faucet' },
+        { name: 'Smart Faucet Elite', price: 32000, originalPrice: 38000, description: 'Elite smart faucet with all features', itemTypeName: 'Sensor Faucet' }
       ]
     }
   ],
   'Bathtub': [
     {
       companies: ['Kohler', 'Jaquar'],
+      itemTypeName: 'Freestanding Bathtub',
       variants: [
         { name: 'Basic Bathtub', price: 12000, originalPrice: 15000, description: 'Basic acrylic bathtub' },
         { name: 'Standard Bathtub', price: 18000, originalPrice: 22000, description: 'Standard acrylic bathtub' },
         { name: 'Premium Bathtub', price: 25000, originalPrice: 30000, description: 'Premium acrylic bathtub' },
         { name: 'Freestanding Bathtub', price: 38000, originalPrice: 45000, description: 'Elegant freestanding bathtub' },
         { name: 'Designer Bathtub', price: 52000, originalPrice: 62000, description: 'Designer freestanding bathtub' },
-        { name: 'Jacuzzi Basic', price: 68000, originalPrice: 82000, description: 'Basic jacuzzi bathtub with jets' },
-        { name: 'Jacuzzi Bathtub', price: 95000, originalPrice: 115000, description: 'Luxury jacuzzi bathtub with jets' },
-        { name: 'Jacuzzi Premium', price: 125000, originalPrice: 150000, description: 'Premium jacuzzi with advanced features' },
-        { name: 'Spa Bathtub', price: 165000, originalPrice: 195000, description: 'Spa bathtub with chromotherapy' },
-        { name: 'Spa Premium', price: 220000, originalPrice: 260000, description: 'Premium spa bathtub with all features' },
-        { name: 'Spa Ultimate', price: 300000, originalPrice: 350000, description: 'Ultimate spa bathtub experience' }
+        { name: 'Jacuzzi Basic', price: 68000, originalPrice: 82000, description: 'Basic jacuzzi bathtub with jets', itemTypeName: 'Jacuzzi' },
+        { name: 'Jacuzzi Bathtub', price: 95000, originalPrice: 115000, description: 'Luxury jacuzzi bathtub with jets', itemTypeName: 'Jacuzzi' },
+        { name: 'Jacuzzi Premium', price: 125000, originalPrice: 150000, description: 'Premium jacuzzi with advanced features', itemTypeName: 'Jacuzzi' },
+        { name: 'Spa Bathtub', price: 165000, originalPrice: 195000, description: 'Spa bathtub with chromotherapy', itemTypeName: 'Jacuzzi' },
+        { name: 'Spa Premium', price: 220000, originalPrice: 260000, description: 'Premium spa bathtub with all features', itemTypeName: 'Jacuzzi' },
+        { name: 'Spa Ultimate', price: 300000, originalPrice: 350000, description: 'Ultimate spa bathtub experience', itemTypeName: 'Jacuzzi' }
       ]
     }
   ],
   'Mirror': [
     {
       companies: ['Kohler', 'Hindware', 'Cera'],
+      itemTypeName: 'LED Mirror',
       variants: [
         { name: 'Basic Mirror', price: 800, originalPrice: 1200, description: 'Basic bathroom mirror' },
         { name: 'Standard Mirror', price: 1400, originalPrice: 1800, description: 'Standard bathroom mirror' },
@@ -127,17 +165,18 @@ const productTemplates = {
         { name: 'LED Mirror Basic', price: 3500, originalPrice: 4500, description: 'Basic LED backlit mirror' },
         { name: 'LED Mirror', price: 5500, originalPrice: 7000, description: 'LED backlit bathroom mirror' },
         { name: 'LED Mirror Premium', price: 8500, originalPrice: 10500, description: 'Premium LED mirror with dimmer' },
-        { name: 'Smart Mirror Basic', price: 12000, originalPrice: 15000, description: 'Basic smart mirror with touch controls' },
-        { name: 'Smart Mirror', price: 18000, originalPrice: 22000, description: 'Smart mirror with touch controls and defogger' },
-        { name: 'Smart Mirror Premium', price: 25000, originalPrice: 30000, description: 'Premium smart mirror with Bluetooth' },
-        { name: 'Smart Mirror Luxury', price: 35000, originalPrice: 42000, description: 'Luxury smart mirror with display' },
-        { name: 'Smart Mirror Elite', price: 48000, originalPrice: 58000, description: 'Elite smart mirror with AI features' }
+        { name: 'Smart Mirror Basic', price: 12000, originalPrice: 15000, description: 'Basic smart mirror with touch controls', itemTypeName: 'Smart Mirror' },
+        { name: 'Smart Mirror', price: 18000, originalPrice: 22000, description: 'Smart mirror with touch controls and defogger', itemTypeName: 'Smart Mirror' },
+        { name: 'Smart Mirror Premium', price: 25000, originalPrice: 30000, description: 'Premium smart mirror with Bluetooth', itemTypeName: 'Smart Mirror' },
+        { name: 'Smart Mirror Luxury', price: 35000, originalPrice: 42000, description: 'Luxury smart mirror with display', itemTypeName: 'Smart Mirror' },
+        { name: 'Smart Mirror Elite', price: 48000, originalPrice: 58000, description: 'Elite smart mirror with AI features', itemTypeName: 'Smart Mirror' }
       ]
     }
   ],
   'Tiles': [
     {
       companies: ['Cera', 'Parryware', 'Hindware'],
+      itemTypeName: 'Floor Tiles',
       variants: [
         { name: 'Ceramic Tiles Basic', price: 35, originalPrice: 50, description: 'Basic ceramic floor tiles (per sq ft)' },
         { name: 'Ceramic Tiles', price: 55, originalPrice: 75, description: 'Standard ceramic floor tiles (per sq ft)' },
@@ -145,25 +184,26 @@ const productTemplates = {
         { name: 'Porcelain Tiles Basic', price: 120, originalPrice: 150, description: 'Basic porcelain tiles (per sq ft)' },
         { name: 'Porcelain Tiles', price: 180, originalPrice: 220, description: 'Premium porcelain tiles (per sq ft)' },
         { name: 'Porcelain Tiles Premium', price: 250, originalPrice: 300, description: 'Premium porcelain tiles (per sq ft)' },
-        { name: 'Marble Tiles Basic', price: 350, originalPrice: 450, description: 'Basic marble tiles (per sq ft)' },
-        { name: 'Marble Tiles', price: 550, originalPrice: 680, description: 'Standard marble tiles (per sq ft)' },
-        { name: 'Marble Tiles Premium', price: 850, originalPrice: 1050, description: 'Premium marble tiles (per sq ft)' },
-        { name: 'Italian Marble Tiles', price: 1200, originalPrice: 1500, description: 'Italian marble tiles (per sq ft)' },
-        { name: 'Designer Tiles', price: 1800, originalPrice: 2200, description: 'Designer luxury tiles (per sq ft)' }
+        { name: 'Marble Tiles Basic', price: 350, originalPrice: 450, description: 'Basic marble tiles (per sq ft)', itemTypeName: 'Wall Tiles' },
+        { name: 'Marble Tiles', price: 550, originalPrice: 680, description: 'Standard marble tiles (per sq ft)', itemTypeName: 'Wall Tiles' },
+        { name: 'Marble Tiles Premium', price: 850, originalPrice: 1050, description: 'Premium marble tiles (per sq ft)', itemTypeName: 'Wall Tiles' },
+        { name: 'Italian Marble Tiles', price: 1200, originalPrice: 1500, description: 'Italian marble tiles (per sq ft)', itemTypeName: 'Wall Tiles' },
+        { name: 'Designer Tiles', price: 1800, originalPrice: 2200, description: 'Designer luxury tiles (per sq ft)', itemTypeName: 'Wall Tiles' }
       ]
     }
   ],
   'Cabinet': [
     {
       companies: ['Kohler', 'Jaquar', 'Hindware'],
+      itemTypeName: 'Wall Cabinet',
       variants: [
         { name: 'Basic Cabinet', price: 3500, originalPrice: 4500, description: 'Basic wall mounted cabinet' },
         { name: 'Wall Cabinet', price: 5500, originalPrice: 7000, description: 'Wall mounted storage cabinet' },
         { name: 'Wall Cabinet Premium', price: 8500, originalPrice: 10500, description: 'Premium wall cabinet with mirror' },
         { name: 'Floor Cabinet', price: 9500, originalPrice: 12000, description: 'Floor standing cabinet' },
-        { name: 'Vanity Cabinet Basic', price: 12000, originalPrice: 15000, description: 'Basic bathroom vanity with sink' },
-        { name: 'Vanity Cabinet', price: 18000, originalPrice: 22000, description: 'Bathroom vanity with sink' },
-        { name: 'Vanity Cabinet Premium', price: 25000, originalPrice: 30000, description: 'Premium vanity with marble top' },
+        { name: 'Vanity Cabinet Basic', price: 12000, originalPrice: 15000, description: 'Basic bathroom vanity with sink', itemTypeName: 'Vanity Cabinet' },
+        { name: 'Vanity Cabinet', price: 18000, originalPrice: 22000, description: 'Bathroom vanity with sink', itemTypeName: 'Vanity Cabinet' },
+        { name: 'Vanity Cabinet Premium', price: 25000, originalPrice: 30000, description: 'Premium vanity with marble top', itemTypeName: 'Vanity Cabinet' },
         { name: 'Mirror Cabinet', price: 14000, originalPrice: 17000, description: 'Cabinet with integrated mirror' },
         { name: 'Designer Cabinet', price: 32000, originalPrice: 38000, description: 'Designer bathroom cabinet' },
         { name: 'Luxury Cabinet', price: 45000, originalPrice: 55000, description: 'Luxury wood cabinet' },
@@ -183,6 +223,7 @@ async function seedData() {
     await Product.deleteMany({});
     await Category.deleteMany({});
     await Company.deleteMany({});
+    await ProductItemType.deleteMany({});
     console.log('✓ Cleared existing data\n');
 
     // Create companies
@@ -195,9 +236,21 @@ async function seedData() {
     const createdCategories = await Category.insertMany(categories);
     console.log(`✓ Created ${createdCategories.length} categories\n`);
 
-    // Helper to get company by name
+    // Create item types
+    console.log('Creating item types...');
+    const itemTypesToCreate = itemTypes.map(it => ({
+      name: it.name,
+      description: it.description,
+      category: createdCategories.find(c => c.name === it.categoryName)?._id
+    })).filter(it => it.category);
+    
+    const createdItemTypes = await ProductItemType.insertMany(itemTypesToCreate);
+    console.log(`✓ Created ${createdItemTypes.length} item types\n`);
+
+    // Helper functions
     const getCompany = (name) => createdCompanies.find(c => c.name === name);
     const getCategory = (name) => createdCategories.find(c => c.name === name);
+    const getItemType = (name) => createdItemTypes.find(it => it.name === name);
 
     // Create products
     console.log('Creating products...');
@@ -218,6 +271,10 @@ async function seedData() {
           console.log(`  📦 ${companyName}:`);
 
           for (const variant of template.variants) {
+            // Determine itemType - use variant-specific or template default
+            const itemTypeName = variant.itemTypeName || template.itemTypeName;
+            const itemType = getItemType(itemTypeName);
+
             const product = {
               name: variant.name,
               variant: companyName, // Use company name as variant
@@ -226,6 +283,8 @@ async function seedData() {
               category: category._id,
               company: company._id,
               companyName: company.name,
+              itemType: itemType?._id,
+              itemTypeName: itemType?.name,
               price: variant.price,
               originalPrice: variant.originalPrice,
               discount: Math.round(((variant.originalPrice - variant.price) / variant.originalPrice) * 100),
@@ -259,6 +318,7 @@ async function seedData() {
     console.log('\n📊 Summary:');
     console.log(`   Companies: ${createdCompanies.length}`);
     console.log(`   Categories: ${createdCategories.length}`);
+    console.log(`   Item Types: ${createdItemTypes.length}`);
     console.log(`   Products: ${createdProducts.length}`);
     
     // Show products per category
@@ -274,6 +334,10 @@ async function seedData() {
       const count = createdProducts.filter(p => p.company.toString() === comp._id.toString()).length;
       console.log(`   ${comp.name}: ${count} products`);
     }
+
+    // Show products with itemType
+    const withItemType = createdProducts.filter(p => p.itemType).length;
+    console.log(`\n🏷️  Products with ItemType: ${withItemType}/${createdProducts.length}`);
 
   } catch (error) {
     console.error('❌ Error seeding database:', error);

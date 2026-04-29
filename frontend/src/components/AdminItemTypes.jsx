@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNotification } from '../context/NotificationContext';
 import './AdminItemTypes.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function AdminItemTypes() {
+  const { showNotification } = useNotification();
   const [itemTypes, setItemTypes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,7 @@ function AdminItemTypes() {
       setItemTypes(data);
     } catch (error) {
       console.error('Error fetching item types:', error);
-      alert('Failed to fetch item types');
+      showNotification('Failed to fetch item types', 'error');
     } finally {
       setLoading(false);
     }
@@ -92,14 +94,14 @@ function AdminItemTypes() {
         throw new Error('Failed to save item type');
       }
 
-      alert(`Item type ${editingItem ? 'updated' : 'created'} successfully!`);
+      showNotification(`Item type ${editingItem ? 'updated' : 'created'} successfully!`, 'success');
       setShowForm(false);
       setEditingItem(null);
       resetForm();
       fetchItemTypes();
     } catch (error) {
       console.error('Error saving item type:', error);
-      alert('Failed to save item type');
+      showNotification('Failed to save item type', 'error');
     }
   };
 
@@ -128,11 +130,11 @@ function AdminItemTypes() {
         throw new Error('Failed to delete item type');
       }
 
-      alert('Item type deleted successfully!');
+      showNotification('Item type deleted successfully!', 'success');
       fetchItemTypes();
     } catch (error) {
       console.error('Error deleting item type:', error);
-      alert('Failed to delete item type');
+      showNotification('Failed to delete item type', 'error');
     }
   };
 

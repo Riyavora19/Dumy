@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   padding: 2rem;
 }
 
@@ -30,7 +30,7 @@
 .user-login__logo-icon {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -91,7 +91,7 @@
 
 .user-login__field input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #1e40af;
 }
 
 .user-login__forgot {
@@ -100,7 +100,7 @@
 }
 
 .user-login__forgot a {
-  color: #667eea;
+  color: #1e40af;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
@@ -113,7 +113,7 @@
 .user-login__submit {
   width: 100%;
   padding: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -129,7 +129,7 @@
 
 .user-login__submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
 
 .user-login__submit:disabled {
@@ -165,7 +165,7 @@
 .user-login__toggle button {
   background: none;
   border: none;
-  color: #667eea;
+  color: #1e40af;
   font-weight: 600;
   cursor: pointer;
   font-size: 0.95rem;
@@ -189,3 +189,7 @@
     font-size: 1.75rem;
   }
 }
+
+
+
+

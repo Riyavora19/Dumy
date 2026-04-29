@@ -53,12 +53,12 @@
 
 .admin-products__search input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #1e40af;
 }
 
 .admin-products__search button {
   padding: 0.75rem 1rem;
-  background: #667eea;
+  background: #1e40af;
   color: white;
   border: none;
   border-radius: 8px;
@@ -86,7 +86,7 @@
 
 .admin-products__filters select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #1e40af;
 }
 
 .admin-products__clear-btn {
@@ -115,8 +115,8 @@
   gap: 8px;
   padding: 12px 20px;
   background: #fff;
-  color: #e94560;
-  border: 2px solid #e94560;
+  color: #1e40af;
+  border: 2px solid #1e40af;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
@@ -125,7 +125,7 @@
 }
 
 .admin-products__bulk-btn:hover {
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
 }
 
@@ -134,7 +134,7 @@
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -145,7 +145,7 @@
 }
 
 .admin-products__add-btn:hover {
-  background: #c0392b;
+  background: #1e3a8a;
 }
 
 .admin-products__loading {
@@ -238,7 +238,7 @@
 }
 
 .admin-products__actions button:first-child:hover {
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
 }
 
@@ -342,7 +342,7 @@
 .admin-products__field select:focus,
 .admin-products__field textarea:focus {
   outline: none;
-  border-color: #e94560;
+  border-color: #1e40af;
 }
 
 .admin-products__field small {
@@ -371,7 +371,7 @@
   padding: 6px 10px;
   background: #f5f5f5;
   border-radius: 6px;
-  border-left: 3px solid #e94560;
+  border-left: 3px solid #1e40af;
 }
 
 .admin-products__upload-options {
@@ -396,11 +396,11 @@
 
 .admin-products__upload-label:hover {
   background: #fff;
-  border-color: #e94560;
+  border-color: #1e40af;
 }
 
 .admin-products__upload-label svg {
-  color: #e94560;
+  color: #1e40af;
   flex-shrink: 0;
 }
 
@@ -490,12 +490,12 @@
 }
 
 .admin-products__btn-submit {
-  background: #e94560;
+  background: #1e40af;
   color: #fff;
 }
 
 .admin-products__btn-submit:hover {
-  background: #c0392b;
+  background: #1e3a8a;
 }
 
 /* Bulk Upload Modal */
@@ -569,8 +569,8 @@
   width: 100%;
   padding: 14px 20px;
   background: #fff;
-  color: #e94560;
-  border: 2px dashed #e94560;
+  color: #1e40af;
+  border: 2px dashed #1e40af;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
@@ -584,7 +584,7 @@
 }
 
 .admin-products__add-more-btn:hover {
-  background: #ffe4e8;
+  background: #dbeafe;
   border-style: solid;
 }
 
@@ -616,8 +616,8 @@
 
 .admin-products__specs-grid input:focus {
   outline: none;
-  border-color: #e94560;
-  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+  border-color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
 }
 
 .admin-products__field small {
@@ -626,3 +626,7 @@
   font-size: 0.85rem;
   color: #7f8c8d;
 }
+
+
+
+
