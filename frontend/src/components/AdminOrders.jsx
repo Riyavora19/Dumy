@@ -105,7 +105,7 @@ const AdminOrders = () => {
     }
   };
 
-  const handleGeneratePDF = (order) => {
+  const handleGeneratePDF = async (order) => {
     // Prepare data for PDF generation
     const quotationData = {
       clientData: {
@@ -130,7 +130,7 @@ const AdminOrders = () => {
       quotationDate: order.orderDate
     };
 
-    QuotationPDFGenerator(quotationData);
+    await QuotationPDFGenerator(quotationData);
   };
 
   const getStatusColor = (status) => {
@@ -214,13 +214,14 @@ const AdminOrders = () => {
                 <th>Status</th>
                 <th>Payment</th>
                 <th>Commission</th>
+                <th>Created By</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan="10" className="no-data">No orders found</td>
+                  <td colSpan="11" className="no-data">No orders found</td>
                 </tr>
               ) : (
                 orders.map(order => (
@@ -287,6 +288,15 @@ const AdminOrders = () => {
                         </div>
                       ) : (
                         <span className="no-commission">-</span>
+                      )}
+                    </td>
+                    <td>
+                      {order.createdByName ? (
+                        <span style={{ color: '#667eea', fontWeight: '600' }}>
+                          👤 {order.createdByName}
+                        </span>
+                      ) : (
+                        <span style={{ color: '#999' }}>-</span>
                       )}
                     </td>
                     <td>

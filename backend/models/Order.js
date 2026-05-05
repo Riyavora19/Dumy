@@ -348,12 +348,21 @@ const orderSchema = new mongoose.Schema({
     ref: 'LiveRequest'
   },
   
-  // Metadata
+  // Metadata & Staff Tracking
   createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Staff',
+    required: false
+  },
+  createdByName: {
     type: String,
     trim: true
   },
   lastUpdatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Staff'
+  },
+  lastUpdatedByName: {
     type: String,
     trim: true
   }
@@ -361,48 +370,8 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate order number before saving
-orderSchema.pre('save', async function() {
-  if (!this.orderNumber) {
-    try {
-      const count = await this.constructor.countDocuments();
-      const date = new Date();
-      const year = date.getFullYear().toString().slice(-2);
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      this.orderNumber = `ORD${year}${month}${(count + 1).toString().padStart(5, '0')}`;
-    } catch (error) {
-      console.error('Error generating order number:', error);
-      const timestamp = Date.now().toString().slice(-6);
-      this.orderNumber = `ORD${timestamp}`;
-    }
-  }
-});
-
-// Calculate totals before saving
-orderSchema.pre('save', function() {
-  // Calculate subtotal
-  this.subtotal = this.products.reduce((sum, item) => sum + item.totalPrice, 0);
-  
-  // Calculate discount
-  let discountAmount = 0;
-  if (this.discountType === 'percentage') {
-    discountAmount = (this.subtotal * this.discount) / 100;
-  } else if (this.discountType === 'flat') {
-    discountAmount = this.discount;
-  }
-  
-  // Calculate tax
-  const taxableAmount = this.subtotal - discountAmount;
-  const taxAmount = (taxableAmount * this.taxRate) / 100;
-  
-  // Calculate total
-  this.total = taxableAmount + taxAmount + this.shippingCharges;
-  
-  // Calculate commission if referrer exists
-  if (this.referrer && this.referrerCommission.rate > 0) {
-    this.referrerCommission.amount = (this.total * this.referrerCommission.rate) / 100;
-  }
-});
+// NOTE: Pre-save hooks removed due to "next is not a function" errors
+// All logic moved to routes/orders.js for better control and debugging
 
 // Index for searching (orderNumber already indexed via unique: true)
 orderSchema.index({ customer: 1, orderDate: -1 });

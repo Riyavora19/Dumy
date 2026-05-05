@@ -1,13 +1,16 @@
 import { Navigate } from 'react-router-dom';
 
-const ProtectedRoute = ({ children }) => {
-  const userToken = localStorage.getItem('userToken');
+const ProtectedRoute = ({ children, type = 'staff' }) => {
+  const token = type === 'staff' 
+    ? localStorage.getItem('staffToken')
+    : localStorage.getItem('adminToken');
   
-  if (!userToken) {
-    // Redirect to login if not authenticated
-    return <Navigate to="/login" replace />;
+  const loginPath = type === 'staff' ? '/staff/login' : '/admin/login';
+
+  if (!token) {
+    return <Navigate to={loginPath} replace />;
   }
-  
+
   return children;
 };
 

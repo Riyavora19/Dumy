@@ -278,6 +278,16 @@ function AdminRoomTemplates() {
                       onChange={handleInputChange}
                       placeholder="🏠"
                     />
+                    <div className="icon-picker">
+                      <button type="button" className="icon-option" onClick={() => setFormData(prev => ({ ...prev, icon: '🚽' }))}>🚽</button>
+                      <button type="button" className="icon-option" onClick={() => setFormData(prev => ({ ...prev, icon: '🛁' }))}>🛁</button>
+                      <button type="button" className="icon-option" onClick={() => setFormData(prev => ({ ...prev, icon: '🚿' }))}>🚿</button>
+                      <button type="button" className="icon-option" onClick={() => setFormData(prev => ({ ...prev, icon: '🍳' }))}>🍳</button>
+                      <button type="button" className="icon-option" onClick={() => setFormData(prev => ({ ...prev, icon: '🏠' }))}>🏠</button>
+                      <button type="button" className="icon-option" onClick={() => setFormData(prev => ({ ...prev, icon: '🔧' }))}>🔧</button>
+                      <button type="button" className="icon-option" onClick={() => setFormData(prev => ({ ...prev, icon: '🛏️' }))}>🛏️</button>
+                      <button type="button" className="icon-option" onClick={() => setFormData(prev => ({ ...prev, icon: '🪟' }))}>🪟</button>
+                    </div>
                   </div>
                 </div>
 

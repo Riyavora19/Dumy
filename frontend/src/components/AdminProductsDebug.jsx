@@ -49,7 +49,7 @@ const AdminProductsDebug = () => {
             marginBottom: '10px' 
           }}>
             <h3>{product.name}</h3>
-            <p>Price: ${product.price}</p>
+            <p>Price: ₹{product.price?.toLocaleString('en-IN')}</p>
             <p>Category: {product.category?.name || 'N/A'}</p>
             <p>Company: {typeof product.company === 'object' ? product.company?.name : product.company || 'N/A'}</p>
             <p>Item Type: {product.itemType?.name || 'N/A'}</p>

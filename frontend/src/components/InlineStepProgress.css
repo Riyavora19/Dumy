@@ -1,0 +1,423 @@
+/* ============================================
+   INLINE STEP PROGRESS - Next to Title
+   Compact horizontal design
+   ============================================ */
+
+/* Header with Title and Progress */
+.modal-header-with-progress {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  padding: 20px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: none;
+  gap: 32px;
+}
+
+.header-left-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+}
+
+.header-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+
+/* Inline Progress Bar */
+.inline-progress-container {
+  flex: 1;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.inline-progress-track {
+  position: relative;
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.inline-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 50%, #667eea 100%);
+  border-radius: 20px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
+}
+
+.inline-steps {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.inline-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.inline-step-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.inline-step.completed .inline-step-circle {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-color: #10b981;
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
+}
+
+.inline-step.active .inline-step-circle {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+  transform: scale(1.15);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  }
+  50% {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.9), 0 0 0 6px rgba(102, 126, 234, 0.2);
+  }
+}
+
+.inline-step.completed .inline-step-circle::before {
+  content: '✓';
+  position: absolute;
+  font-size: 22px;
+  animation: check-pop 0.5s ease;
+}
+
+@keyframes check-pop {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.3) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.inline-step-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.inline-step.active .inline-step-label {
+  color: #667eea;
+  text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+.inline-step.completed .inline-step-label {
+  color: #10b981;
+}
+
+/* Close Button */
+.header-close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-weight: 300;
+  flex-shrink: 0;
+}
+
+.header-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.05) rotate(90deg);
+}
+
+/* ALTERNATIVE DESIGN: Compact Dots */
+.inline-progress-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.progress-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.4s ease;
+  cursor: pointer;
+}
+
+.progress-dot.completed {
+  background: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+  transform: scale(1.2);
+}
+
+.progress-dot.active {
+  background: #667eea;
+  box-shadow: 0 0 16px rgba(102, 126, 234, 0.8);
+  transform: scale(1.5);
+  animation: dot-pulse 1.5s infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% {
+    transform: scale(1.5);
+  }
+  50% {
+    transform: scale(1.7);
+  }
+}
+
+.progress-dot-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: 8px;
+}
+
+/* ALTERNATIVE DESIGN: Minimal Pills */
+.inline-progress-pills {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.progress-pill {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-pill:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.progress-pill.completed {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.progress-pill.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+  transform: scale(1.05);
+}
+
+.progress-pill-number {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.progress-pill.active .progress-pill-number {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.progress-pill.completed .progress-pill-number::before {
+  content: '✓';
+}
+
+/* ALTERNATIVE DESIGN: Segmented Bar */
+.inline-segmented-bar {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  max-width: 400px;
+  height: 8px;
+}
+
+.segment {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.segment::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #10b981 0%, #667eea 100%);
+  transform: translateX(-100%);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.segment.completed::before {
+  transform: translateX(0);
+}
+
+.segment.active {
+  background: rgba(102, 126, 234, 0.3);
+}
+
+.segment.active::before {
+  transform: translateX(0);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .inline-progress-container {
+    max-width: 400px;
+  }
+  
+  .inline-step-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .inline-step-label {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .modal-header-with-progress {
+    padding: 16px 24px;
+    gap: 20px;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+  
+  .inline-progress-container {
+    max-width: 300px;
+  }
+  
+  .inline-steps {
+    gap: 8px;
+  }
+  
+  .inline-step-circle {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-header-with-progress {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .header-left-section {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .inline-progress-container {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .inline-step-label {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header-with-progress {
+    padding: 12px 16px;
+  }
+  
+  .header-title {
+    font-size: 16px;
+  }
+  
+  .inline-step-circle {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+  
+  .inline-steps {
+    gap: 6px;
+  }
+}

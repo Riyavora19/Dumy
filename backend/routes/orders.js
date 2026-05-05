@@ -3,9 +3,54 @@ const router = express.Router();
 const Order = require('../models/Order');
 const Contact = require('../models/Contact');
 const Relationship = require('../models/Relationship');
+const jwt = require('jsonwebtoken');
+const Staff = require('../models/Staff');
+
+// Middleware to extract staff info from token (optional)
+const extractStaffInfo = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (token) {
+      const decoded = jwt.verify(token, 'your-secret-key-change-this-in-production');
+      
+      // Try to find as staff first
+      let staff = await Staff.findById(decoded.id).select('name employeeId role');
+      
+      // If not found as staff, try as admin
+      if (!staff) {
+        const Admin = require('../models/Admin');
+        const admin = await Admin.findById(decoded.id).select('name email');
+        
+        if (admin) {
+          // Convert admin to staff-like object
+          req.staffInfo = {
+            id: admin._id,
+            name: admin.name || admin.email,
+            employeeId: 'ADMIN',
+            role: 'admin'
+          };
+          console.log('Admin token detected:', req.staffInfo.name);
+        }
+      } else {
+        req.staffInfo = {
+          id: staff._id,
+          name: staff.name,
+          employeeId: staff.employeeId,
+          role: staff.role
+        };
+        console.log('Staff token detected:', req.staffInfo.name);
+      }
+    }
+  } catch (error) {
+    // Token invalid or expired, continue without staff info
+    console.log('No valid token found');
+  }
+  next();
+};
 
 // Get all orders
-router.get('/', async (req, res) => {
+router.get('/', extractStaffInfo, async (req, res) => {
   try {
     const { 
       status, 
@@ -13,6 +58,7 @@ router.get('/', async (req, res) => {
       customerId,
       referrerId,
       search,
+      createdBy,
       page = 1,
       limit = 50
     } = req.query;
@@ -23,6 +69,7 @@ router.get('/', async (req, res) => {
     if (paymentStatus) query.paymentStatus = paymentStatus;
     if (customerId) query.customer = customerId;
     if (referrerId) query.referrer = referrerId;
+    if (createdBy) query.createdBy = createdBy;
     
     if (search) {
       query.$or = [
@@ -74,11 +121,63 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new order
-router.post('/', async (req, res) => {
+router.post('/', extractStaffInfo, async (req, res) => {
   try {
     console.log('Received order data:', JSON.stringify(req.body, null, 2));
     
-    const order = new Order(req.body);
+    const orderData = { ...req.body };
+    
+    // Add staff info if available from token
+    if (req.staffInfo) {
+      orderData.createdBy = req.staffInfo.id;
+      orderData.createdByName = req.staffInfo.name;
+      console.log('Staff info added:', req.staffInfo.name);
+    } else {
+      // If no staff info, remove createdBy field to avoid validation error
+      delete orderData.createdBy;
+      delete orderData.createdByName;
+      console.log('No staff token found, creating order without staff tracking');
+    }
+    
+    // Generate order number manually (since we removed pre-save hook)
+    if (!orderData.orderNumber) {
+      try {
+        const count = await Order.countDocuments();
+        const date = new Date();
+        const year = date.getFullYear().toString().slice(-2);
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        orderData.orderNumber = `ORD${year}${month}${(count + 1).toString().padStart(5, '0')}`;
+      } catch (error) {
+        console.error('Error generating order number:', error);
+        const timestamp = Date.now().toString().slice(-6);
+        orderData.orderNumber = `ORD${timestamp}`;
+      }
+    }
+    
+    // Calculate totals manually (since we removed pre-save hook)
+    orderData.subtotal = orderData.products.reduce((sum, item) => sum + item.totalPrice, 0);
+    
+    let discountAmount = 0;
+    if (orderData.discountType === 'percentage') {
+      discountAmount = (orderData.subtotal * orderData.discount) / 100;
+    } else if (orderData.discountType === 'flat') {
+      discountAmount = orderData.discount;
+    }
+    
+    const taxableAmount = orderData.subtotal - discountAmount;
+    const taxAmount = (taxableAmount * orderData.taxRate) / 100;
+    orderData.tax = taxAmount;
+    orderData.total = taxableAmount + taxAmount + parseFloat(orderData.shippingCharges || 0);
+    
+    // Calculate commission if referrer exists
+    if (orderData.referrer && orderData.referrerCommission && orderData.referrerCommission.rate > 0) {
+      orderData.referrerCommission.amount = (orderData.total * orderData.referrerCommission.rate) / 100;
+    }
+    
+    console.log('Creating order with number:', orderData.orderNumber);
+    console.log('Order totals - Subtotal:', orderData.subtotal, 'Tax:', orderData.tax, 'Total:', orderData.total);
+    
+    const order = new Order(orderData);
     await order.save();
 
     console.log('Order saved successfully:', order.orderNumber);
@@ -126,11 +225,19 @@ router.post('/', async (req, res) => {
 });
 
 // Update order
-router.put('/:id', async (req, res) => {
+router.put('/:id', extractStaffInfo, async (req, res) => {
   try {
+    const updateData = { ...req.body };
+    
+    // Add staff info if available
+    if (req.staffInfo) {
+      updateData.lastUpdatedBy = req.staffInfo.id;
+      updateData.lastUpdatedByName = req.staffInfo.name;
+    }
+    
     const order = await Order.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     )
     .populate('customer referrer relationship')

@@ -62,6 +62,13 @@ app.use('/api/relationships', require('./routes/relationships'));
 // Order routes
 app.use('/api/orders', require('./routes/orders'));
 
+// Company Settings routes
+app.use('/api/company-settings', require('./routes/companySettings'));
+
+// Staff routes
+const { router: staffRouter } = require('./routes/staff');
+app.use('/api/staff', staffRouter);
+
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/mernapp';

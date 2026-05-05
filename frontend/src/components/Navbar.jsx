@@ -226,26 +226,6 @@ const Navbar = () => {
             )}
           </Link>
 
-          {user ? (
-            <Link to="/profile" className="header__profile" aria-label="Profile">
-              <div className="header__profile-avatar">
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} />
-                ) : (
-                  <span>{user.name.charAt(0).toUpperCase()}</span>
-                )}
-              </div>
-            </Link>
-          ) : (
-            <Link to="/login" className="header__login-btn" aria-label="Login">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-              <span>Login</span>
-            </Link>
-          )}
-
           <button
             className={`header__hamburger ${menuOpen ? 'open' : ''}`}
             onClick={() => setMenuOpen(!menuOpen)}

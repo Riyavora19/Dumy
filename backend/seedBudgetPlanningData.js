@@ -13,6 +13,7 @@ const itemTypesData = [
   // Bathroom/Toilet Items
   { name: 'Toilet Seat', category: 'Bathroom', icon: '🚽', priceRange: { min: 2000, max: 50000 } },
   { name: 'Flush Tank', category: 'Bathroom', icon: '💧', priceRange: { min: 1500, max: 15000 } },
+  { name: 'Urinal', category: 'Bathroom', icon: '🚻', priceRange: { min: 3000, max: 20000 } },
   { name: 'Tap/Faucet', category: 'Bathroom', icon: '🚰', priceRange: { min: 100, max: 15000 } },
   { name: 'Wash Basin', category: 'Bathroom', icon: '🚿', priceRange: { min: 2000, max: 30000 } },
   { name: 'Mirror', category: 'Bathroom', icon: '🪞', priceRange: { min: 500, max: 10000 } },

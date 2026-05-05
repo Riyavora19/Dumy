@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNotification } from '../context/NotificationContext';
-import QuotationForm from './QuotationForm';
+import AdminBudgetPlanForm from './AdminBudgetPlanForm';
 import QuotationList from './QuotationList';
 import './AdminQuotations.css';
 
@@ -128,12 +128,13 @@ function AdminQuotations() {
           )}
         </>
       ) : (
-        <QuotationForm 
-          quotation={editingQuotation}
-          onSave={handleSaveQuotation}
-          onCancel={() => {
+        <AdminBudgetPlanForm 
+          onClose={() => {
             setShowForm(false);
             setEditingQuotation(null);
+          }}
+          onSuccess={(quotationData) => {
+            handleSaveQuotation(quotationData);
           }}
         />
       )}

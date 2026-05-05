@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNotification } from '../context/NotificationContext';
 import AdminBudgetPlanForm from './AdminBudgetPlanForm';
 import AdminOrderForm from './AdminOrderForm';
+import QuotationPDFGenerator from './QuotationPDFGenerator';
 import './AdminBudgetPlans.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -94,11 +95,59 @@ function AdminBudgetPlans() {
   };
 
   const handleConvertToOrder = async (plan) => {
+    console.log('Converting plan to order:', plan);
+    
+    // Check if plan has required data
+    if (!plan || !plan._id) {
+      showNotification('Invalid plan data', 'error');
+      return;
+    }
+    
+    if (plan.status === 'completed') {
+      showNotification('This plan has already been completed', 'info');
+      return;
+    }
+    
     // Set the plan to convert and open the order form
     setPlanToConvert(plan);
     setShowConvertToOrderModal(true);
     // Close details modal if open
     setSelectedPlan(null);
+  };
+
+  const handleGenerateQuotation = async (plan) => {
+    try {
+      showNotification('Generating quotation PDF...', 'info');
+      
+      // Prepare quotation data in the format expected by QuotationPDFGenerator
+      const quotationData = {
+        quotationNumber: `QT-${plan._id.slice(-8).toUpperCase()}`,
+        quotationDate: new Date().toLocaleDateString('en-IN'),
+        clientData: {
+          name: plan.userName || 'Customer',
+          email: plan.userEmail || '',
+          phone: plan.userPhone || '',
+          address: plan.customerAddress || ''
+        },
+        items: plan.selectedProducts.map(item => ({
+          description: item.productName,
+          variant: item.variant || '',
+          company: item.companyName || '',
+          quantity: item.quantity,
+          rate: item.unitPrice,
+          amount: item.totalPrice
+        })),
+        total: plan.totalCost + (plan.totalCost * 18) / 100, // Including GST
+        notes: plan.notes || ''
+      };
+
+      // Generate PDF
+      await QuotationPDFGenerator(quotationData);
+      showNotification('Quotation PDF generated successfully!', 'success');
+    } catch (error) {
+      console.error('Error generating quotation:', error);
+      showNotification('Failed to generate quotation PDF', 'error');
+    }
   };
 
   const getStatusColor = (status) => {
@@ -163,77 +212,111 @@ function AdminBudgetPlans() {
           )}
         </div>
       ) : (
-        <div className="plans-grid">
-          {plans.map(plan => (
-            <div key={plan._id} className="plan-card">
-              <div className="plan-card-header">
-                <h3>{plan.roomTemplate?.icon} {plan.roomName}</h3>
-                <span 
-                  className="status-badge"
-                  style={{ background: getStatusColor(plan.status) }}
-                >
-                  {plan.status.replace('_', ' ')}
-                </span>
-              </div>
-
-              <div className="plan-info">
-                <div className="info-row">
-                  <span className="label">Budget:</span>
-                  <span className="value">₹{plan.totalBudget.toLocaleString('en-IN')}</span>
-                </div>
-                <div className="info-row">
-                  <span className="label">Total Cost:</span>
-                  <span className="value">₹{plan.totalCost.toLocaleString('en-IN')}</span>
-                </div>
-                <div className="info-row">
-                  <span className="label">Remaining:</span>
-                  <span className={`value ${plan.remainingBudget < 0 ? 'over-budget' : ''}`}>
-                    ₹{plan.remainingBudget.toLocaleString('en-IN')}
-                  </span>
-                </div>
-                <div className="info-row">
-                  <span className="label">Items:</span>
-                  <span className="value">{plan.selectedProducts.length}</span>
-                </div>
-                <div className="info-row">
-                  <span className="label">Created:</span>
-                  <span className="value">{formatDate(plan.createdAt)}</span>
-                </div>
-              </div>
-
-              {plan.userName && (
-                <div className="user-info">
-                  <strong>Contact:</strong>
-                  <p>{plan.userName}</p>
-                  {plan.userEmail && <p>{plan.userEmail}</p>}
-                  {plan.userPhone && <p>{plan.userPhone}</p>}
-                </div>
-              )}
-
-              <div className="plan-actions">
-                <button 
-                  className="btn-view"
-                  onClick={() => handleViewDetails(plan)}
-                >
-                  View Details
-                </button>
-                <button 
-                  className="btn-convert"
-                  onClick={() => handleConvertToOrder(plan)}
-                  disabled={plan.status === 'completed'}
-                  title="Convert to order"
-                >
-                  {plan.status === 'completed' ? '✓ Completed' : '📦 Convert to Order'}
-                </button>
-                <button 
-                  className="btn-delete"
-                  onClick={() => handleDelete(plan._id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="plans-table-container">
+          <table className="plans-table">
+            <thead>
+              <tr>
+                <th>Room Name</th>
+                <th>Budget</th>
+                <th>Total Cost</th>
+                <th>Remaining</th>
+                <th>Items</th>
+                <th>Customer</th>
+                <th>Created By</th>
+                <th>Created Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {plans.map(plan => (
+                <tr key={plan._id}>
+                  <td>
+                    <strong>{plan.roomTemplate?.icon} {plan.roomName}</strong>
+                  </td>
+                  <td>₹{plan.totalBudget.toLocaleString('en-IN')}</td>
+                  <td>₹{plan.totalCost.toLocaleString('en-IN')}</td>
+                  <td>
+                    <span className={plan.remainingBudget < 0 ? 'over-budget' : 'under-budget'}>
+                      ₹{plan.remainingBudget.toLocaleString('en-IN')}
+                    </span>
+                  </td>
+                  <td>{plan.selectedProducts.length}</td>
+                  <td>
+                    {plan.userName ? (
+                      <div className="customer-info">
+                        <div>{plan.userName}</div>
+                        {plan.userPhone && <small>{plan.userPhone}</small>}
+                      </div>
+                    ) : (
+                      <span style={{ color: '#999' }}>-</span>
+                    )}
+                  </td>
+                  <td>
+                    {plan.createdByName ? (
+                      <span style={{ color: '#667eea', fontWeight: '600' }}>
+                        👤 {plan.createdByName}
+                      </span>
+                    ) : (
+                      <span style={{ color: '#999' }}>-</span>
+                    )}
+                  </td>
+                  <td>{formatDate(plan.createdAt)}</td>
+                  <td>
+                    <span 
+                      className="status-badge"
+                      style={{ background: getStatusColor(plan.status) }}
+                    >
+                      {plan.status.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="action-buttons">
+                      <button 
+                        className="btn-view"
+                        onClick={() => handleViewDetails(plan)}
+                        title="View Details"
+                      >
+                        👁️
+                      </button>
+                      <button 
+                        className="btn-quotation"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleGenerateQuotation(plan);
+                        }}
+                        title="Generate Quotation PDF"
+                      >
+                        📄
+                      </button>
+                      <button 
+                        className="btn-convert"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('Convert button clicked for plan:', plan._id);
+                          handleConvertToOrder(plan);
+                        }}
+                        disabled={plan.status === 'completed'}
+                        title={plan.status === 'completed' ? 'Plan already completed' : 'Convert to order'}
+                      >
+                        📦
+                      </button>
+                      <button 
+                        className="btn-delete"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(plan._id);
+                        }}
+                        title="Delete"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

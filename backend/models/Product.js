@@ -24,6 +24,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  brand: {
+    type: String,
+    trim: true
+  },
   // Item type (e.g., "Toilet Seat", "Tap", "Flush Tank")
   itemType: {
     type: mongoose.Schema.Types.ObjectId,
@@ -37,11 +41,12 @@ const productSchema = new mongoose.Schema({
   // Variant information
   variant: {
     type: String,
-    required: true,
     trim: true
   },
   variantDescription: String,
   
+
+
   // Pricing
   price: {
     type: Number,
@@ -53,8 +58,7 @@ const productSchema = new mongoose.Schema({
   
   // Images
   images: [{
-    type: String,
-    required: true
+    type: String
   }],
   
   // Product details

@@ -1,13 +1,13 @@
-.user-login {
+.staff-login {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 2rem;
 }
 
-.user-login__container {
+.staff-login__container {
   background: white;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -16,21 +16,21 @@
   padding: 2.5rem;
 }
 
-.user-login__header {
+.staff-login__header {
   text-align: center;
   margin-bottom: 2rem;
 }
 
-.user-login__logo {
+.staff-login__logo {
   display: flex;
   justify-content: center;
   margin-bottom: 1.5rem;
 }
 
-.user-login__logo-icon {
+.staff-login__logo-icon {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -39,23 +39,23 @@
   color: white;
 }
 
-.user-login__header h1 {
+.staff-login__header h1 {
   font-size: 2rem;
   color: #1a202c;
   margin: 0 0 0.5rem 0;
 }
 
-.user-login__header p {
+.staff-login__header p {
   color: #718096;
   font-size: 1rem;
   margin: 0;
 }
 
-.user-login__form {
+.staff-login__form {
   margin-bottom: 1.5rem;
 }
 
-.user-login__error {
+.staff-login__error {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -68,11 +68,11 @@
   margin-bottom: 1.5rem;
 }
 
-.user-login__field {
+.staff-login__field {
   margin-bottom: 1.5rem;
 }
 
-.user-login__field label {
+.staff-login__field label {
   display: block;
   font-size: 0.9rem;
   font-weight: 600;
@@ -80,7 +80,7 @@
   margin-bottom: 0.5rem;
 }
 
-.user-login__field input {
+.staff-login__field input {
   width: 100%;
   padding: 0.875rem 1rem;
   border: 2px solid #e2e8f0;
@@ -89,31 +89,15 @@
   transition: border-color 0.2s;
 }
 
-.user-login__field input:focus {
+.staff-login__field input:focus {
   outline: none;
-  border-color: #1e40af;
+  border-color: #667eea;
 }
 
-.user-login__forgot {
-  text-align: right;
-  margin-bottom: 1.5rem;
-}
-
-.user-login__forgot a {
-  color: #1e40af;
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.user-login__forgot a:hover {
-  text-decoration: underline;
-}
-
-.user-login__submit {
+.staff-login__submit {
   width: 100%;
   padding: 1rem;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -127,12 +111,12 @@
   gap: 0.5rem;
 }
 
-.user-login__submit:hover:not(:disabled) {
+.staff-login__submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.user-login__submit:disabled {
+.staff-login__submit:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -150,92 +134,38 @@
   to { transform: rotate(360deg); }
 }
 
-.user-login__toggle {
+.staff-login__footer {
   text-align: center;
   padding-top: 1.5rem;
   border-top: 1px solid #e2e8f0;
 }
 
-.user-login__toggle p {
+.staff-login__footer p {
   color: #718096;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   margin: 0;
 }
 
-.user-login__toggle button {
-  background: none;
-  border: none;
-  color: #1e40af;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 0.95rem;
-  padding: 0;
-}
-
-.user-login__toggle button:hover {
-  text-decoration: underline;
-}
-
 @media (max-width: 768px) {
-  .user-login {
+  .staff-login {
     padding: 1rem;
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
   }
 
-  .user-login__container {
+  .staff-login__container {
     padding: 2rem 1.5rem;
-    max-width: 100%;
   }
 
-  .user-login__header h1 {
+  .staff-login__header h1 {
     font-size: 1.75rem;
   }
 
-  .user-login__logo-icon {
+  .staff-login__logo-icon {
     width: 60px;
     height: 60px;
     font-size: 2rem;
   }
 
-  .user-login__field input {
+  .staff-login__field input {
     font-size: 16px; /* Prevents zoom on iOS */
-    padding: 0.75rem;
-  }
-
-  .user-login__submit {
-    padding: 0.875rem;
-    font-size: 1rem;
   }
 }
-
-@media (max-width: 480px) {
-  .user-login {
-    padding: 0.5rem;
-  }
-
-  .user-login__container {
-    padding: 1.5rem 1rem;
-    border-radius: 12px;
-  }
-
-  .user-login__header h1 {
-    font-size: 1.5rem;
-  }
-
-  .user-login__header p {
-    font-size: 0.9rem;
-  }
-
-  .user-login__field {
-    margin-bottom: 1.25rem;
-  }
-
-  .user-login__field label {
-    font-size: 0.85rem;
-  }
-}
-
-
-
-

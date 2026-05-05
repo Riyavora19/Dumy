@@ -438,7 +438,7 @@ const AdminCompanies = () => {
                                       />
                                       <div className="admin-companies__product-info">
                                         <span className="admin-companies__product-name">{product.name}</span>
-                                        <span className="admin-companies__product-price">${product.price}</span>
+                                        <span className="admin-companies__product-price">₹{product.price?.toLocaleString('en-IN')}</span>
                                       </div>
                                     </div>
                                   ))}

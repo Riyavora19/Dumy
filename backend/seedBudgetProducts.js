@@ -12,9 +12,9 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/mernapp';
 const productsData = [
   // BATHROOM PRODUCTS
   
-  // Toilet Seats
+  // Toilet Seats (WC Area)
   {
-    name: 'Premium Ceramic Toilet Seat',
+    name: 'Premium Ceramic WC Toilet Seat',
     itemTypeName: 'Toilet Seat',
     companyName: 'kohler',
     variant: 'White Ceramic',
@@ -30,10 +30,10 @@ const productsData = [
     rating: 4.5,
     reviewCount: 120,
     stock: 50,
-    tags: ['premium', 'ceramic', 'soft-close']
+    tags: ['premium', 'ceramic', 'soft-close', 'wc', 'toilet']
   },
   {
-    name: 'Standard Toilet Seat',
+    name: 'Standard WC Toilet Seat',
     itemTypeName: 'Toilet Seat',
     companyName: 'kohler',
     variant: 'Basic White',
@@ -49,10 +49,10 @@ const productsData = [
     rating: 4.0,
     reviewCount: 85,
     stock: 100,
-    tags: ['budget-friendly', 'standard']
+    tags: ['budget-friendly', 'standard', 'wc', 'toilet']
   },
   {
-    name: 'Luxury Designer Toilet Seat',
+    name: 'Luxury Designer WC Toilet Seat',
     itemTypeName: 'Toilet Seat',
     companyName: 'kohler',
     variant: 'Designer Series',
@@ -68,12 +68,12 @@ const productsData = [
     rating: 4.8,
     reviewCount: 65,
     stock: 30,
-    tags: ['luxury', 'designer', 'premium']
+    tags: ['luxury', 'designer', 'premium', 'wc', 'toilet']
   },
 
-  // Flush Tanks
+  // Flush Tanks (WC Area)
   {
-    name: 'Dual Flush Tank',
+    name: 'Dual Flush Tank for WC',
     itemTypeName: 'Flush Tank',
     companyName: 'kohler',
     variant: 'Water Saving',
@@ -89,10 +89,10 @@ const productsData = [
     rating: 4.3,
     reviewCount: 95,
     stock: 75,
-    tags: ['eco-friendly', 'water-saving']
+    tags: ['eco-friendly', 'water-saving', 'flush', 'wc']
   },
   {
-    name: 'Standard Flush Tank',
+    name: 'Standard Flush Tank for Toilet',
     itemTypeName: 'Flush Tank',
     companyName: 'kohler',
     variant: 'Single Flush',
@@ -108,12 +108,71 @@ const productsData = [
     rating: 4.0,
     reviewCount: 110,
     stock: 120,
-    tags: ['budget-friendly', 'standard']
+    tags: ['budget-friendly', 'standard', 'flush', 'toilet']
   },
 
-  // Taps/Faucets
+  // Urinals (Urinal Area)
   {
-    name: 'Chrome Finish Tap',
+    name: 'Wall Hung Sensor Urinal',
+    itemTypeName: 'Urinal',
+    companyName: 'kohler',
+    variant: 'Automatic Sensor',
+    price: 8500,
+    originalPrice: 11000,
+    description: 'Modern wall hung urinal with automatic sensor flush',
+    specifications: {
+      material: 'Ceramic',
+      type: 'Wall Hung',
+      warranty: '3 Years',
+      features: ['Sensor Flush', 'Water Saving', 'Easy Clean', 'Wall Mounted']
+    },
+    rating: 4.6,
+    reviewCount: 58,
+    stock: 40,
+    tags: ['urinal', 'sensor', 'wall-hung', 'automatic', 'premium']
+  },
+  {
+    name: 'Floor Mounted Urinal',
+    itemTypeName: 'Urinal',
+    companyName: 'kohler',
+    variant: 'Standard',
+    price: 4500,
+    originalPrice: 6000,
+    description: 'Durable floor mounted urinal for commercial use',
+    specifications: {
+      material: 'Ceramic',
+      type: 'Floor Mounted',
+      warranty: '2 Years',
+      features: ['Floor Mounted', 'Durable', 'Easy Install']
+    },
+    rating: 4.2,
+    reviewCount: 85,
+    stock: 60,
+    tags: ['urinal', 'floor-mounted', 'commercial', 'durable']
+  },
+  {
+    name: 'Waterless Urinal Eco',
+    itemTypeName: 'Urinal',
+    companyName: 'kohler',
+    variant: 'Eco Friendly',
+    price: 12500,
+    originalPrice: 15500,
+    description: 'Eco-friendly waterless urinal system',
+    specifications: {
+      material: 'Ceramic',
+      type: 'Wall Hung',
+      warranty: '5 Years',
+      features: ['Waterless', 'Eco Friendly', 'No Flush Required', 'Odor Free']
+    },
+    rating: 4.7,
+    reviewCount: 42,
+    stock: 30,
+    tags: ['urinal', 'waterless', 'eco-friendly', 'premium', 'wall-hung']
+  },
+
+  // Taps/Faucets (Basin Area)
+  {
+    name: 'Chrome Basin Tap Faucet',
     itemTypeName: 'Tap/Faucet',
     companyName: 'kohler',
     variant: 'Chrome Plated',
@@ -129,10 +188,10 @@ const productsData = [
     rating: 4.4,
     reviewCount: 150,
     stock: 200,
-    tags: ['chrome', 'premium']
+    tags: ['chrome', 'premium', 'basin', 'tap', 'faucet']
   },
   {
-    name: 'Budget Tap',
+    name: 'Budget Basin Tap',
     itemTypeName: 'Tap/Faucet',
     companyName: 'kohler',
     variant: 'Basic',
@@ -148,10 +207,10 @@ const productsData = [
     rating: 3.8,
     reviewCount: 200,
     stock: 300,
-    tags: ['budget-friendly', 'basic']
+    tags: ['budget-friendly', 'basic', 'basin', 'tap']
   },
   {
-    name: 'Designer Sensor Tap',
+    name: 'Designer Sensor Basin Tap',
     itemTypeName: 'Tap/Faucet',
     companyName: 'kohler',
     variant: 'Automatic Sensor',
@@ -167,12 +226,12 @@ const productsData = [
     rating: 4.7,
     reviewCount: 45,
     stock: 50,
-    tags: ['luxury', 'sensor', 'modern']
+    tags: ['luxury', 'sensor', 'modern', 'basin', 'tap']
   },
 
-  // Wash Basins
+  // Wash Basins (Basin Area)
   {
-    name: 'Wall Mounted Basin',
+    name: 'Wall Mounted Washbasin',
     itemTypeName: 'Wash Basin',
     companyName: 'kohler',
     variant: 'Wall Mount',
@@ -188,10 +247,10 @@ const productsData = [
     rating: 4.3,
     reviewCount: 88,
     stock: 60,
-    tags: ['wall-mount', 'space-saving']
+    tags: ['wall-mount', 'space-saving', 'basin', 'washbasin']
   },
   {
-    name: 'Pedestal Basin',
+    name: 'Pedestal Washbasin',
     itemTypeName: 'Wash Basin',
     companyName: 'kohler',
     variant: 'With Pedestal',
@@ -207,10 +266,10 @@ const productsData = [
     rating: 4.5,
     reviewCount: 72,
     stock: 45,
-    tags: ['pedestal', 'classic', 'elegant']
+    tags: ['pedestal', 'classic', 'elegant', 'basin', 'washbasin']
   },
   {
-    name: 'Counter Top Basin',
+    name: 'Counter Top Basin Sink',
     itemTypeName: 'Wash Basin',
     companyName: 'kohler',
     variant: 'Counter Mount',
@@ -226,12 +285,12 @@ const productsData = [
     rating: 4.7,
     reviewCount: 55,
     stock: 35,
-    tags: ['counter-top', 'modern', 'premium']
+    tags: ['counter-top', 'modern', 'premium', 'basin', 'sink']
   },
 
-  // Mirrors
+  // Mirrors (Basin Area)
   {
-    name: 'Basic Bathroom Mirror',
+    name: 'Basic Basin Mirror',
     itemTypeName: 'Mirror',
     companyName: 'kohler',
     variant: 'Plain',
@@ -246,10 +305,10 @@ const productsData = [
     rating: 4.0,
     reviewCount: 130,
     stock: 150,
-    tags: ['budget-friendly', 'basic']
+    tags: ['budget-friendly', 'basic', 'mirror', 'basin']
   },
   {
-    name: 'LED Mirror',
+    name: 'LED Basin Mirror',
     itemTypeName: 'Mirror',
     companyName: 'kohler',
     variant: 'With LED Lights',
@@ -264,12 +323,12 @@ const productsData = [
     rating: 4.6,
     reviewCount: 68,
     stock: 40,
-    tags: ['led', 'modern', 'premium']
+    tags: ['led', 'modern', 'premium', 'mirror', 'basin']
   },
 
-  // Shower Heads
+  // Shower Heads (Shower Area)
   {
-    name: 'Rain Shower Head',
+    name: 'Rain Shower Head Overhead',
     itemTypeName: 'Shower Head',
     companyName: 'kohler',
     variant: 'Overhead Rain',
@@ -285,10 +344,10 @@ const productsData = [
     rating: 4.5,
     reviewCount: 92,
     stock: 70,
-    tags: ['rain', 'luxury']
+    tags: ['rain', 'luxury', 'shower', 'overhead']
   },
   {
-    name: 'Hand Shower',
+    name: 'Hand Shower Spray',
     itemTypeName: 'Shower Head',
     companyName: 'kohler',
     variant: 'Handheld',
@@ -303,12 +362,12 @@ const productsData = [
     rating: 4.2,
     reviewCount: 145,
     stock: 120,
-    tags: ['handheld', 'flexible']
+    tags: ['handheld', 'flexible', 'shower', 'spray']
   },
 
-  // Bathroom Tiles
+  // Bathroom Tiles (All Areas - can be used in shower, basin, or WC areas)
   {
-    name: 'Ceramic Floor Tiles',
+    name: 'Ceramic Floor Tiles for Shower Basin WC',
     itemTypeName: 'Bathroom Tiles',
     companyName: 'kohler',
     variant: 'Glossy Finish',
@@ -325,10 +384,10 @@ const productsData = [
     rating: 4.4,
     reviewCount: 78,
     stock: 200,
-    tags: ['ceramic', 'glossy', 'premium']
+    tags: ['ceramic', 'glossy', 'premium', 'shower', 'basin', 'wc', 'toilet']
   },
   {
-    name: 'Budget Bathroom Tiles',
+    name: 'Budget Bathroom Tiles Shower Basin WC',
     itemTypeName: 'Bathroom Tiles',
     companyName: 'kohler',
     variant: 'Standard',
@@ -345,18 +404,18 @@ const productsData = [
     rating: 3.9,
     reviewCount: 156,
     stock: 300,
-    tags: ['budget-friendly', 'standard']
+    tags: ['budget-friendly', 'standard', 'shower', 'basin', 'wc', 'toilet']
   },
 
-  // Towel Racks
+  // Towel Racks (Basin Area)
   {
-    name: 'Stainless Steel Towel Rack',
+    name: 'Stainless Steel Towel Rack for Basin',
     itemTypeName: 'Towel Rack',
     companyName: 'kohler',
     variant: 'Single Rod',
     price: 850,
     originalPrice: 1200,
-    description: 'Durable stainless steel towel rack',
+    description: 'Durable stainless steel towel rack for basin area',
     specifications: {
       material: 'Stainless Steel',
       size: '24 inches',
@@ -366,18 +425,18 @@ const productsData = [
     rating: 4.2,
     reviewCount: 165,
     stock: 200,
-    tags: ['stainless-steel', 'durable']
+    tags: ['stainless-steel', 'durable', 'basin', 'washbasin']
   },
 
-  // Soap Dispensers
+  // Soap Dispensers (Basin Area)
   {
-    name: 'Automatic Soap Dispenser',
+    name: 'Automatic Basin Soap Dispenser',
     itemTypeName: 'Soap Dispenser',
     companyName: 'kohler',
     variant: 'Sensor Based',
     price: 1200,
     originalPrice: 1800,
-    description: 'Touchless automatic soap dispenser',
+    description: 'Touchless automatic soap dispenser for basin area',
     specifications: {
       material: 'Plastic',
       capacity: '300ml',
@@ -387,18 +446,18 @@ const productsData = [
     rating: 4.3,
     reviewCount: 98,
     stock: 150,
-    tags: ['automatic', 'touchless']
+    tags: ['automatic', 'touchless', 'basin', 'washbasin', 'sink']
   },
 
-  // Bathroom Cabinets
+  // Bathroom Cabinets (Basin Area)
   {
-    name: 'Wall Cabinet with Mirror',
+    name: 'Basin Wall Cabinet with Mirror',
     itemTypeName: 'Bathroom Cabinet',
     companyName: 'kohler',
     variant: 'Mirror Door',
     price: 8500,
     originalPrice: 11000,
-    description: 'Space-saving wall cabinet with mirror door',
+    description: 'Space-saving wall cabinet with mirror door for basin area',
     specifications: {
       material: 'MDF',
       size: '24x18x6 inches',
@@ -408,14 +467,18 @@ const productsData = [
     rating: 4.4,
     reviewCount: 67,
     stock: 45,
-    tags: ['wall-mount', 'mirror', 'storage']
+    tags: ['wall-mount', 'mirror', 'storage', 'basin', 'washbasin', 'vanity']
   },
 
   // KITCHEN PRODUCTS
+  // Note: Kitchen products are mapped to the 3 standard areas based on their function
+  // Basin Area = Sink-related items (sinks, taps, countertops)
+  // Shower Area = Cooking-related items (stoves, chimneys)
+  // WC Area = Storage items (cabinets)
 
-  // Kitchen Sinks
+  // Kitchen Sinks (Basin Area - sink related)
   {
-    name: 'Stainless Steel Kitchen Sink',
+    name: 'Stainless Steel Kitchen Sink Basin',
     itemTypeName: 'Kitchen Sink',
     companyName: 'kohler',
     variant: 'Single Bowl',
@@ -431,10 +494,10 @@ const productsData = [
     rating: 4.5,
     reviewCount: 125,
     stock: 80,
-    tags: ['stainless-steel', 'durable']
+    tags: ['stainless-steel', 'durable', 'basin', 'sink', 'washbasin']
   },
   {
-    name: 'Double Bowl Kitchen Sink',
+    name: 'Double Bowl Kitchen Sink Basin',
     itemTypeName: 'Kitchen Sink',
     companyName: 'kohler',
     variant: 'Double Bowl',
@@ -450,12 +513,12 @@ const productsData = [
     rating: 4.7,
     reviewCount: 89,
     stock: 50,
-    tags: ['double-bowl', 'premium']
+    tags: ['double-bowl', 'premium', 'basin', 'sink', 'washbasin']
   },
 
-  // Kitchen Taps
+  // Kitchen Taps (Basin Area - tap/faucet related)
   {
-    name: 'Kitchen Mixer Tap',
+    name: 'Kitchen Mixer Tap Faucet',
     itemTypeName: 'Kitchen Tap',
     companyName: 'kohler',
     variant: 'Single Lever',
@@ -471,10 +534,10 @@ const productsData = [
     rating: 4.4,
     reviewCount: 112,
     stock: 100,
-    tags: ['mixer', 'modern']
+    tags: ['mixer', 'modern', 'tap', 'faucet', 'basin']
   },
   {
-    name: 'Pull-Out Kitchen Tap',
+    name: 'Pull-Out Kitchen Tap Faucet',
     itemTypeName: 'Kitchen Tap',
     companyName: 'kohler',
     variant: 'Pull-Out Spray',
@@ -490,12 +553,12 @@ const productsData = [
     rating: 4.6,
     reviewCount: 76,
     stock: 60,
-    tags: ['pull-out', 'premium', 'spray']
+    tags: ['pull-out', 'premium', 'spray', 'tap', 'faucet', 'basin']
   },
 
-  // Kitchen Tiles
+  // Kitchen Tiles (All Areas)
   {
-    name: 'Kitchen Backsplash Tiles',
+    name: 'Kitchen Backsplash Tiles Shower Basin WC',
     itemTypeName: 'Kitchen Tiles',
     companyName: 'kohler',
     variant: 'Glossy Ceramic',
@@ -512,12 +575,12 @@ const productsData = [
     rating: 4.5,
     reviewCount: 94,
     stock: 150,
-    tags: ['backsplash', 'ceramic', 'glossy']
+    tags: ['backsplash', 'ceramic', 'glossy', 'shower', 'basin', 'wc']
   },
 
-  // Chimneys
+  // Chimneys (Shower Area - cooking/overhead items)
   {
-    name: 'Auto Clean Chimney',
+    name: 'Auto Clean Chimney Overhead',
     itemTypeName: 'Chimney',
     companyName: 'kohler',
     variant: '60cm Auto Clean',
@@ -533,10 +596,10 @@ const productsData = [
     rating: 4.5,
     reviewCount: 145,
     stock: 45,
-    tags: ['auto-clean', 'powerful']
+    tags: ['auto-clean', 'powerful', 'shower', 'overhead', 'rain']
   },
   {
-    name: 'Basic Kitchen Chimney',
+    name: 'Basic Kitchen Chimney Overhead',
     itemTypeName: 'Chimney',
     companyName: 'kohler',
     variant: '60cm Standard',
@@ -552,12 +615,12 @@ const productsData = [
     rating: 4.0,
     reviewCount: 198,
     stock: 80,
-    tags: ['budget-friendly', 'standard']
+    tags: ['budget-friendly', 'standard', 'shower', 'overhead']
   },
 
-  // Gas Stoves
+  // Gas Stoves (Shower Area - cooking items)
   {
-    name: '3 Burner Gas Stove',
+    name: '3 Burner Gas Stove Shower',
     itemTypeName: 'Gas Stove',
     companyName: 'kohler',
     variant: 'Glass Top',
@@ -573,10 +636,10 @@ const productsData = [
     rating: 4.3,
     reviewCount: 167,
     stock: 70,
-    tags: ['3-burner', 'glass-top']
+    tags: ['3-burner', 'glass-top', 'shower', 'spray']
   },
   {
-    name: '4 Burner Gas Stove',
+    name: '4 Burner Gas Stove Shower',
     itemTypeName: 'Gas Stove',
     companyName: 'kohler',
     variant: 'Stainless Steel',
@@ -592,12 +655,12 @@ const productsData = [
     rating: 4.5,
     reviewCount: 134,
     stock: 55,
-    tags: ['4-burner', 'stainless-steel', 'premium']
+    tags: ['4-burner', 'stainless-steel', 'premium', 'shower', 'spray']
   },
 
-  // Kitchen Cabinets
+  // Kitchen Cabinets (WC Area - storage/cabinet items)
   {
-    name: 'Modular Kitchen Cabinet Set',
+    name: 'Modular Kitchen Cabinet WC Storage',
     itemTypeName: 'Kitchen Cabinet',
     companyName: 'kohler',
     variant: 'Complete Set',
@@ -613,12 +676,12 @@ const productsData = [
     rating: 4.6,
     reviewCount: 45,
     stock: 15,
-    tags: ['modular', 'complete-set', 'premium']
+    tags: ['modular', 'complete-set', 'premium', 'wc', 'cabinet']
   },
 
-  // Countertops
+  // Countertops (Basin Area - counter/vanity items)
   {
-    name: 'Granite Countertop',
+    name: 'Granite Countertop Basin Counter',
     itemTypeName: 'Countertop',
     companyName: 'kohler',
     variant: 'Black Galaxy',
@@ -634,10 +697,10 @@ const productsData = [
     rating: 4.7,
     reviewCount: 67,
     stock: 30,
-    tags: ['granite', 'premium', 'durable']
+    tags: ['granite', 'premium', 'durable', 'basin', 'counter', 'vanity']
   },
   {
-    name: 'Quartz Countertop',
+    name: 'Quartz Countertop Basin Counter',
     itemTypeName: 'Countertop',
     companyName: 'kohler',
     variant: 'White Quartz',
@@ -653,7 +716,7 @@ const productsData = [
     rating: 4.8,
     reviewCount: 52,
     stock: 20,
-    tags: ['quartz', 'luxury', 'premium']
+    tags: ['quartz', 'luxury', 'premium', 'basin', 'counter', 'vanity']
   }
 ];
 

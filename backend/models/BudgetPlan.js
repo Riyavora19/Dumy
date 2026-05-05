@@ -32,6 +32,75 @@ const budgetPlanSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
+  // Rooms with areas and products (hierarchical structure)
+  rooms: [{
+    id: String,
+    name: String,
+    budget: Number,
+    templateId: String,
+    templateName: String,
+    areas: [{
+      id: String,
+      name: String,
+      icon: String,
+      products: [{
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Product'
+        },
+        productName: String,
+        variant: String,
+        sku: String,
+        company: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Company'
+        },
+        companyName: String,
+        category: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Category'
+        },
+        categoryName: String,
+        itemType: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'ProductItemType'
+        },
+        itemName: String,
+        itemTypeName: String,
+        quantity: {
+          type: Number,
+          default: 1,
+          min: 1
+        },
+        unitPrice: {
+          type: Number,
+          default: 0,
+          min: 0
+        },
+        discount: {
+          type: Number,
+          default: 0,
+          min: 0
+        },
+        discountPercent: {
+          type: Number,
+          default: 0,
+          min: 0,
+          max: 100
+        },
+        totalPrice: {
+          type: Number,
+          default: 0,
+          min: 0
+        },
+        image: String,
+        roomId: String,
+        roomName: String,
+        areaId: String,
+        areaName: String
+      }]
+    }]
+  }],
   // Selected products for each item type
   selectedProducts: [{
     itemType: {
@@ -41,16 +110,15 @@ const budgetPlanSchema = new mongoose.Schema({
     },
     itemName: {
       type: String,
-      required: true
+      required: false // Made optional
     },
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',
-      required: true
+      required: false // Made optional
     },
     productName: {
-      type: String,
-      required: true
+      type: String
     },
     company: {
       type: mongoose.Schema.Types.ObjectId,
@@ -61,18 +129,20 @@ const budgetPlanSchema = new mongoose.Schema({
     },
     quantity: {
       type: Number,
-      required: true,
+      required: false,
       default: 1,
       min: 1
     },
     unitPrice: {
       type: Number,
-      required: true,
+      required: false,
+      default: 0,
       min: 0
     },
     totalPrice: {
       type: Number,
-      required: true,
+      required: false,
+      default: 0,
       min: 0
     }
   }],
@@ -95,10 +165,41 @@ const budgetPlanSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  // Quotation-specific fields
+  quotationValidity: {
+    type: String,
+    trim: true
+  },
+  deliveryTime: {
+    type: String,
+    trim: true
+  },
+  paymentTerms: {
+    type: String,
+    trim: true
+  },
+  specialInstructions: {
+    type: String,
+    trim: true
+  },
   // Track if inquiry was created from this plan
   inquiryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Inquiry'
+  },
+  // Staff tracking
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Staff',
+    required: false
+  },
+  createdByName: {
+    type: String,
+    trim: true
+  },
+  updatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Staff'
   }
 }, {
   timestamps: true

@@ -26,19 +26,19 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
     
     // Step 3: Products (pre-filled from budget plan)
     selectedProducts: budgetPlan ? budgetPlan.selectedProducts.map(item => ({
-      product: item.product._id || item.product,
-      productName: item.productName,
-      sku: item.product.sku || '',
-      company: item.company,
-      companyName: item.companyName,
-      category: item.product.category || null,
-      categoryName: item.product.categoryName || '',
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
+      product: item.product?._id || item.product || null,
+      productName: item.productName || '',
+      sku: item.product?.sku || '',
+      company: item.company || null,
+      companyName: item.companyName || '',
+      category: item.product?.category || null,
+      categoryName: item.product?.categoryName || '',
+      quantity: item.quantity || 1,
+      unitPrice: item.unitPrice || 0,
       discount: 0,
       tax: 0,
-      totalPrice: item.totalPrice,
-      image: item.product.images?.[0] || ''
+      totalPrice: item.totalPrice || 0,
+      image: item.product?.images?.[0] || ''
     })) : [],
     
     // Step 4: Addresses
@@ -380,15 +380,23 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
         notes: formData.notes,
         internalNotes: formData.internalNotes,
         source: 'admin',
-        createdBy: 'admin',
+        // Don't send createdBy - let the backend middleware handle it from token
         budgetPlan: formData.budgetPlanId // Link to budget plan
       };
 
       console.log('Submitting order data:', orderData);
 
+      // Get token from localStorage (admin or staff)
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('staffToken');
+      
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('http://localhost:5000/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
         body: JSON.stringify(orderData)
       });
 
@@ -414,7 +422,12 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
         onClose && onClose();
       } else {
         console.error('Order creation failed:', result);
-        alert(`Error: ${result.message || JSON.stringify(result)}`);
+        // Show detailed error message
+        let errorMsg = result.message || 'Unknown error';
+        if (result.details && Array.isArray(result.details)) {
+          errorMsg += '\n\nDetails:\n' + result.details.map(d => `- ${d.field}: ${d.message}`).join('\n');
+        }
+        alert(`Error creating order:\n${errorMsg}`);
       }
     } catch (error) {
       console.error('Error creating order:', error);
@@ -727,129 +740,186 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
     const totals = calculateTotals();
     
     return (
-      <div className="form-step">
-        <h3>Step 5: Review & Payment</h3>
-        
-        <div className="order-summary">
-          <div className="summary-section">
-            <h4>Customer Information</h4>
-            <p><strong>Name:</strong> {formData.customerName}</p>
-            <p><strong>Phone:</strong> {formData.customerPhone}</p>
-            {formData.customerEmail && <p><strong>Email:</strong> {formData.customerEmail}</p>}
-            {formData.hasReferrer && (
-              <>
-                <p><strong>Referred by:</strong> {formData.referrerName}</p>
-                <p><strong>Relationship:</strong> {formData.relationshipType}</p>
-              </>
-            )}
-          </div>
-
-          <div className="summary-section">
-            <h4>Products ({formData.selectedProducts.length})</h4>
-            {formData.selectedProducts.map((item, index) => (
-              <div key={index} className="summary-product">
-                <span>{item.productName} x {item.quantity}</span>
-                <span>₹{item.totalPrice.toLocaleString()}</span>
+      <div className="form-step step-5-review">
+        <div className="review-container">
+          {/* Left Column - Customer & Products */}
+          <div className="review-left-column">
+            {/* Customer Information Card */}
+            <div className="review-card customer-card">
+              <div className="card-header">
+                <div className="header-icon">👤</div>
+                <h4>Customer Information</h4>
               </div>
-            ))}
-          </div>
-
-          <div className="summary-section">
-            <h4>Pricing</h4>
-            <div className="form-group">
-              <label>Discount Type</label>
-              <select
-                value={formData.discountType}
-                onChange={(e) => setFormData(prev => ({ ...prev, discountType: e.target.value }))}
-              >
-                <option value="none">No Discount</option>
-                <option value="percentage">Percentage</option>
-                <option value="flat">Flat Amount</option>
-              </select>
-            </div>
-
-            {formData.discountType !== 'none' && (
-              <div className="form-group">
-                <label>Discount {formData.discountType === 'percentage' ? '(%)' : '(₹)'}</label>
-                <input
-                  type="number"
-                  value={formData.discount}
-                  onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
-                  min="0"
-                />
-              </div>
-            )}
-
-            <div className="form-group">
-              <label>Shipping Charges (₹)</label>
-              <input
-                type="number"
-                value={formData.shippingCharges}
-                onChange={(e) => setFormData(prev => ({ ...prev, shippingCharges: parseFloat(e.target.value) || 0 }))}
-                min="0"
-              />
-            </div>
-
-            <div className="price-breakdown">
-              <div className="price-row">
-                <span>Subtotal:</span>
-                <span>₹{totals.subtotal.toLocaleString()}</span>
-              </div>
-              {totals.discountAmount > 0 && (
-                <div className="price-row discount">
-                  <span>Discount:</span>
-                  <span>-₹{totals.discountAmount.toLocaleString()}</span>
+              <div className="card-content">
+                <div className="info-row">
+                  <span className="info-label">Name</span>
+                  <span className="info-value">{formData.customerName}</span>
                 </div>
-              )}
-              <div className="price-row">
-                <span>Tax (18% GST):</span>
-                <span>₹{totals.taxAmount.toLocaleString()}</span>
+                <div className="info-row">
+                  <span className="info-label">Phone</span>
+                  <span className="info-value">{formData.customerPhone}</span>
+                </div>
+                {formData.customerEmail && (
+                  <div className="info-row">
+                    <span className="info-label">Email</span>
+                    <span className="info-value">{formData.customerEmail}</span>
+                  </div>
+                )}
+                {formData.hasReferrer && (
+                  <>
+                    <div className="info-row referral-info">
+                      <span className="info-label">Referred by</span>
+                      <span className="info-value">{formData.referrerName}</span>
+                    </div>
+                    <div className="info-row">
+                      <span className="info-label">Relationship</span>
+                      <span className="info-value">{formData.relationshipType}</span>
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="price-row">
-                <span>Shipping:</span>
-                <span>₹{formData.shippingCharges.toLocaleString()}</span>
+            </div>
+
+            {/* Products Card */}
+            <div className="review-card products-card">
+              <div className="card-header">
+                <div className="header-icon">📦</div>
+                <h4>Products ({formData.selectedProducts.length})</h4>
               </div>
-              <div className="price-row total">
-                <span>Total:</span>
-                <span>₹{totals.total.toLocaleString()}</span>
+              <div className="card-content">
+                <div className="products-list">
+                  {formData.selectedProducts.map((item, index) => (
+                    <div key={index} className="product-item">
+                      <div className="product-details">
+                        <span className="product-name">{item.productName}</span>
+                        <span className="product-qty">Qty: {item.quantity}</span>
+                      </div>
+                      <span className="product-price">₹{item.totalPrice.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="summary-section">
-            <h4>Payment & Notes</h4>
-            <div className="form-group">
-              <label>Payment Method</label>
-              <select
-                value={formData.paymentMethod}
-                onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
-              >
-                <option value="pending">Pending</option>
-                <option value="cash">Cash</option>
-                <option value="card">Card</option>
-                <option value="upi">UPI</option>
-                <option value="bank-transfer">Bank Transfer</option>
-                <option value="cheque">Cheque</option>
-                <option value="credit">Credit</option>
-              </select>
+          {/* Right Column - Pricing & Payment */}
+          <div className="review-right-column">
+            {/* Pricing Card */}
+            <div className="review-card pricing-card">
+              <div className="card-header">
+                <div className="header-icon">💰</div>
+                <h4>Pricing Details</h4>
+              </div>
+              <div className="card-content">
+                <div className="pricing-controls">
+                  <div className="form-group compact">
+                    <label>Discount Type</label>
+                    <select
+                      value={formData.discountType}
+                      onChange={(e) => setFormData(prev => ({ ...prev, discountType: e.target.value }))}
+                    >
+                      <option value="none">No Discount</option>
+                      <option value="percentage">Percentage (%)</option>
+                      <option value="flat">Flat Amount (₹)</option>
+                    </select>
+                  </div>
+
+                  {formData.discountType !== 'none' && (
+                    <div className="form-group compact">
+                      <label>Discount {formData.discountType === 'percentage' ? '(%)' : '(₹)'}</label>
+                      <input
+                        type="number"
+                        value={formData.discount}
+                        onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
+                        min="0"
+                        placeholder="0"
+                      />
+                    </div>
+                  )}
+
+                  <div className="form-group compact">
+                    <label>Shipping Charges (₹)</label>
+                    <input
+                      type="number"
+                      value={formData.shippingCharges}
+                      onChange={(e) => setFormData(prev => ({ ...prev, shippingCharges: parseFloat(e.target.value) || 0 }))}
+                      min="0"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                <div className="price-summary">
+                  <div className="price-line">
+                    <span>Subtotal</span>
+                    <span>₹{totals.subtotal.toLocaleString()}</span>
+                  </div>
+                  {totals.discountAmount > 0 && (
+                    <div className="price-line discount-line">
+                      <span>Discount</span>
+                      <span>-₹{totals.discountAmount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div className="price-line">
+                    <span>Tax (18% GST)</span>
+                    <span>₹{totals.taxAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="price-line">
+                    <span>Shipping</span>
+                    <span>₹{formData.shippingCharges.toLocaleString()}</span>
+                  </div>
+                  <div className="price-line total-line">
+                    <span>Total Amount</span>
+                    <span>₹{totals.total.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label>Customer Notes</label>
-              <textarea
-                value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                rows="2"
-              />
-            </div>
+            {/* Payment & Notes Card */}
+            <div className="review-card payment-card">
+              <div className="card-header">
+                <div className="header-icon">💳</div>
+                <h4>Payment & Notes</h4>
+              </div>
+              <div className="card-content">
+                <div className="form-group compact">
+                  <label>Payment Method</label>
+                  <select
+                    value={formData.paymentMethod}
+                    onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                    className="payment-select"
+                  >
+                    <option value="pending">⏳ Pending</option>
+                    <option value="cash">💵 Cash</option>
+                    <option value="card">💳 Card</option>
+                    <option value="upi">📱 UPI</option>
+                    <option value="bank-transfer">🏦 Bank Transfer</option>
+                    <option value="cheque">📝 Cheque</option>
+                    <option value="credit">🔖 Credit</option>
+                  </select>
+                </div>
 
-            <div className="form-group">
-              <label>Internal Notes (Not visible to customer)</label>
-              <textarea
-                value={formData.internalNotes}
-                onChange={(e) => setFormData(prev => ({ ...prev, internalNotes: e.target.value }))}
-                rows="2"
-              />
+                <div className="form-group compact">
+                  <label>Customer Notes</label>
+                  <textarea
+                    value={formData.notes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    rows="3"
+                    placeholder="Add notes for the customer..."
+                  />
+                </div>
+
+                <div className="form-group compact">
+                  <label>Internal Notes <span className="label-hint">(Not visible to customer)</span></label>
+                  <textarea
+                    value={formData.internalNotes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, internalNotes: e.target.value }))}
+                    rows="3"
+                    placeholder="Add internal notes..."
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -857,12 +927,24 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
     );
   };
 
+  const handleOverlayClick = (e) => {
+    if (e.target.classList.contains('modal-overlay')) {
+      onClose && onClose();
+    }
+  };
+
+  const handleCloseClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClose && onClose();
+  };
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-content order-form-modal">
+    <div className="modal-overlay" onClick={handleOverlayClick}>
+      <div className="modal-content order-form-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{budgetPlan ? 'Convert Budget Plan to Order' : 'Create New Order'}</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={handleCloseClick} type="button">×</button>
         </div>
 
         <div className="step-indicator">

@@ -1,16 +1,126 @@
 import html2pdf from 'html2pdf.js';
 
-function QuotationPDFGenerator(quotationData) {
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+async function QuotationPDFGenerator(quotationData) {
   const {
     clientData,
     items,
-    gst,
-    subtotal,
-    gstAmount,
     total,
     quotationNumber,
-    quotationDate
+    quotationDate,
+    rooms = [] // Array of rooms with their products
   } = quotationData;
+
+  // If rooms are provided, use them; otherwise create a single room from items
+  let roomsData = [];
+  
+  if (rooms.length > 0) {
+    // Process rooms with areas structure
+    roomsData = rooms.map(room => {
+      // Flatten products from all areas
+      let allProducts = [];
+      if (room.areas && Array.isArray(room.areas)) {
+        room.areas.forEach(area => {
+          if (area.products && Array.isArray(area.products)) {
+            allProducts = [...allProducts, ...area.products];
+          }
+        });
+      } else if (room.products && Array.isArray(room.products)) {
+        // Fallback for old format
+        allProducts = room.products;
+      }
+      
+      return {
+        name: room.name,
+        products: allProducts
+      };
+    });
+  } else {
+    // Fallback for items array
+    roomsData = [
+      {
+        name: 'Products',
+        products: items || []
+      }
+    ];
+  }
+
+  // Fetch company settings from API
+  let companySettings;
+  try {
+    const response = await fetch(`${API_URL}/company-settings`);
+    companySettings = await response.json();
+  } catch (error) {
+    console.error('Error fetching company settings:', error);
+    // Fallback to default values if API fails
+    companySettings = {
+      bankName: 'State Bank of India',
+      accountNumber: '1234567890',
+      ifscCode: 'SBIN0001234',
+      branchName: 'Ahmedabad Main Branch',
+      termsAndConditions: {
+        paymentTerms: ['50% advance, 50% before dispatch'],
+        validity: ['Quotation valid for 30 days'],
+        delivery: ['Ex-Works Ahmedabad', 'Delivery charges extra if applicable'],
+        pricingAndTaxes: ['GST 18% applicable', 'Prices subject to change without notice']
+      }
+    };
+  }
+
+  // Generate room sections HTML
+  const roomSectionsHTML = roomsData.map((room) => {
+    const roomProducts = room.products || [];
+    const roomTotal = roomProducts.reduce((sum, item) => {
+      const baseRate = parseFloat(item.rate || item.unitPrice || 0);
+      const gstRate = baseRate * 0.18;
+      const rateWithGST = baseRate + gstRate;
+      const quantity = parseInt(item.quantity || 1);
+      return sum + (rateWithGST * quantity);
+    }, 0);
+
+    return `
+      <div class="room-section">
+        <div class="room-title">${room.name || 'Products'}</div>
+        <div class="products-wrapper">
+          <table class="products-table">
+            <thead>
+              <tr>
+                <th class="col-sr">SR. NO.</th>
+                <th class="col-desc">DESCRIPTION</th>
+                <th class="col-qty">QTY</th>
+                <th class="col-rate">RATE (Incl. GST ₹)</th>
+                <th class="col-amount">AMOUNT (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${roomProducts.map((item, index) => {
+                const baseRate = parseFloat(item.rate || item.unitPrice || 0);
+                const gstRate = baseRate * 0.18;
+                const rateWithGST = baseRate + gstRate;
+                const quantity = parseInt(item.quantity || 1);
+                const amountWithGST = rateWithGST * quantity;
+                
+                return `
+                <tr>
+                  <td class="col-sr">${index + 1}</td>
+                  <td class="col-desc">${item.productName || item.description || ''}</td>
+                  <td class="col-qty">${quantity}</td>
+                  <td class="col-rate">₹${rateWithGST.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td class="col-amount">₹${amountWithGST.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+              `;
+              }).join('')}
+              <tr class="total-row-table">
+                <td colspan="4" class="total-label-cell">SUBTOTAL:</td>
+                <td class="total-value-cell">₹${roomTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }).join('');
 
   // Create HTML content for PDF
   const htmlContent = `
@@ -33,6 +143,8 @@ function QuotationPDFGenerator(quotationData) {
           margin: 0;
           padding: 0;
           font-weight: 500;
+          width: 100%;
+          position: relative;
         }
         
         p {
@@ -43,10 +155,31 @@ function QuotationPDFGenerator(quotationData) {
         }
         
         .container {
-          max-width: 900px;
-          margin: 0 auto;
-          padding: 3px 30px 15px 30px;
+          width: 100%;
+          max-width: 100%;
+          margin: 0;
+          padding: 5px 5px 40px 5px;
           background: white;
+          box-sizing: border-box;
+          position: relative;
+        }
+        
+        .footer {
+          margin-top: auto;
+        }
+        
+        .footer-note {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: 100%;
+          text-align: center;
+          color: #fff;
+          background: #2c3e50;
+          font-size: 9px;
+          padding: 10px 0;
+          margin: 0;
         }
         
         /* Header Section */
@@ -55,9 +188,9 @@ function QuotationPDFGenerator(quotationData) {
           justify-content: space-between;
           align-items: stretch;
           gap: 30px;
-          margin: 0 0 5px 0;
-          padding: 0;
-          border-bottom: 2px solid #333;
+          margin: 0 0 10px 0;
+          padding: 0 0 10px 0;
+          border-bottom: 1px solid #d1d5db;
         }
         
         .header-left {
@@ -162,12 +295,12 @@ function QuotationPDFGenerator(quotationData) {
         /* Title Section */
         .title-section {
           text-align: center;
-          margin: 3px 0;
+          margin: 10px 0;
           padding: 0;
         }
         
         .quotation-title {
-          font-size: 22px;
+          font-size: 18px;
           font-weight: bold;
           color: #000;
           margin: 5px 0;
@@ -178,17 +311,19 @@ function QuotationPDFGenerator(quotationData) {
         
         .title-line {
           width: 100%;
-          height: 2px;
-          background: #333;
-          margin: 3px auto;
+          height: 1px;
+          background: #d1d5db;
+          margin: 5px auto;
         }
         
         /* Client Information Box */
         .client-box {
-          border: 1px solid #ccc;
-          padding: 12px 15px;
-          margin: 15px 0;
-          background: #fafafa;
+          border: 1px solid #d1d5db;
+          padding: 5px 15px;
+          margin: 5px 0;
+          background: #fff;
+          height: 100px;
+          overflow: hidden;
         }
         
         .client-row {
@@ -200,32 +335,22 @@ function QuotationPDFGenerator(quotationData) {
         }
         
         .client-header-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: baseline;
-          margin: 0 0 4px 0;
-          padding: 0;
+          display: none;
         }
         
         .client-to-inline {
-          font-size: 12px;
+          font-size: 11px;
           font-weight: bold;
           color: #000;
           margin: 0;
           padding: 0;
           line-height: 1.2;
           flex: 1;
+          display: none;
         }
         
         .client-attn-inline {
-          font-size: 11px;
-          color: #333;
-          font-weight: bold;
-          margin: 0 50px 0 0;
-          padding: 0;
-          line-height: 1.2;
-          flex: 0 0 auto;
-          text-align: right;
+          display: none;
         }
         
         .client-ref-inline {
@@ -236,6 +361,7 @@ function QuotationPDFGenerator(quotationData) {
           line-height: 1.2;
           flex: 0 0 auto;
           text-align: right;
+          display: none;
         }
         
         .client-content-row {
@@ -283,7 +409,7 @@ function QuotationPDFGenerator(quotationData) {
         }
         
         .client-to {
-          font-size: 12px;
+          font-size: 11px;
           font-weight: bold;
           color: #000;
           margin: 0 0 4px 0;
@@ -292,7 +418,7 @@ function QuotationPDFGenerator(quotationData) {
         }
         
         .client-name {
-          font-size: 13px;
+          font-size: 11px;
           font-weight: bold;
           color: #000;
           margin: 0 0 6px 0;
@@ -404,135 +530,120 @@ function QuotationPDFGenerator(quotationData) {
           font-weight: bold;
         }
         
-        /* Products Table */
-        .products-section {
-          margin-bottom: 0;
+        /* Products Section - Simple Card-Based Format */
+        .room-card-simple {
+          margin-bottom: 20px;
+          page-break-inside: avoid;
+          border: 1px solid #d1d5db;
+          background: #fff;
         }
         
-        .products-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 11px;
-          border: 1px solid #ddd;
-        }
-        
-        .products-table thead {
-          background: #f5f5f5;
-        }
-        
-        .products-table th {
-          padding: 12px 10px;
-          text-align: left;
-          font-weight: bold;
-          color: #000;
-          font-size: 11px;
-          border-bottom: 1px solid #ddd;
-        }
-        
-        .products-table td {
-          padding: 12px 10px;
-          border-bottom: 1px solid #e8e8e8;
-          font-size: 11px;
-          color: #333;
-          vertical-align: top;
-        }
-        
-        .products-table tbody tr:last-child td {
-          border-bottom: 1px solid #ddd;
-        }
-        
-        .products-table tbody tr:hover {
-          background: #fafafa;
-        }
-        
-        .text-right {
-          text-align: right;
-        }
-        
-        .text-center {
-          text-align: center;
-        }
-        
-        /* Totals Section */
-        .totals-section {
-          display: flex;
-          justify-content: flex-end;
-          margin: 10px 0 20px 0;
-        }
-        
-        .totals-box {
-          width: 35%;
-          border: none;
-          background: transparent;
-          padding: 0;
-        }
-        
-        .total-row {
+        .room-card-header {
           display: flex;
           justify-content: space-between;
-          padding: 6px 10px;
+          align-items: center;
+          background: #f9fafb;
+          padding: 12px 15px;
+          border-bottom: 1px solid #d1d5db;
+        }
+        
+        .room-card-title {
+          margin: 0;
+          font-size: 14px;
+          font-weight: bold;
+          color: #1f2937;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        
+        .room-card-total {
+          font-size: 14px;
+          font-weight: bold;
+          color: #1f2937;
+        }
+        
+        .room-products-list {
+          padding: 0;
+          margin: 0;
+        }
+        
+        .product-item-simple {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 15px;
+          border-bottom: 1px solid #f3f4f6;
+          gap: 15px;
+        }
+        
+        .product-item-simple:last-child {
+          border-bottom: none;
+        }
+        
+        .product-item-left {
+          flex: 1;
+          min-width: 0;
+        }
+        
+        .product-item-name {
           font-size: 12px;
-          color: #333;
+          font-weight: 600;
+          color: #1f2937;
+          margin: 0 0 4px 0;
+          word-wrap: break-word;
         }
         
-        .total-row.grand-total {
-          border-top: 2px solid #333;
-          padding-top: 10px;
-          margin-top: 6px;
+        .product-item-variant {
+          font-size: 11px;
+          color: #6b7280;
+          margin: 0;
+        }
+        
+        .product-item-qty {
+          font-size: 11px;
+          color: #4b5563;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+        
+        .product-item-price {
+          font-size: 12px;
           font-weight: bold;
-          font-size: 16px;
-          color: #000;
-        }
-        
-        .total-label {
-          font-weight: 600;
-          color: #000;
-          text-align: left;
-        }
-        
-        .total-value {
-          font-weight: 600;
-          color: #000;
+          color: #1f2937;
           text-align: right;
-        }
-        
-        .grand-total .total-label {
-          font-weight: bold;
-        }
-        
-        .grand-total .total-value {
-          font-size: 16px;
-          font-weight: bold;
+          white-space: nowrap;
+          flex-shrink: 0;
+          min-width: 100px;
         }
         
         /* Footer */
         .footer {
-          margin-top: 30px;
+          margin-top: 5px;
         }
         
         .terms-box {
-          border: 1px solid #e0e0e0;
+          border: 1px solid #d1d5db;
           background: #fff;
-          padding: 15px 20px;
-          border-radius: 4px;
-          margin-bottom: 15px;
+          padding: 5px 10px;
+          border-radius: 0;
+          margin-bottom: 3px;
         }
         
         .terms-title {
           font-size: 13px;
           font-weight: bold;
           color: #000;
-          margin: 0 0 10px 0;
+          margin: 0 0 2px 0;
           padding: 0;
         }
         
         .terms-content {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 15px;
+          gap: 5px;
           font-size: 11px;
           color: #333;
-          line-height: 1.4;
+          line-height: 1.1;
         }
         
         .terms-column {
@@ -541,7 +652,7 @@ function QuotationPDFGenerator(quotationData) {
         }
         
         .terms-category {
-          margin-bottom: 10px;
+          margin-bottom: 0;
         }
         
         .terms-category:last-child {
@@ -551,7 +662,7 @@ function QuotationPDFGenerator(quotationData) {
         .terms-category-title {
           font-weight: bold;
           color: #000;
-          margin: 0 0 4px 0;
+          margin: 0;
           font-size: 11px;
         }
         
@@ -562,38 +673,52 @@ function QuotationPDFGenerator(quotationData) {
         }
         
         .terms-category li {
-          margin: 2px 0;
+          margin: 0;
           padding: 0;
-          line-height: 1.4;
+          line-height: 1.1;
         }
         
         .bank-details {
-          border: 1px solid #e0e0e0;
-          padding: 12px 15px;
-          border-radius: 4px;
-          margin-bottom: 15px;
+          border: 1px solid #d1d5db;
+          padding: 5px 10px;
+          border-radius: 0;
+          margin-bottom: 3px;
           background: #fff;
         }
         
         .bank-title {
-          font-size: 11px;
+          font-size: 13px;
           font-weight: bold;
           color: #000;
-          margin-bottom: 6px;
+          margin-bottom: 2px;
         }
         
         .bank-content {
-          font-size: 10px;
-          color: #555;
-          line-height: 1.6;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 5px;
+          font-size: 11px;
+          color: #333;
+          line-height: 1.1;
         }
         
-        .footer-note {
-          text-align: center;
-          color: #999;
-          font-size: 9px;
-          padding-top: 10px;
-          border-top: 1px solid #e8e8e8;
+        .bank-column {
+          margin: 0;
+          padding: 0;
+        }
+        
+        .bank-item {
+          margin-bottom: 2px;
+        }
+        
+        .bank-item:last-child {
+          margin-bottom: 0;
+        }
+        
+        .bank-label {
+          font-weight: bold;
+          color: #000;
+          margin-bottom: 0;
         }
         
         @media print {
@@ -638,14 +763,12 @@ function QuotationPDFGenerator(quotationData) {
         
         <!-- Client Information Box -->
         <div class="client-box">
-          <div class="client-header-row">
-            <div class="client-to-inline">TO:</div>
-            <div class="client-attn-inline">Attn: ${clientData.clientName}</div>
-            <div class="client-ref-inline"><strong>Ref No:</strong> ${quotationNumber}</div>
-          </div>
           <div class="client-content-row">
             <div class="client-left-content">
-              <div class="client-name">${clientData.companyName || '-'}</div>
+              <div style="display: flex; gap: 10px; margin-bottom: 6px;">
+                <div class="client-to" style="flex-shrink: 0;">TO:</div>
+                <div class="client-name" style="margin: 0; flex: 1;">${clientData.companyName || '-'}</div>
+              </div>
               ${clientData.address ? `<div class="client-address">${clientData.address}</div>` : ''}
               <div class="client-contact">
                 ${clientData.mobileNumber ? `Contact: ${clientData.mobileNumber}` : ''} ${clientData.mobileNumber && clientData.email ? '|' : ''} ${clientData.email ? `Email: ${clientData.email}` : ''}
@@ -658,50 +781,19 @@ function QuotationPDFGenerator(quotationData) {
           </div>
         </div>
         
-        <!-- Products Table -->
-        <div class="products-section">
+        <!-- Products Section - By Rooms -->
+        ${roomSectionsHTML}
+        
+        <!-- Grand Total -->
+        <div class="products-wrapper">
           <table class="products-table">
-            <thead>
-              <tr>
-                <th style="width: 10%;">SR. NO.</th>
-                <th style="width: 45%;">DESCRIPTION</th>
-                <th style="width: 15%;" class="text-center">QTY</th>
-                <th style="width: 15%;" class="text-right">RATE (₹)</th>
-                <th style="width: 15%;" class="text-right">AMOUNT (₹)</th>
-              </tr>
-            </thead>
             <tbody>
-              ${items.map((item, index) => `
-                <tr>
-                  <td>${index + 1}</td>
-                  <td>${item.productName}</td>
-                  <td class="text-center">${item.quantity}</td>
-                  <td class="text-right">₹${parseFloat(item.rate).toFixed(2)}</td>
-                  <td class="text-right">₹${parseFloat(item.amount).toFixed(2)}</td>
-                </tr>
-              `).join('')}
+              <tr class="total-row-table">
+                <td colspan="4" class="total-label-cell">GRAND TOTAL AMOUNT:</td>
+                <td class="total-value-cell">₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              </tr>
             </tbody>
           </table>
-        </div>
-        
-        <!-- Totals Section -->
-        <div class="totals-section">
-          <div class="totals-box">
-            <div class="total-row">
-              <span class="total-label">Subtotal:</span>
-              <span class="total-value">₹${subtotal.toFixed(2)}</span>
-            </div>
-            ${gst > 0 ? `
-              <div class="total-row">
-                <span class="total-label">GST (${gst}%):</span>
-                <span class="total-value">₹${gstAmount.toFixed(2)}</span>
-              </div>
-            ` : ''}
-            <div class="total-row grand-total">
-              <span class="total-label">TOTAL AMOUNT:</span>
-              <span class="total-value">₹${total.toFixed(2)}</span>
-            </div>
-          </div>
         </div>
         
         <!-- Footer -->
@@ -714,13 +806,13 @@ function QuotationPDFGenerator(quotationData) {
                 <div class="terms-category">
                   <div class="terms-category-title">Payment Terms:</div>
                   <ul>
-                    <li>50% advance, 50% before dispatch</li>
+                    ${companySettings.termsAndConditions.paymentTerms.map(term => `<li>${term}</li>`).join('')}
                   </ul>
                 </div>
                 <div class="terms-category">
                   <div class="terms-category-title">Validity:</div>
                   <ul>
-                    <li>Quotation valid for 30 days</li>
+                    ${companySettings.termsAndConditions.validity.map(term => `<li>${term}</li>`).join('')}
                   </ul>
                 </div>
               </div>
@@ -728,26 +820,43 @@ function QuotationPDFGenerator(quotationData) {
                 <div class="terms-category">
                   <div class="terms-category-title">Delivery:</div>
                   <ul>
-                    <li>Ex-Works Ahmedabad</li>
-                    <li>Delivery charges extra if applicable</li>
+                    ${companySettings.termsAndConditions.delivery.map(term => `<li>${term}</li>`).join('')}
                   </ul>
                 </div>
                 <div class="terms-category">
                   <div class="terms-category-title">Pricing & Taxes:</div>
                   <ul>
-                    <li>GST 18% applicable</li>
-                    <li>Prices subject to change without notice</li>
+                    ${companySettings.termsAndConditions.pricingAndTaxes.map(term => `<li>${term}</li>`).join('')}
                   </ul>
                 </div>
               </div>
             </div>
           </div>
           
-          <!-- Bank Details (Optional) -->
+          <!-- Bank Details -->
           <div class="bank-details">
             <div class="bank-title">Bank Details:</div>
             <div class="bank-content">
-              Bank Name: [Your Bank Name] | Account No: [Account Number] | IFSC Code: [IFSC Code] | Branch: [Branch Name]
+              <div class="bank-column">
+                <div class="bank-item">
+                  <div class="bank-label">Bank Name:</div>
+                  <div>${companySettings.bankName}</div>
+                </div>
+                <div class="bank-item">
+                  <div class="bank-label">Account No:</div>
+                  <div>${companySettings.accountNumber}</div>
+                </div>
+              </div>
+              <div class="bank-column">
+                <div class="bank-item">
+                  <div class="bank-label">IFSC Code:</div>
+                  <div>${companySettings.ifscCode}</div>
+                </div>
+                <div class="bank-item">
+                  <div class="bank-label">Branch:</div>
+                  <div>${companySettings.branchName}</div>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -762,11 +871,11 @@ function QuotationPDFGenerator(quotationData) {
 
   // PDF options
   const options = {
-    margin: [2, 0.5, 0.5, 1],
+    margin: [3, 3, 3, 3],
     filename: `Quotation-${quotationNumber}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    html2canvas: { scale: 2, useCORS: true, windowWidth: 1400 },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4', compress: true }
   };
 
   // Generate PDF

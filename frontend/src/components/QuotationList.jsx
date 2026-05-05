@@ -10,8 +10,8 @@ function QuotationList({ quotations, onEdit, onDelete }) {
     });
   };
 
-  const handleGeneratePDF = (quotation) => {
-    QuotationPDFGenerator(quotation);
+  const handleGeneratePDF = async (quotation) => {
+    await QuotationPDFGenerator(quotation);
   };
 
   return (

@@ -47,9 +47,7 @@ router.get('/', async (req, res) => {
       minPrice, 
       maxPrice, 
       company, 
-      partnerOnly,
-      sortBy = 'createdAt',
-      order = 'desc'
+      partnerOnly
     } = req.query;
     
     const query = {};
@@ -91,7 +89,9 @@ router.get('/', async (req, res) => {
       populateOptions.push({ path: 'company' });
     }
     
-    // Build sort object
+    // Build sort object - default to newest first (createdAt descending)
+    const sortBy = req.query.sortBy || 'createdAt';
+    const order = req.query.order || 'desc';
     const sortOrder = order === 'asc' ? 1 : -1;
     const sortObj = { [sortBy]: sortOrder };
     
@@ -268,6 +268,7 @@ router.post('/', upload.array('images', 10), async (req, res) => {
       category, 
       company,
       companyName,
+      brand,
       itemType,
       itemTypeName,
       price, 
@@ -286,6 +287,15 @@ router.post('/', upload.array('images', 10), async (req, res) => {
       existingImages
     } = req.body;
 
+    console.log('📦 Creating product with data:', {
+      name,
+      category,
+      price,
+      variant,
+      brand,
+      company
+    });
+
     if (!name || !category || !price) {
       return res.status(400).json({
         success: false,
@@ -301,12 +311,13 @@ router.post('/', upload.array('images', 10), async (req, res) => {
       images = Array.isArray(existingImages) ? existingImages : [existingImages];
     }
 
-    if (images.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'At least one image is required'
-      });
-    }
+    // Images are optional - allow products without images (for Excel imports)
+    // if (images.length === 0) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: 'At least one image is required'
+    //   });
+    // }
 
     // Parse specifications if it's a string
     let parsedSpecs = {};
@@ -322,9 +333,10 @@ router.post('/', upload.array('images', 10), async (req, res) => {
       name,
       description,
       category,
-      company: company || undefined,
-      companyName,
-      itemType: itemType || undefined,
+      company: company && company.length === 24 ? company : undefined, // Only set if it's a valid ObjectId
+      companyName: company || companyName, // Use company name from Excel or form
+      brand,
+      itemType: itemType && itemType.length === 24 ? itemType : undefined,
       itemTypeName,
       price: parseFloat(price),
       images,
@@ -351,7 +363,9 @@ router.post('/', upload.array('images', 10), async (req, res) => {
       data: product
     });
   } catch (error) {
-    console.error('Error creating product:', error);
+    console.error('❌ Error creating product:', error);
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Failed to create product',
@@ -369,6 +383,7 @@ router.put('/:id', upload.array('images', 10), async (req, res) => {
       category, 
       company,
       companyName,
+      brand,
       itemType,
       itemTypeName,
       price, 
@@ -419,9 +434,10 @@ router.put('/:id', upload.array('images', 10), async (req, res) => {
     product.name = name || product.name;
     product.description = description || product.description;
     product.category = category || product.category;
-    product.company = company !== undefined ? (company || undefined) : product.company;
-    product.companyName = companyName || product.companyName;
-    product.itemType = itemType !== undefined ? (itemType || undefined) : product.itemType;
+    product.company = company && company.length === 24 ? company : product.company; // Only set if valid ObjectId
+    product.companyName = company || companyName || product.companyName; // Use company name from Excel or form
+    product.brand = brand !== undefined ? brand : product.brand;
+    product.itemType = itemType && itemType.length === 24 ? itemType : product.itemType;
     product.itemTypeName = itemTypeName || product.itemTypeName;
     product.price = price ? parseFloat(price) : product.price;
     product.sku = sku || product.sku;

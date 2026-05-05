@@ -8,6 +8,7 @@ const AdminContacts = () => {
   const [filterType, setFilterType] = useState('');
   const [filterReferrer, setFilterReferrer] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -168,7 +169,8 @@ const AdminContacts = () => {
   };
 
   const handleViewDetails = (contact) => {
-    window.location.href = `/admin/contacts/${contact._id}`;
+    setSelectedContact(contact);
+    setShowViewModal(true);
   };
 
   return (
@@ -459,6 +461,180 @@ const AdminContacts = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showViewModal && selectedContact && (
+        <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
+          <div className="modal-content view-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Contact Details</h3>
+              <button className="modal-close" onClick={() => setShowViewModal(false)}>×</button>
+            </div>
+            
+            <div className="contact-details">
+              <div className="detail-section">
+                <h4>Basic Information</h4>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Name:</label>
+                    <span>{selectedContact.name}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Type:</label>
+                    <span className={`badge badge-${selectedContact.contactType}`}>
+                      {selectedContact.contactType}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Email:</label>
+                    <span>{selectedContact.email || '-'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Phone:</label>
+                    <span>{selectedContact.phone || '-'}</span>
+                  </div>
+                  {selectedContact.companyName && (
+                    <div className="detail-item">
+                      <label>Company:</label>
+                      <span>{selectedContact.companyName}</span>
+                    </div>
+                  )}
+                  {selectedContact.designation && (
+                    <div className="detail-item">
+                      <label>Designation:</label>
+                      <span>{selectedContact.designation}</span>
+                    </div>
+                  )}
+                  <div className="detail-item">
+                    <label>Status:</label>
+                    <span className={`status-badge status-${selectedContact.status}`}>
+                      {selectedContact.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {selectedContact.address && (selectedContact.address.street || selectedContact.address.city) && (
+                <div className="detail-section">
+                  <h4>Address</h4>
+                  <div className="detail-grid">
+                    {selectedContact.address.street && (
+                      <div className="detail-item full-width">
+                        <label>Street:</label>
+                        <span>{selectedContact.address.street}</span>
+                      </div>
+                    )}
+                    {selectedContact.address.city && (
+                      <div className="detail-item">
+                        <label>City:</label>
+                        <span>{selectedContact.address.city}</span>
+                      </div>
+                    )}
+                    {selectedContact.address.state && (
+                      <div className="detail-item">
+                        <label>State:</label>
+                        <span>{selectedContact.address.state}</span>
+                      </div>
+                    )}
+                    {selectedContact.address.pincode && (
+                      <div className="detail-item">
+                        <label>Pincode:</label>
+                        <span>{selectedContact.address.pincode}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="detail-section">
+                <h4>Referrer Information</h4>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Is Referrer:</label>
+                    <span>
+                      {selectedContact.isReferrer ? (
+                        <span className="badge badge-success">Yes</span>
+                      ) : (
+                        <span className="badge badge-secondary">No</span>
+                      )}
+                    </span>
+                  </div>
+                  {selectedContact.isReferrer && (
+                    <>
+                      <div className="detail-item">
+                        <label>Commission Rate:</label>
+                        <span>{selectedContact.commissionRate}%</span>
+                      </div>
+                      <div className="detail-item">
+                        <label>Referral Code:</label>
+                        <span className="referral-code">{selectedContact.referralCode || '-'}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h4>Statistics</h4>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Total Referrals:</label>
+                    <span>{selectedContact.totalReferrals || 0}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Total Orders:</label>
+                    <span>{selectedContact.totalOrders || 0}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Total Revenue:</label>
+                    <span>₹{(selectedContact.totalRevenue || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Commission Earned:</label>
+                    <span>₹{(selectedContact.commissionEarned || 0).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {selectedContact.notes && (
+                <div className="detail-section">
+                  <h4>Notes</h4>
+                  <p className="notes-text">{selectedContact.notes}</p>
+                </div>
+              )}
+
+              <div className="detail-section">
+                <h4>Timestamps</h4>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Created:</label>
+                    <span>{new Date(selectedContact.createdAt).toLocaleString()}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Last Updated:</label>
+                    <span>{new Date(selectedContact.updatedAt).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button type="button" onClick={() => setShowViewModal(false)} className="btn-secondary">
+                Close
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setShowViewModal(false);
+                  handleEdit(selectedContact);
+                }} 
+                className="btn-primary"
+              >
+                Edit Contact
+              </button>
+            </div>
           </div>
         </div>
       )}

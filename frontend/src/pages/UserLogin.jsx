@@ -15,6 +15,8 @@ const UserLogin = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -30,10 +32,10 @@ const UserLogin = () => {
 
     try {
       const endpoint = isLogin ? '/api/users/login' : '/api/users/register';
-      console.log('Submitting to:', `http://localhost:5000${endpoint}`);
+      console.log('Submitting to:', `${API_URL}${endpoint}`);
       console.log('Form data:', { ...formData, password: '***' });
       
-      const response = await axios.post(`http://localhost:5000${endpoint}`, formData);
+      const response = await axios.post(`${API_URL}${endpoint}`, formData);
       
       console.log('Response:', response.data);
       

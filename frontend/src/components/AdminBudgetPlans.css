@@ -43,61 +43,127 @@
   cursor: pointer;
 }
 
-.plans-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
-}
-
-.plan-card {
+/* Table Layout */
+.plans-table-container {
   background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
+  border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  overflow-x: auto;
 }
 
-.plan-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+.plans-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1200px;
 }
 
-.plan-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  gap: 1rem;
+.plans-table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
 }
 
-.plan-card-header h3 {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 1.2rem;
-  flex: 1;
-}
-
-.plan-card-header .status-badge {
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
+.plans-table th {
+  padding: 12px 16px;
+  text-align: left;
   font-weight: 600;
-  text-transform: capitalize;
-  white-space: nowrap;
+  color: #2c3e50;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.plan-info {
-  border-top: 1px solid #ecf0f1;
+.plans-table tbody tr {
   border-bottom: 1px solid #ecf0f1;
-  padding: 1rem 0;
-  margin-bottom: 1rem;
+  transition: background-color 0.2s;
+}
+
+.plans-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.plans-table td {
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  color: #2c3e50;
+  vertical-align: middle;
+}
+
+.plans-table td strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.customer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.customer-info small {
+  color: #6c757d;
+  font-size: 0.85rem;
 }
 
 .over-budget {
   color: #e74c3c !important;
+  font-weight: 600;
 }
 
+.under-budget {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: white;
+  white-space: nowrap;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-buttons button {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+}
+
+.btn-view:hover {
+  background: #e3f2fd;
+  transform: scale(1.1);
+}
+
+.btn-convert {
+  font-size: 16px;
+}
+
+.btn-convert:hover:not(:disabled) {
+  background: #e8f5e9;
+  transform: scale(1.1);
+}
+
+.btn-convert:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-delete:hover {
+  background: #ffebee;
+  transform: scale(1.1);
+}
 .under-budget {
   color: #1e40af !important;
 }
@@ -166,6 +232,7 @@
   background: #95a5a6;
   cursor: not-allowed;
   opacity: 0.7;
+  pointer-events: none;
 }
 
 /* Plan Details Modal */
