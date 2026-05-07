@@ -10,6 +10,12 @@ import AdminLogin from './pages/AdminLogin'
 import StaffLogin from './pages/StaffLogin'
 import StaffDashboard from './pages/StaffDashboard'
 import About from './pages/About'
+import Categories from './pages/Categories'
+import CategoryProducts from './pages/CategoryProducts'
+import ProductVariants from './pages/ProductVariants'
+import Cart from './pages/Cart'
+import BudgetPlanner from './pages/BudgetPlanner'
+import MyBudgetPlans from './pages/MyBudgetPlans'
 import './App.css'
 
 function App() {
@@ -24,6 +30,13 @@ function App() {
         <Route path="/"           element={<Home />} />
         <Route path="/about"      element={<About />} />
         <Route path="/contact"    element={<Contact />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route path="/categories/:categoryId" element={<CategoryProducts />} />
+        <Route path="/categories/:categoryId/company/:companyName" element={<ProductVariants />} />
+        <Route path="/products/:categoryId/:itemTypeId" element={<ProductVariants />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/budget-planner" element={<BudgetPlanner />} />
+        <Route path="/my-budget-plans" element={<MyBudgetPlans />} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />

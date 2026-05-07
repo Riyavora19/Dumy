@@ -306,13 +306,17 @@ function BudgetBuilder() {
                           onClick={() => handleProductSelect(rec.itemType._id, product, rec.quantity.min)}
                         >
                           <div className="product-image">
-                            <img 
-                              src={product.images[0].startsWith('http') ? product.images[0] : `http://localhost:5000${product.images[0]}`} 
-                              alt={product.name} 
-                              onError={(e) => {
-                                e.target.src = 'https://via.placeholder.com/400x300/667eea/ffffff?text=Product+Image';
-                              }}
-                            />
+                            {product.images && product.images.length > 0 ? (
+                              <img 
+                                src={product.images[0].startsWith('http') ? product.images[0] : `http://localhost:5000${product.images[0]}`} 
+                                alt={product.name} 
+                                onError={(e) => {
+                                  e.target.src = 'https://via.placeholder.com/400x300/f5f5f5/cccccc?text=No+Image';
+                                }}
+                              />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', background: '#f5f5f5' }}></div>
+                            )}
                           </div>
                           <div className="product-info">
                             <h4>{product.name}</h4>

@@ -115,7 +115,7 @@ function AdminBudgetPlans() {
     setSelectedPlan(null);
   };
 
-  const handleGenerateQuotation = async (plan) => {
+  const handleGenerateQuotation = async (plan, separateByRoom = false) => {
     try {
       showNotification('Generating quotation PDF...', 'info');
       
@@ -137,13 +137,19 @@ function AdminBudgetPlans() {
           rate: item.unitPrice,
           amount: item.totalPrice
         })),
+        rooms: plan.rooms || [],
         total: plan.totalCost + (plan.totalCost * 18) / 100, // Including GST
         notes: plan.notes || ''
       };
 
       // Generate PDF
-      await QuotationPDFGenerator(quotationData);
-      showNotification('Quotation PDF generated successfully!', 'success');
+      await QuotationPDFGenerator(quotationData, { separateByRoom });
+      showNotification(
+        separateByRoom 
+          ? `${plan.rooms?.length || 1} separate PDFs generated successfully!` 
+          : 'Quotation PDF generated successfully!', 
+        'success'
+      );
     } catch (error) {
       console.error('Error generating quotation:', error);
       showNotification('Failed to generate quotation PDF', 'error');
@@ -283,12 +289,24 @@ function AdminBudgetPlans() {
                         className="btn-quotation"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleGenerateQuotation(plan);
+                          handleGenerateQuotation(plan, false);
                         }}
-                        title="Generate Quotation PDF"
+                        title="Generate Combined Quotation PDF"
                       >
                         📄
                       </button>
+                      {plan.rooms && plan.rooms.length > 1 && (
+                        <button 
+                          className="btn-quotation"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleGenerateQuotation(plan, true);
+                          }}
+                          title="Generate Separate PDFs for Each Room"
+                        >
+                          📑
+                        </button>
+                      )}
                       <button 
                         className="btn-convert"
                         onClick={(e) => {

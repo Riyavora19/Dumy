@@ -129,7 +129,10 @@ router.post('/login', async (req, res) => {
     res.json({
       success: true,
       token,
-      staff: staffData
+      staff: {
+        ...staffData,
+        staffId: staff.staffId // Ensure staffId is included
+      }
     });
   } catch (error) {
     console.error('Login error:', error);

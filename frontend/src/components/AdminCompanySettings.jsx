@@ -26,6 +26,8 @@ function AdminCompanySettings() {
     fetchSettings();
   }, []);
 
+
+
   const fetchSettings = async () => {
     try {
       setLoading(true);
@@ -306,5 +308,5 @@ function AdminCompanySettings() {
     </div>
   );
 }
-
 export default AdminCompanySettings;
+

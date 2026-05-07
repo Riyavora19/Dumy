@@ -1,9 +1,14 @@
 const mongoose = require('mongoose');
 
 const clientSchema = new mongoose.Schema({
+  // Basic Information
   name: {
     type: String,
     required: true,
+    trim: true
+  },
+  companyName: {
+    type: String,
     trim: true
   },
   email: {
@@ -27,10 +32,36 @@ const clientSchema = new mongoose.Schema({
       default: 'India'
     }
   },
-  company: {
+  gstNumber: {
     type: String,
     trim: true
   },
+  
+  // Additional Contact Information
+  mainContact: {
+    name: String,
+    phone: String,
+    email: String
+  },
+  wifeContact: {
+    name: String,
+    phone: String,
+    email: String
+  },
+  familyMembers: [{
+    name: String,
+    relation: String,
+    phone: String,
+    email: String
+  }],
+  projectIncharge: {
+    name: String,
+    phone: String,
+    email: String,
+    designation: String
+  },
+  
+  // Client Classification
   clientType: {
     type: String,
     enum: ['individual', 'business', 'contractor', 'architect'],
@@ -41,6 +72,8 @@ const clientSchema = new mongoose.Schema({
     enum: ['active', 'inactive', 'potential'],
     default: 'active'
   },
+  
+  // Project History
   projects: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'BudgetPlan'
@@ -53,6 +86,8 @@ const clientSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  
+  // Additional Details
   notes: {
     type: String,
     trim: true
@@ -72,12 +107,18 @@ const clientSchema = new mongoose.Schema({
   },
   lastContactDate: {
     type: Date
+  },
+  
+  // Custom fields for any additional information
+  customFields: {
+    type: Map,
+    of: String
   }
 }, {
   timestamps: true
 });
 
 // Index for searching
-clientSchema.index({ name: 1, email: 1, phone: 1 });
+clientSchema.index({ name: 1, email: 1, phone: 1, companyName: 1 });
 
 module.exports = mongoose.model('Client', clientSchema);

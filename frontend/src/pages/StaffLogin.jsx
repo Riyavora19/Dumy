@@ -35,6 +35,12 @@ const StaffLogin = () => {
         localStorage.setItem('staffToken', response.data.token);
         localStorage.setItem('staffInfo', JSON.stringify(response.data.staff));
         
+        // Store individual fields for easy access in PDF generation
+        localStorage.setItem('staffId', response.data.staff.staffId || '');
+        localStorage.setItem('staffName', response.data.staff.name || '');
+        localStorage.setItem('staffPhone', response.data.staff.phone || '');
+        localStorage.setItem('staffEmail', response.data.staff.email || '');
+        
         // Redirect to staff dashboard
         navigate('/staff');
         

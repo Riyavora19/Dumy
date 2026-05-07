@@ -39,6 +39,19 @@ const companySchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  // Default discount percentage for this company
+  defaultDiscountPercentage: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
+  },
+  // Pricing tier (for categorizing companies)
+  pricingTier: {
+    type: String,
+    enum: ['standard', 'silver', 'gold', 'platinum', 'custom'],
+    default: 'standard'
+  },
   rating: {
     type: Number,
     default: 0,

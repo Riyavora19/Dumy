@@ -200,6 +200,19 @@ const budgetPlanSchema = new mongoose.Schema({
   updatedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Staff'
+  },
+  // Quotation tracking - who attended/created the quotation
+  attendedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Staff'
+  },
+  attendedByStaffId: {
+    type: String,
+    trim: true
+  },
+  attendedByName: {
+    type: String,
+    trim: true
   }
 }, {
   timestamps: true

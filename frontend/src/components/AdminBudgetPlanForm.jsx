@@ -143,6 +143,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   const [generating, setGenerating] = useState(false);
   const [savingAs, setSavingAs] = useState(null); // 'plan' or 'order'
   const [showPreview, setShowPreview] = useState(false); // For preview modal
+  const [isEditMode, setIsEditMode] = useState(false); // For editable preview
+  const [editedPrices, setEditedPrices] = useState({}); // Store edited prices by product ID
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false); // NEW: Modal for selecting room name after template click
   const [selectedTemplate, setSelectedTemplate] = useState(null); // NEW: Currently selected template for adding room
@@ -530,9 +532,9 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         itemName: product.itemTypeName || product.name,
         itemTypeName: product.itemTypeName || '',
         quantity: 1,
-        unitPrice: product.price,
+        unitPrice: product.mrp || product.price,
         discount: 0,
-        discountPercent: 0,
+        discountPercent: product.discountPercentage || 0,
         totalPrice: product.price,
         image: product.images?.[0] || '',
         roomId: formData.currentRoomId,
@@ -585,9 +587,9 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         itemName: product.itemTypeName || product.name,
         itemTypeName: product.itemTypeName || '',
         quantity: 1,
-        unitPrice: product.price,
+        unitPrice: product.mrp || product.price,
         discount: 0,
-        discountPercent: 0,
+        discountPercent: product.discountPercentage || 0,
         totalPrice: product.price,
         image: product.images?.[0] || ''
       };
@@ -600,33 +602,73 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   };
 
   const updateProductQuantity = (index, quantity) => {
-    if (formData.rooms.length > 0 && viewingRoomId && viewingAreaId !== 'all') {
-      // Update product in specific area
-      setFormData(prev => ({
-        ...prev,
-        rooms: prev.rooms.map(room => {
-          if (room.id === viewingRoomId) {
-            return {
-              ...room,
-              areas: room.areas.map(area => {
-                if (area.id === viewingAreaId) {
-                  const updated = [...area.products];
-                  updated[index].quantity = parseInt(quantity) || 1;
-                  updated[index].totalPrice = updated[index].unitPrice * updated[index].quantity;
-                  return { ...area, products: updated };
-                }
-                return area;
-              })
-            };
-          }
-          return room;
-        })
-      }));
+    if (formData.rooms.length > 0 && viewingRoomId) {
+      if (viewingAreaId === 'all') {
+        // When viewing all areas, find which area the product is in
+        setFormData(prev => ({
+          ...prev,
+          rooms: prev.rooms.map(room => {
+            if (room.id === viewingRoomId) {
+              let productCount = 0;
+              return {
+                ...room,
+                areas: room.areas.map(area => {
+                  const productsInArea = area.products.length;
+                  const isInThisArea = index >= productCount && index < productCount + productsInArea;
+                  
+                  if (isInThisArea) {
+                    const localIndex = index - productCount;
+                    const updated = [...area.products];
+                    updated[localIndex].quantity = parseInt(quantity) || 1;
+                    // Calculate with discount
+                    const discountAmount = (updated[localIndex].unitPrice * updated[localIndex].discountPercent) / 100;
+                    const discountedPrice = updated[localIndex].unitPrice - discountAmount;
+                    updated[localIndex].totalPrice = discountedPrice * updated[localIndex].quantity;
+                    return { ...area, products: updated };
+                  }
+                  
+                  productCount += productsInArea;
+                  return area;
+                })
+              };
+            }
+            return room;
+          })
+        }));
+      } else {
+        // Update product in specific area
+        setFormData(prev => ({
+          ...prev,
+          rooms: prev.rooms.map(room => {
+            if (room.id === viewingRoomId) {
+              return {
+                ...room,
+                areas: room.areas.map(area => {
+                  if (area.id === viewingAreaId) {
+                    const updated = [...area.products];
+                    updated[index].quantity = parseInt(quantity) || 1;
+                    // Calculate with discount
+                    const discountAmount = (updated[index].unitPrice * updated[index].discountPercent) / 100;
+                    const discountedPrice = updated[index].unitPrice - discountAmount;
+                    updated[index].totalPrice = discountedPrice * updated[index].quantity;
+                    return { ...area, products: updated };
+                  }
+                  return area;
+                })
+              };
+            }
+            return room;
+          })
+        }));
+      }
     } else {
       // Update product in general list
       const updated = [...formData.selectedProducts];
       updated[index].quantity = parseInt(quantity) || 1;
-      updated[index].totalPrice = updated[index].unitPrice * updated[index].quantity;
+      // Calculate with discount
+      const discountAmount = (updated[index].unitPrice * updated[index].discountPercent) / 100;
+      const discountedPrice = updated[index].unitPrice - discountAmount;
+      updated[index].totalPrice = discountedPrice * updated[index].quantity;
       setFormData(prev => ({ ...prev, selectedProducts: updated }));
     }
   };
@@ -738,7 +780,11 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       if (room) {
         const area = room.areas.find(a => a.id === specificAreaId);
         if (area) {
-          totalCost = area.products.reduce((sum, item) => sum + item.totalPrice, 0);
+          totalCost = area.products.reduce((sum, item) => {
+            const productKey = `${specificRoomId}-${specificAreaId}-${item.productName}-${item.variant}`;
+            const price = editedPrices[productKey] !== undefined ? editedPrices[productKey] : item.totalPrice;
+            return sum + price;
+          }, 0);
         }
         totalBudget = room.budget || 0;
       }
@@ -748,7 +794,11 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       const room = formData.rooms.find(r => r.id === specificRoomId);
       if (room) {
         room.areas.forEach(area => {
-          totalCost += area.products.reduce((sum, item) => sum + item.totalPrice, 0);
+          totalCost += area.products.reduce((sum, item) => {
+            const productKey = `${specificRoomId}-${area.id}-${item.productName}-${item.variant}`;
+            const price = editedPrices[productKey] !== undefined ? editedPrices[productKey] : item.totalPrice;
+            return sum + price;
+          }, 0);
         });
         totalBudget = room.budget || 0;
       }
@@ -757,19 +807,49 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     else if (formData.rooms.length > 0) {
       formData.rooms.forEach(room => {
         room.areas.forEach(area => {
-          totalCost += area.products.reduce((sum, item) => sum + item.totalPrice, 0);
+          totalCost += area.products.reduce((sum, item) => {
+            const productKey = `${room.id}-${area.id}-${item.productName}-${item.variant}`;
+            const price = editedPrices[productKey] !== undefined ? editedPrices[productKey] : item.totalPrice;
+            return sum + price;
+          }, 0);
         });
         totalBudget += room.budget || 0;
       });
     } 
     // Calculate from general product list
     else {
-      totalCost = formData.selectedProducts.reduce((sum, item) => sum + item.totalPrice, 0);
+      totalCost = formData.selectedProducts.reduce((sum, item) => {
+        const productKey = `general-${item.productName}-${item.variant}`;
+        const price = editedPrices[productKey] !== undefined ? editedPrices[productKey] : item.totalPrice;
+        return sum + price;
+      }, 0);
       totalBudget = formData.totalBudget;
     }
     
     const remainingBudget = formData.hasBudget ? totalBudget - totalCost : null;
     return { totalCost, totalBudget, remainingBudget };
+  };
+
+  // Helper function to get product price (edited or original)
+  const getProductPrice = (productKey, originalPrice) => {
+    return editedPrices[productKey] !== undefined ? editedPrices[productKey] : originalPrice;
+  };
+
+  // Helper function to handle price edit
+  const handlePriceEdit = (productKey, newPrice) => {
+    const price = parseFloat(newPrice);
+    if (!isNaN(price) && price >= 0) {
+      setEditedPrices(prev => ({
+        ...prev,
+        [productKey]: price
+      }));
+    }
+  };
+
+  // Helper function to reset edited prices
+  const resetEditedPrices = () => {
+    setEditedPrices({});
+    setIsEditMode(false);
   };
 
   const handleNext = async () => {
@@ -1486,7 +1566,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       key={product._id}
                       className="product-card-mini with-image"
                     >
-                      {product.images?.[0] && (
+                      {product.images?.[0] ? (
                         <img 
                           src={product.images[0].startsWith('http') ? product.images[0] : `http://localhost:5000${product.images[0]}`} 
                           alt={product.name}
@@ -1494,11 +1574,32 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                             e.target.src = 'https://via.placeholder.com/150x150/667eea/ffffff?text=Product';
                           }}
                         />
+                      ) : (
+                        <div style={{ 
+                          width: '100%', 
+                          height: '150px', 
+                          background: '#f5f5f5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}></div>
                       )}
                       <div className="product-card-info">
                         <strong>{product.name} {product.company?.name && `(${product.company.name})`}</strong>
                         <span className="variant">{product.variant}</span>
-                        <span className="price">₹{product.price.toLocaleString()}</span>
+                        <div className="price-container">
+                          {product.mrp && product.mrp > product.price ? (
+                            <>
+                              <span className="price-mrp">₹{product.mrp.toLocaleString()}</span>
+                              <span className="price">₹{product.price.toLocaleString()}</span>
+                              {product.discountPercentage > 0 && (
+                                <span className="discount-badge-mini">{product.discountPercentage}% OFF</span>
+                              )}
+                            </>
+                          ) : (
+                            <span className="price">₹{product.price.toLocaleString()}</span>
+                          )}
+                        </div>
                       </div>
                       <button 
                         className="add-btn"
@@ -1709,9 +1810,15 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                         </div>
                         
                         <div className="product-pricing">
-                          <span className="unit-price-small">
-                            ₹{item.unitPrice.toLocaleString()} each
-                          </span>
+                          <div className="unit-price-container">
+                            <span className="unit-price-mrp">₹{item.unitPrice.toLocaleString()}</span>
+                            <span className="unit-price-discounted">
+                              ₹{(item.unitPrice * (1 - item.discountPercent / 100)).toLocaleString()} each
+                            </span>
+                            {item.discountPercent > 0 && (
+                              <span className="discount-badge-cart">{item.discountPercent}% OFF</span>
+                            )}
+                          </div>
                           <span className="total-price-large">₹{item.totalPrice.toLocaleString()}</span>
                         </div>
                       </div>
@@ -2156,7 +2263,25 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         <div className="modal-content preview-modal preview-modal-quotation" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
             <h2>📋 Quotation Preview</h2>
-            <button className="modal-close" onClick={() => setShowPreview(false)}>×</button>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <button 
+                onClick={() => setIsEditMode(!isEditMode)} 
+                className={isEditMode ? "btn-edit-active" : "btn-edit"}
+                title={isEditMode ? "View Mode" : "Edit Mode"}
+              >
+                {isEditMode ? '👁️ View' : '✏️ Edit Prices'}
+              </button>
+              {isEditMode && Object.keys(editedPrices).length > 0 && (
+                <button 
+                  onClick={resetEditedPrices} 
+                  className="btn-reset"
+                  title="Reset all edited prices"
+                >
+                  🔄 Reset
+                </button>
+              )}
+              <button className="modal-close" onClick={() => setShowPreview(false)}>×</button>
+            </div>
           </div>
           
           <div className="preview-content preview-quotation-content">
@@ -2179,10 +2304,19 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                   // Flatten products from all areas
                   let allRoomProducts = [];
                   room.areas.forEach(area => {
-                    allRoomProducts = [...allRoomProducts, ...area.products];
+                    area.products.forEach(product => {
+                      allRoomProducts.push({
+                        ...product,
+                        areaId: area.id,
+                        roomId: room.id
+                      });
+                    });
                   });
                   
-                  const roomTotal = allRoomProducts.reduce((sum, product) => sum + product.totalPrice, 0);
+                  const roomTotal = allRoomProducts.reduce((sum, product) => {
+                    const productKey = `${product.roomId}-${product.areaId}-${product.productName}-${product.variant}`;
+                    return sum + getProductPrice(productKey, product.totalPrice);
+                  }, 0);
                   
                   return (
                     <div key={room.id} className="preview-room-card">
@@ -2192,20 +2326,38 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       </div>
                       
                       <div className="preview-products-list">
-                        {allRoomProducts.map((product, idx) => (
-                          <div key={idx} className="preview-product-item">
-                            <div className="preview-product-info">
-                              <span className="preview-product-name">{product.productName}</span>
-                              {product.variant && <span className="preview-product-variant">{product.variant}</span>}
+                        {allRoomProducts.map((product, idx) => {
+                          const productKey = `${product.roomId}-${product.areaId}-${product.productName}-${product.variant}`;
+                          const currentPrice = getProductPrice(productKey, product.totalPrice);
+                          
+                          return (
+                            <div key={idx} className="preview-product-item">
+                              <div className="preview-product-info">
+                                <span className="preview-product-name">{product.productName}</span>
+                                {product.variant && <span className="preview-product-variant">{product.variant}</span>}
+                              </div>
+                              <div className="preview-product-qty">
+                                <span>Qty: {product.quantity}</span>
+                              </div>
+                              <div className="preview-product-price">
+                                {isEditMode ? (
+                                  <input
+                                    type="number"
+                                    value={currentPrice}
+                                    onChange={(e) => handlePriceEdit(productKey, e.target.value)}
+                                    className="price-edit-input"
+                                    min="0"
+                                    step="0.01"
+                                  />
+                                ) : (
+                                  <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
+                                    ₹{currentPrice.toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <div className="preview-product-qty">
-                              <span>Qty: {product.quantity}</span>
-                            </div>
-                            <div className="preview-product-price">
-                              <span>₹{product.totalPrice.toLocaleString()}</span>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   );
@@ -2213,20 +2365,38 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               </div>
             ) : (
               <div className="preview-products-list">
-                {formData.selectedProducts.map((product, idx) => (
-                  <div key={idx} className="preview-product-item">
-                    <div className="preview-product-info">
-                      <span className="preview-product-name">{product.productName}</span>
-                      {product.variant && <span className="preview-product-variant">{product.variant}</span>}
+                {formData.selectedProducts.map((product, idx) => {
+                  const productKey = `general-${product.productName}-${product.variant}`;
+                  const currentPrice = getProductPrice(productKey, product.totalPrice);
+                  
+                  return (
+                    <div key={idx} className="preview-product-item">
+                      <div className="preview-product-info">
+                        <span className="preview-product-name">{product.productName}</span>
+                        {product.variant && <span className="preview-product-variant">{product.variant}</span>}
+                      </div>
+                      <div className="preview-product-qty">
+                        <span>Qty: {product.quantity}</span>
+                      </div>
+                      <div className="preview-product-price">
+                        {isEditMode ? (
+                          <input
+                            type="number"
+                            value={currentPrice}
+                            onChange={(e) => handlePriceEdit(productKey, e.target.value)}
+                            className="price-edit-input"
+                            min="0"
+                            step="0.01"
+                          />
+                        ) : (
+                          <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
+                            ₹{currentPrice.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="preview-product-qty">
-                      <span>Qty: {product.quantity}</span>
-                    </div>
-                    <div className="preview-product-price">
-                      <span>₹{product.totalPrice.toLocaleString()}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -2235,6 +2405,12 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               <span>Grand Total:</span>
               <span className="preview-total-amount">₹{calculateTotals().totalCost.toLocaleString()}</span>
             </div>
+            
+            {Object.keys(editedPrices).length > 0 && (
+              <div className="preview-edit-notice">
+                <span>⚠️ {Object.keys(editedPrices).length} price(s) have been edited</span>
+              </div>
+            )}
           </div>
 
           <div className="modal-footer">
@@ -2243,6 +2419,27 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               onClick={async () => {
                 setGenerating(true);
                 try {
+                  // Get staff info from localStorage
+                  const staffId = localStorage.getItem('staffId') || '';
+                  const staffName = localStorage.getItem('staffName') || '';
+                  const staffPhone = localStorage.getItem('staffPhone') || '';
+                  
+                  // Apply edited prices to rooms data
+                  const roomsWithEditedPrices = formData.rooms.map(room => ({
+                    ...room,
+                    areas: room.areas.map(area => ({
+                      ...area,
+                      products: area.products.map(product => {
+                        const productKey = `${room.id}-${area.id}-${product.productName}-${product.variant}`;
+                        const editedPrice = editedPrices[productKey];
+                        return {
+                          ...product,
+                          totalPrice: editedPrice !== undefined ? editedPrice : product.totalPrice
+                        };
+                      })
+                    }))
+                  }));
+                  
                   // Prepare quotation data for PDF
                   const quotationData = {
                     quotationNumber: `QT-${Date.now()}`,
@@ -2255,11 +2452,14 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       address: formData.customerAddress,
                       gstNumber: formData.customerGST
                     },
-                    rooms: formData.rooms,
-                    total: calculateTotals().totalCost
+                    rooms: roomsWithEditedPrices,
+                    total: calculateTotals().totalCost,
+                    attendedByStaffId: staffId,
+                    attendedByName: staffName,
+                    attendedByPhone: staffPhone
                   };
                   
-                  await QuotationPDFGenerator(quotationData);
+                  await QuotationPDFGenerator(quotationData, { separateByRoom: false });
                   alert('PDF generated successfully!');
                 } catch (error) {
                   console.error('Error generating PDF:', error);
@@ -2271,8 +2471,69 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               className="btn-primary"
               disabled={generating}
             >
-              {generating ? 'Generating...' : '📥 Download PDF'}
+              {generating ? 'Generating...' : '📥 Download Combined PDF'}
             </button>
+            {formData.rooms && formData.rooms.length > 1 && (
+              <button 
+                onClick={async () => {
+                  setGenerating(true);
+                  try {
+                    // Get staff info from localStorage
+                    const staffId = localStorage.getItem('staffId') || '';
+                    const staffName = localStorage.getItem('staffName') || '';
+                    const staffPhone = localStorage.getItem('staffPhone') || '';
+                    
+                    // Apply edited prices to rooms data
+                    const roomsWithEditedPrices = formData.rooms.map(room => ({
+                      ...room,
+                      areas: room.areas.map(area => ({
+                        ...area,
+                        products: area.products.map(product => {
+                          const productKey = `${room.id}-${area.id}-${product.productName}-${product.variant}`;
+                          const editedPrice = editedPrices[productKey];
+                          return {
+                            ...product,
+                            totalPrice: editedPrice !== undefined ? editedPrice : product.totalPrice
+                          };
+                        })
+                      }))
+                    }));
+                    
+                    // Prepare quotation data for PDF
+                    const quotationData = {
+                      quotationNumber: `QT-${Date.now()}`,
+                      quotationDate: new Date().toLocaleDateString('en-GB'),
+                      clientData: {
+                        clientName: formData.customerName,
+                        companyName: formData.customerName,
+                        mobileNumber: formData.customerPhone,
+                        email: formData.customerEmail,
+                        address: formData.customerAddress,
+                        gstNumber: formData.customerGST
+                      },
+                      rooms: roomsWithEditedPrices,
+                      total: calculateTotals().totalCost,
+                      attendedByStaffId: staffId,
+                      attendedByName: staffName,
+                      attendedByPhone: staffPhone
+                    };
+                    
+                    await QuotationPDFGenerator(quotationData, { separateByRoom: true });
+                    alert(`${formData.rooms.length} separate PDFs generated successfully!`);
+                  } catch (error) {
+                    console.error('Error generating PDFs:', error);
+                    alert('Failed to generate PDFs');
+                  } finally {
+                    setGenerating(false);
+                  }
+                }}
+                className="btn-primary"
+                disabled={generating}
+                style={{ marginLeft: '10px' }}
+              >
+                {generating ? 'Generating...' : '📥 Download Separate PDFs'}
+              </button>
+            )}
           </div>
         </div>
       </div>

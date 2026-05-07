@@ -285,8 +285,10 @@ async function seedData() {
               companyName: company.name,
               itemType: itemType?._id,
               itemTypeName: itemType?.name,
-              price: variant.price,
+              mrp: variant.originalPrice, // MRP is the original price
+              price: variant.price, // Selling price
               originalPrice: variant.originalPrice,
+              discountPercentage: Math.round(((variant.originalPrice - variant.price) / variant.originalPrice) * 100),
               discount: Math.round(((variant.originalPrice - variant.price) / variant.originalPrice) * 100),
               stock: Math.floor(Math.random() * 50) + 10,
               sku: `${categoryName.substring(0, 3).toUpperCase()}-${companyName.substring(0, 3).toUpperCase()}-${String(productCount).padStart(3, '0')}`,

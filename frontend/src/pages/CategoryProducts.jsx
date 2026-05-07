@@ -117,10 +117,21 @@ const CategoryProducts = () => {
             {products.map((company, index) => (
               <div key={index} className="category-products__card">
                 <div className="category-products__image">
-                  <img 
-                    src={`http://localhost:5000${company.image}`} 
-                    alt={company.name}
-                  />
+                  {company.image ? (
+                    <img 
+                      src={`http://localhost:5000${company.image}`}
+                      alt={company.name}
+                    />
+                  ) : (
+                    <div style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      background: '#f5f5f5',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0
+                    }}></div>
+                  )}
                 </div>
                 <div className="category-products__content">
                   <h3>{company.name}</h3>

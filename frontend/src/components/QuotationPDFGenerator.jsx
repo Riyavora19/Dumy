@@ -52,9 +52,9 @@ async function loadImageAsBase64(url) {
   }
 }
 
-// ─── Main generator ─────────────────────────────────────────────────────────
+// ─── Single PDF Generator (for one room or all rooms) ──────────────────────
 
-async function QuotationPDFGenerator(quotationData) {
+async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber = null) {
   try {
     const {
       clientData,
@@ -87,6 +87,11 @@ async function QuotationPDFGenerator(quotationData) {
     roomsData = [{ name: 'Products', products: items || [] }];
   }
 
+  // Filter rooms if specific rooms are requested
+  if (roomsToInclude && roomsToInclude.length > 0) {
+    roomsData = roomsData.filter(room => roomsToInclude.includes(room.name));
+  }
+
   // Pre-calculate totals
   const enrichedRooms = roomsData.map((room) => ({
     ...room,
@@ -99,14 +104,20 @@ async function QuotationPDFGenerator(quotationData) {
   // Grand total
   const grandTotal = enrichedRooms.reduce((s, r) => s + r.calculatedTotal, 0);
 
+  // Update quotation number with revision if provided
+  const displayQuotationNumber = revisionNumber 
+    ? `${quotationNumber} - Revised ${revisionNumber}`
+    : quotationNumber;
+
   // Load logo image
   const logoOrigin = typeof window !== 'undefined' ? window.location.origin : '';
   const logoUrl = `${logoOrigin}/gtss-logo.png`;
   const logoBase64 = await loadImageAsBase64(logoUrl);
 
-  // Resolve admin info
-  const adminName = getLocal('adminName') || getLocal('staffName') || 'ADMIN';
-  const adminPhone = getLocal('adminPhone') || getLocal('staffPhone') || '';
+  // Resolve admin/staff info - prioritize attendedBy from quotationData
+  const attendedByStaffId = quotationData.attendedByStaffId || getLocal('staffId') || '';
+  const attendedByName = quotationData.attendedByName || getLocal('staffName') || getLocal('adminName') || 'ADMIN';
+  const adminPhone = quotationData.attendedByPhone || getLocal('staffPhone') || getLocal('adminPhone') || '';
 
   // Create PDF
   const doc = new jsPDF({
@@ -132,11 +143,11 @@ async function QuotationPDFGenerator(quotationData) {
 
   const headerStartY = yPos;
   
-  // Line 1: BATHTUB | CP FITTING | SANITARY WARE | TILES (Blue, Bold, 10pt)
+  // Line 1: TILES | CP FITTING | SANITARY | BATHTUB (Blue, Bold, 10pt)
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(37, 99, 235); // Blue color
-  doc.text('BATHTUB | CP FITTING | SANITARY WARE | TILES', marginLeft, yPos);
+  doc.text('TILES | CP FITTING | SANITARY | BATHTUB', marginLeft, yPos);
   
   yPos += 5;
   
@@ -155,7 +166,7 @@ async function QuotationPDFGenerator(quotationData) {
   const phoneLineY = yPos;
   
   // Line 4: Phone and Email (Black, Bold, 9pt)
-  doc.text('Phone: 92272 06063 | Email: gtss47@hotmail.com', marginLeft, yPos);
+  doc.text('Phone: 92272 06063 | Email: gtts47@gmail.com', marginLeft, yPos);
   
   yPos += 4.5;
   const helplineY = yPos;
@@ -171,12 +182,12 @@ async function QuotationPDFGenerator(quotationData) {
   const sanitaryStoresText = 'Sanitary Stores';
   const sanitaryStoresWidth = doc.getTextWidth(sanitaryStoresText);
 
-  // Right side - Logo (width matches "Sanitary Stores", height spans BATHTUB to Phone line)
+  // Right side - Logo (smaller width, height spans BATHTUB to Phone line)
   if (logoBase64) {
     // Logo height spans from BATHTUB to Phone line
     const logoHeight = phoneLineY - headerStartY + 3;
-    // Logo width matches "Sanitary Stores" text width
-    const logoWidth = sanitaryStoresWidth;
+    // Logo width - make it smaller (50% of Sanitary Stores text width)
+    const logoWidth = sanitaryStoresWidth * 0.5;
     const logoX = pageWidth - marginRight - logoWidth;
     const logoY = headerStartY - 2;
     try {
@@ -186,16 +197,17 @@ async function QuotationPDFGenerator(quotationData) {
     }
   }
 
-  // Company name (Black, Bold, 14pt, with slight spacing below logo)
+  // Company name (Black, Bold, 14pt, aligned with helpline, closer to logo)
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0);
   const companyName = 'Gujarat Tube & Sanitary Stores';
   const companyNameWidth = doc.getTextWidth(companyName);
-  doc.text(companyName, pageWidth - marginRight - companyNameWidth, helplineY + 3);
+  // Position at same Y as helpline, right-aligned
+  doc.text(companyName, pageWidth - marginRight - companyNameWidth, helplineY);
 
-  // End of header section - should be at 30mm (5mm top space + 25mm header)
-  yPos = 30; // Fixed position: 5mm + 25mm header section
+  // QUOTATION starts immediately after header with minimal gap
+  yPos += 3; // 3mm gap for spacing
 
   // ─── QUOTATION TITLE (10mm section) ───────────────────────────────────────
 
@@ -203,7 +215,7 @@ async function QuotationPDFGenerator(quotationData) {
   doc.setDrawColor(200, 200, 200);
   doc.line(marginLeft, yPos, pageWidth - marginRight, yPos);
   
-  yPos += 3;
+  yPos += 5;
   
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
@@ -212,14 +224,14 @@ async function QuotationPDFGenerator(quotationData) {
   const titleWidth = doc.getTextWidth(title);
   doc.text(title, (pageWidth - titleWidth) / 2, yPos);
   
-  yPos += 3;
+  yPos += 2;
   
   // Line below QUOTATION
   doc.setDrawColor(200, 200, 200);
   doc.line(marginLeft, yPos, pageWidth - marginRight, yPos);
   
-  // End of quotation title section - should be at 40mm (5mm + 25mm + 10mm)
-  yPos = 40; // Fixed position
+  // Small gap before client details
+  yPos += 3;
 
   // ─── CLIENT INFORMATION BOX (25mm section) ────────────────────────────────
 
@@ -277,7 +289,7 @@ async function QuotationPDFGenerator(quotationData) {
   
   rightYPos += 4;
   doc.setFont('helvetica', 'normal');
-  const refText = `Reference Number: ${quotationNumber}`;
+  const refText = `Reference Number: ${displayQuotationNumber}`;
   const refWidth = doc.getTextWidth(refText);
   doc.text(refText, pageWidth - marginRight - refWidth - 3, rightYPos);
   
@@ -519,9 +531,13 @@ async function QuotationPDFGenerator(quotationData) {
   const creatorY = yPos - 16;
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text('FROM,', pageWidth - marginRight - 40, creatorY);
+  doc.text('ATTENDED BY:', pageWidth - marginRight - 40, creatorY);
   doc.setFont('helvetica', 'bold');
-  doc.text(adminName, pageWidth - marginRight - 40, creatorY + 4);
+  if (attendedByStaffId) {
+    doc.text(`${attendedByStaffId} - ${attendedByName}`, pageWidth - marginRight - 40, creatorY + 4);
+  } else {
+    doc.text(attendedByName, pageWidth - marginRight - 40, creatorY + 4);
+  }
   doc.setFont('helvetica', 'normal');
   if (adminPhone) {
     doc.text(adminPhone, pageWidth - marginRight - 40, creatorY + 8);
@@ -563,11 +579,64 @@ async function QuotationPDFGenerator(quotationData) {
 
   // ─── SAVE PDF ─────────────────────────────────────────────────────────────
 
-  doc.save(`Quotation-${quotationNumber}.pdf`);
+  // Generate filename based on revision number and room name
+  let filename = `Quotation-${quotationNumber}`;
+  if (revisionNumber) {
+    const roomName = roomsData.length === 1 ? roomsData[0].name.replace(/\s+/g, '-') : 'Multiple';
+    filename = `Quotation-${quotationNumber}-Revised-${revisionNumber}-${roomName}`;
+  }
+  doc.save(`${filename}.pdf`);
   
   } catch (error) {
     console.error('Error generating PDF:', error);
     alert(`Failed to generate PDF: ${error.message}`);
+    throw error;
+  }
+}
+
+// ─── Main QuotationPDFGenerator (handles multiple PDFs) ────────────────────
+
+async function QuotationPDFGenerator(quotationData, options = {}) {
+  const { separateByRoom = false } = options;
+  
+  try {
+    const { rooms = [] } = quotationData;
+    
+    // Build rooms data to get room names
+    let roomsData = [];
+    if (rooms.length > 0) {
+      roomsData = rooms.map((room) => {
+        let allProducts = [];
+        if (room.areas && Array.isArray(room.areas)) {
+          room.areas.forEach((area) => {
+            if (area.products && Array.isArray(area.products)) {
+              area.products.forEach((product) => {
+                allProducts.push({ ...product, areaName: area.name || 'General' });
+              });
+            }
+          });
+        } else if (room.products && Array.isArray(room.products)) {
+          allProducts = room.products;
+        }
+        return { name: room.name, products: allProducts };
+      });
+    }
+    
+    // If separateByRoom is true and there are multiple rooms, generate separate PDFs
+    if (separateByRoom && roomsData.length > 1) {
+      for (let i = 0; i < roomsData.length; i++) {
+        const room = roomsData[i];
+        await generateSinglePDF(quotationData, [room.name], i + 1);
+        // Add a small delay between downloads to prevent browser blocking
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    } else {
+      // Generate single PDF with all rooms
+      await generateSinglePDF(quotationData, null, null);
+    }
+  } catch (error) {
+    console.error('Error generating PDF(s):', error);
+    alert(`Failed to generate PDF(s): ${error.message}`);
     throw error;
   }
 }

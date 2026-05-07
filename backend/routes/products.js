@@ -588,4 +588,155 @@ router.get('/search/:query', async (req, res) => {
   }
 });
 
+// Get product with company-specific pricing (without companyId)
+router.get('/:id/pricing', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const product = await Product.findById(id)
+      .populate('category')
+      .populate('itemType')
+      .populate('company');
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+    
+    let finalPrice = product.price;
+    let discountPercentage = product.discountPercentage || 0;
+    
+    res.json({
+      success: true,
+      data: {
+        ...product.toObject(),
+        finalPrice,
+        discountPercentage,
+        savings: product.mrp ? product.mrp - finalPrice : 0
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching product pricing:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch product pricing',
+      error: error.message
+    });
+  }
+});
+
+// Get product with company-specific pricing (with companyId)
+router.get('/:id/pricing/:companyId', async (req, res) => {
+  try {
+    const { id, companyId } = req.params;
+    
+    const product = await Product.findById(id)
+      .populate('category')
+      .populate('itemType')
+      .populate('company');
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+    
+    let finalPrice = product.price;
+    let discountPercentage = product.discountPercentage || 0;
+    
+    // Check for company-specific pricing
+    if (companyId && product.companyPricing && product.companyPricing.length > 0) {
+      const companyPrice = product.companyPricing.find(
+        cp => cp.company.toString() === companyId
+      );
+      
+      if (companyPrice) {
+        if (companyPrice.specialPrice) {
+          finalPrice = companyPrice.specialPrice;
+        } else if (companyPrice.discountPercentage) {
+          discountPercentage = companyPrice.discountPercentage;
+          finalPrice = product.mrp * (1 - discountPercentage / 100);
+        }
+      }
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        ...product.toObject(),
+        finalPrice,
+        discountPercentage,
+        savings: product.mrp ? product.mrp - finalPrice : 0
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching product pricing:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch product pricing',
+      error: error.message
+    });
+  }
+});
+
+// Update company-specific pricing for a product
+router.put('/:id/company-pricing', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { companyId, companyName, discountPercentage, specialPrice } = req.body;
+    
+    const product = await Product.findById(id);
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+    
+    // Initialize companyPricing array if it doesn't exist
+    if (!product.companyPricing) {
+      product.companyPricing = [];
+    }
+    
+    // Check if company pricing already exists
+    const existingIndex = product.companyPricing.findIndex(
+      cp => cp.company.toString() === companyId
+    );
+    
+    const pricingData = {
+      company: companyId,
+      companyName,
+      discountPercentage: discountPercentage || 0,
+      specialPrice: specialPrice || null
+    };
+    
+    if (existingIndex >= 0) {
+      // Update existing
+      product.companyPricing[existingIndex] = pricingData;
+    } else {
+      // Add new
+      product.companyPricing.push(pricingData);
+    }
+    
+    await product.save();
+    
+    res.json({
+      success: true,
+      message: 'Company pricing updated successfully',
+      data: product
+    });
+  } catch (error) {
+    console.error('Error updating company pricing:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update company pricing',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

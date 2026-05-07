@@ -48,6 +48,11 @@ const productSchema = new mongoose.Schema({
 
 
   // Pricing
+  mrp: {
+    type: Number,
+    required: true,
+    min: 0
+  },
   price: {
     type: Number,
     required: true,
@@ -55,6 +60,31 @@ const productSchema = new mongoose.Schema({
   },
   originalPrice: Number,
   discount: Number,
+  discountPercentage: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
+  },
+  
+  // Company-specific pricing
+  companyPricing: [{
+    company: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Company'
+    },
+    companyName: String,
+    discountPercentage: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100
+    },
+    specialPrice: {
+      type: Number,
+      min: 0
+    }
+  }],
   
   // Images
   images: [{

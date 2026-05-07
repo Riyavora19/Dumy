@@ -14,9 +14,9 @@ const AdminClients = () => {
   const [filterType, setFilterType] = useState('');
   const [formData, setFormData] = useState({
     name: '',
+    companyName: '',
     email: '',
     phone: '',
-    company: '',
     clientType: 'individual',
     status: 'active',
     address: {
@@ -25,6 +25,24 @@ const AdminClients = () => {
       state: '',
       pincode: '',
       country: 'India'
+    },
+    gstNumber: '',
+    mainContact: {
+      name: '',
+      phone: '',
+      email: ''
+    },
+    wifeContact: {
+      name: '',
+      phone: '',
+      email: ''
+    },
+    familyMembers: [],
+    projectIncharge: {
+      name: '',
+      phone: '',
+      email: '',
+      designation: ''
     },
     source: 'website',
     assignedTo: '',
@@ -71,6 +89,33 @@ const AdminClients = () => {
           [addressField]: value
         }
       });
+    } else if (name.startsWith('mainContact.')) {
+      const field = name.split('.')[1];
+      setFormData({
+        ...formData,
+        mainContact: {
+          ...formData.mainContact,
+          [field]: value
+        }
+      });
+    } else if (name.startsWith('wifeContact.')) {
+      const field = name.split('.')[1];
+      setFormData({
+        ...formData,
+        wifeContact: {
+          ...formData.wifeContact,
+          [field]: value
+        }
+      });
+    } else if (name.startsWith('projectIncharge.')) {
+      const field = name.split('.')[1];
+      setFormData({
+        ...formData,
+        projectIncharge: {
+          ...formData.projectIncharge,
+          [field]: value
+        }
+      });
     } else {
       setFormData({
         ...formData,
@@ -114,9 +159,10 @@ const AdminClients = () => {
     setEditingClient(client);
     setFormData({
       name: client.name,
+      companyName: client.companyName || '',
       email: client.email,
       phone: client.phone,
-      company: client.company || '',
+      gstNumber: client.gstNumber || '',
       clientType: client.clientType,
       status: client.status,
       address: client.address || {
@@ -125,6 +171,23 @@ const AdminClients = () => {
         state: '',
         pincode: '',
         country: 'India'
+      },
+      mainContact: client.mainContact || {
+        name: '',
+        phone: '',
+        email: ''
+      },
+      wifeContact: client.wifeContact || {
+        name: '',
+        phone: '',
+        email: ''
+      },
+      familyMembers: client.familyMembers || [],
+      projectIncharge: client.projectIncharge || {
+        name: '',
+        phone: '',
+        email: '',
+        designation: ''
       },
       source: client.source || 'website',
       assignedTo: client.assignedTo || '',
@@ -152,9 +215,9 @@ const AdminClients = () => {
     setEditingClient(null);
     setFormData({
       name: '',
+      companyName: '',
       email: '',
       phone: '',
-      company: '',
       clientType: 'individual',
       status: 'active',
       address: {
@@ -163,6 +226,24 @@ const AdminClients = () => {
         state: '',
         pincode: '',
         country: 'India'
+      },
+      gstNumber: '',
+      mainContact: {
+        name: '',
+        phone: '',
+        email: ''
+      },
+      wifeContact: {
+        name: '',
+        phone: '',
+        email: ''
+      },
+      familyMembers: [],
+      projectIncharge: {
+        name: '',
+        phone: '',
+        email: '',
+        designation: ''
       },
       source: 'website',
       assignedTo: '',
@@ -384,18 +465,29 @@ const AdminClients = () => {
                 </div>
 
                 <div className="admin-clients__field">
-                  <label>Company</label>
+                  <label>Company Name</label>
                   <input
                     type="text"
-                    name="company"
-                    value={formData.company}
+                    name="companyName"
+                    value={formData.companyName}
                     onChange={handleChange}
-                    placeholder="Company name (optional)"
+                    placeholder="Company name (if applicable)"
                   />
                 </div>
               </div>
 
               <div className="admin-clients__row">
+                <div className="admin-clients__field">
+                  <label>GST Number</label>
+                  <input
+                    type="text"
+                    name="gstNumber"
+                    value={formData.gstNumber}
+                    onChange={handleChange}
+                    placeholder="GST Number (optional)"
+                  />
+                </div>
+
                 <div className="admin-clients__field">
                   <label>Client Type *</label>
                   <select name="clientType" value={formData.clientType} onChange={handleChange} required>
@@ -405,17 +497,137 @@ const AdminClients = () => {
                     <option value="architect">📐 Architect</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Main Contact Section */}
+              <div className="admin-clients__section-title">Main Contact Information</div>
+              <div className="admin-clients__row">
+                <div className="admin-clients__field">
+                  <label>Main Contact Name</label>
+                  <input
+                    type="text"
+                    name="mainContact.name"
+                    value={formData.mainContact.name}
+                    onChange={handleChange}
+                    placeholder="Primary contact person"
+                  />
+                </div>
 
                 <div className="admin-clients__field">
-                  <label>Status *</label>
-                  <select name="status" value={formData.status} onChange={handleChange} required>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="potential">Potential</option>
-                  </select>
+                  <label>Main Contact Phone</label>
+                  <input
+                    type="tel"
+                    name="mainContact.phone"
+                    value={formData.mainContact.phone}
+                    onChange={handleChange}
+                    placeholder="Contact phone number"
+                  />
+                </div>
+
+                <div className="admin-clients__field">
+                  <label>Main Contact Email</label>
+                  <input
+                    type="email"
+                    name="mainContact.email"
+                    value={formData.mainContact.email}
+                    onChange={handleChange}
+                    placeholder="Contact email"
+                  />
                 </div>
               </div>
 
+              {/* Wife Contact Section */}
+              <div className="admin-clients__section-title">Wife Contact Information</div>
+              <div className="admin-clients__row">
+                <div className="admin-clients__field">
+                  <label>Wife Name</label>
+                  <input
+                    type="text"
+                    name="wifeContact.name"
+                    value={formData.wifeContact.name}
+                    onChange={handleChange}
+                    placeholder="Wife's name"
+                  />
+                </div>
+
+                <div className="admin-clients__field">
+                  <label>Wife Phone</label>
+                  <input
+                    type="tel"
+                    name="wifeContact.phone"
+                    value={formData.wifeContact.phone}
+                    onChange={handleChange}
+                    placeholder="Wife's phone number"
+                  />
+                </div>
+
+                <div className="admin-clients__field">
+                  <label>Wife Email</label>
+                  <input
+                    type="email"
+                    name="wifeContact.email"
+                    value={formData.wifeContact.email}
+                    onChange={handleChange}
+                    placeholder="Wife's email"
+                  />
+                </div>
+              </div>
+
+              {/* Project Incharge Section */}
+              <div className="admin-clients__section-title">Project Incharge Information</div>
+              <div className="admin-clients__row">
+                <div className="admin-clients__field">
+                  <label>Incharge Name</label>
+                  <input
+                    type="text"
+                    name="projectIncharge.name"
+                    value={formData.projectIncharge.name}
+                    onChange={handleChange}
+                    placeholder="Project incharge name"
+                  />
+                </div>
+
+                <div className="admin-clients__field">
+                  <label>Incharge Phone</label>
+                  <input
+                    type="tel"
+                    name="projectIncharge.phone"
+                    value={formData.projectIncharge.phone}
+                    onChange={handleChange}
+                    placeholder="Incharge phone number"
+                  />
+                </div>
+              </div>
+
+              <div className="admin-clients__row">
+                <div className="admin-clients__field">
+                  <label>Incharge Email</label>
+                  <input
+                    type="email"
+                    name="projectIncharge.email"
+                    value={formData.projectIncharge.email}
+                    onChange={handleChange}
+                    placeholder="Incharge email"
+                  />
+                </div>
+
+                <div className="admin-clients__field">
+                  <label>Designation</label>
+                  <input
+                    type="text"
+                    name="projectIncharge.designation"
+                    value={formData.projectIncharge.designation}
+                    onChange={handleChange}
+                    placeholder="Project manager, Architect, etc."
+                  />
+                </div>
+              </div>
+
+              {/* Address Section */}
+              <div className="admin-clients__section-title">Address Information</div>
+
+              {/* Address Section */}
+              <div className="admin-clients__section-title">Address Information</div>
               <div className="admin-clients__field">
                 <label>Street Address</label>
                 <input
@@ -462,7 +674,18 @@ const AdminClients = () => {
                 </div>
               </div>
 
+              {/* Additional Information */}
+              <div className="admin-clients__section-title">Additional Information</div>
               <div className="admin-clients__row">
+                <div className="admin-clients__field">
+                  <label>Status *</label>
+                  <select name="status" value={formData.status} onChange={handleChange} required>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="potential">Potential</option>
+                  </select>
+                </div>
+
                 <div className="admin-clients__field">
                   <label>Source</label>
                   <select name="source" value={formData.source} onChange={handleChange}>

@@ -394,3 +394,13 @@
 
 
 
+
+/* Section Title Styles */
+.admin-clients__section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 1.5rem 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}

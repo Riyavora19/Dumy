@@ -463,11 +463,36 @@
   overflow: hidden;
 }
 
+.product-card-info .price-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.product-card-info .price-mrp {
+  font-size: 12px;
+  color: #9ca3af;
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
 .product-card-info .price {
   font-size: 15px;
   font-weight: 700;
   color: #3b82f6;
-  margin-top: 4px;
+}
+
+.product-card-info .discount-badge-mini {
+  font-size: 9px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .product-card-mini .add-btn {
@@ -1592,11 +1617,18 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: fit-content;
 }
 
 .budget-plan-form__btn-cancel {
   background: #f0f0f0;
   color: #555;
+  max-width: 150px;
+  flex-shrink: 0;
+  flex-grow: 0;
+  width: auto;
 }
 
 .budget-plan-form__btn-cancel:hover {
@@ -1954,12 +1986,18 @@
   }
 
   .budget-plan-form__actions {
-    flex-direction: column;
+    flex-direction: row;
     padding: 12px 20px;
+    flex-wrap: wrap;
   }
 
   .budget-plan-form__btn {
-    width: 100%;
+    flex: 0 0 auto;
+    min-width: fit-content;
+  }
+  
+  .budget-plan-form__btn-cancel {
+    max-width: 120px;
   }
 
   .budget-options {
@@ -2468,12 +2506,16 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: fit-content;
 }
 
 .modal-footer .btn-secondary {
   background: #fff;
   color: #6b7280;
   border: 2px solid #e5e7eb;
+  max-width: 120px;
 }
 
 .modal-footer .btn-secondary:hover {
@@ -2807,6 +2849,37 @@
   align-items: center;
   padding-top: 10px;
   border-top: 1px solid #e5e7eb;
+}
+
+.unit-price-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.unit-price-mrp {
+  font-size: 11px;
+  color: #9ca3af;
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+.unit-price-discounted {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.discount-badge-cart {
+  font-size: 9px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .unit-price-small {
@@ -3217,4 +3290,104 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+/* Editable Preview Styles */
+.btn-edit,
+.btn-edit-active {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-edit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-edit-active {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.btn-edit-active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+}
+
+.btn-reset {
+  padding: 0.5rem 1rem;
+  border: 2px solid #f59e0b;
+  background: white;
+  color: #f59e0b;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-reset:hover {
+  background: #f59e0b;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.price-edit-input {
+  width: 120px;
+  padding: 0.4rem 0.6rem;
+  border: 2px solid #3b82f6;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: right;
+  background: #eff6ff;
+  color: #1e40af;
+  transition: all 0.3s ease;
+}
+
+.price-edit-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.edited-price {
+  color: #10b981;
+  font-weight: 700;
+  position: relative;
+}
+
+.edited-price::after {
+  content: '✓';
+  margin-left: 5px;
+  font-size: 0.8rem;
+}
+
+.preview-edit-notice {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+  text-align: center;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.preview-edit-notice span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }

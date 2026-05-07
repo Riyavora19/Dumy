@@ -6,9 +6,10 @@ import ProductReviews from '../components/ProductReviews';
 import './ProductVariants.css';
 
 const ProductVariants = () => {
-  const { categoryId, productName, companyName } = useParams();
+  const { categoryId, itemTypeId, companyName } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const productName = searchParams.get('product');
   const companyFilter = searchParams.get('company') || companyName;
   const [allProducts, setAllProducts] = useState([]);
   const [products, setProducts] = useState([]);
@@ -22,10 +23,10 @@ const ProductVariants = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { addToCart, isInCart, getCartItemQuantity } = useCart();
 
-  // Fetch data only when category or product name changes
+  // Fetch data only when category, product name, or company changes
   useEffect(() => {
     fetchData();
-  }, [categoryId, productName]);
+  }, [categoryId, productName, companyName]);
 
   // Apply filters and sorting whenever filter values change
   useEffect(() => {
@@ -60,7 +61,27 @@ const ProductVariants = () => {
           });
         }
       } 
-      // Otherwise, fetch products by name and category
+      // If itemTypeId is provided, fetch products by item type
+      else if (itemTypeId) {
+        const productsResponse = await axios.get(
+          `http://localhost:5000/api/products/by-item-type/${itemTypeId}`
+        );
+        
+        if (productsResponse.data.success) {
+          fetchedProducts = productsResponse.data.data;
+          
+          // Filter by company if specified in query params
+          if (companyFilter) {
+            fetchedProducts = fetchedProducts.filter(p => {
+              const productCompany = typeof p.company === 'object' && p.company?.name 
+                ? p.company.name 
+                : p.companyName || p.company;
+              return productCompany === companyFilter;
+            });
+          }
+        }
+      }
+      // Otherwise, fetch products by name and category (if productName is in query params)
       else if (productName) {
         const productsResponse = await axios.get(
           `http://localhost:5000/api/products/variants/${categoryId}/${encodeURIComponent(productName)}`
@@ -158,7 +179,7 @@ const ProductVariants = () => {
           <span>/</span>
           <Link to={`/categories/${categoryId}`}>{category?.name}</Link>
           <span>/</span>
-          <span>{productName}</span>
+          <span>{companyName || productName || 'Products'}</span>
         </div>
 
         {/* Header */}
@@ -169,7 +190,7 @@ const ProductVariants = () => {
                 <span>{category.icon}</span>
               </div>
               <div>
-                <h1>{companyFilter ? `${companyFilter} ${productName}` : productName}</h1>
+                <h1>{companyName ? `${companyName} Products` : (productName || 'Products')}</h1>
                 <p>{products.length} variants available</p>
               </div>
             </div>
@@ -275,14 +296,27 @@ const ProductVariants = () => {
                 {products.map(product => (
                   <div key={product._id} className="product-variants__card">
                     <div className="product-variants__image">
-                      <img 
-                        src={`http://localhost:5000${product.images[0]}`} 
-                        alt={product.name}
-                      />
-                      {product.images.length > 1 && (
-                        <span className="product-variants__image-count">
-                          +{product.images.length - 1}
-                        </span>
+                      {product.images && product.images.length > 0 ? (
+                        <>
+                          <img 
+                            src={`http://localhost:5000${product.images[0]}`} 
+                            alt={product.name}
+                          />
+                          {product.images.length > 1 && (
+                            <span className="product-variants__image-count">
+                              +{product.images.length - 1}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <div style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          background: '#f5f5f5',
+                          position: 'absolute',
+                          top: 0,
+                          left: 0
+                        }}></div>
                       )}
                       <div className="product-variants__share-dropdown">
                         <button className="product-variants__share-btn">
@@ -334,8 +368,8 @@ const ProductVariants = () => {
                     <div className="product-variants__content-card">
                       <div className="product-variants__title-row">
                         <h3>{product.name}</h3>
-                        {product.discount && (
-                          <span className="product-variants__discount-badge">-{product.discount}%</span>
+                        {product.discountPercentage > 0 && (
+                          <span className="product-variants__discount-badge">-{product.discountPercentage}%</span>
                         )}
                       </div>
                       {product.stock > 0 ? (
@@ -410,13 +444,24 @@ const ProductVariants = () => {
             <div className="product-variants__modal-content">
               <div className="product-variants__modal-image-container">
                 <div className="product-variants__modal-image">
-                  <img 
-                    src={`http://localhost:5000${selectedProduct.images[currentImageIndex]}`} 
-                    alt={selectedProduct.name}
-                  />
+                  {selectedProduct.images && selectedProduct.images.length > 0 ? (
+                    <img 
+                      src={`http://localhost:5000${selectedProduct.images[currentImageIndex]}`}
+                      alt={selectedProduct.name}
+                    />
+                  ) : (
+                    <div style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      background: '#f5f5f5',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0
+                    }}></div>
+                  )}
                 </div>
                 
-                {selectedProduct.images.length > 1 && (
+                {selectedProduct.images && selectedProduct.images.length > 1 && (
                   <>
                     <button 
                       className="product-variants__modal-nav product-variants__modal-nav--prev"
@@ -498,12 +543,16 @@ const ProductVariants = () => {
                 </div>
 
                 <div className="product-variants__modal-price">
-                  <span className="current">₹{selectedProduct.price.toLocaleString()}</span>
-                  {selectedProduct.originalPrice && (
-                    <span className="original">₹{selectedProduct.originalPrice.toLocaleString()}</span>
-                  )}
-                  {selectedProduct.discount && (
-                    <span className="discount">{selectedProduct.discount}% OFF</span>
+                  {selectedProduct.mrp && selectedProduct.mrp > selectedProduct.price ? (
+                    <>
+                      <span className="mrp-strikethrough">₹{selectedProduct.mrp.toLocaleString()}</span>
+                      <span className="current discounted">₹{selectedProduct.price.toLocaleString()}</span>
+                      <span className="discount-badge">
+                        {selectedProduct.discountPercentage || Math.round(((selectedProduct.mrp - selectedProduct.price) / selectedProduct.mrp) * 100)}% OFF
+                      </span>
+                    </>
+                  ) : (
+                    <span className="current">₹{selectedProduct.price.toLocaleString()}</span>
                   )}
                 </div>
 
