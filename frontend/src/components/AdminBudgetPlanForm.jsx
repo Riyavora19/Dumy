@@ -1652,10 +1652,12 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                 <div className="cart-items-table">
                   {currentProducts.map((item, index) => (
                     <div key={index} className="cart-table-item">
-                      {/* Row 1: Product Name and Remove Button */}
+                      {/* Row 1: Product Name, Variant, Company Badge, and Remove Button */}
                       <div className="cart-table-row-1">
                         <div className="product-info-row">
                           <strong className="product-name">{item.productName}</strong>
+                          <span className="variant-text">{item.variant}</span>
+                          <span className="company-badge">{item.companyName}</span>
                           <button 
                             className="remove-btn-table"
                             onClick={() => removeProduct(index)}
@@ -1666,25 +1668,31 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                         </div>
                       </div>
                       
-                      {/* Row 2: Variant, Company, Controls, and Price */}
+                      {/* Row 2: QTY with +/-, DISC%, and Price */}
                       <div className="cart-table-row-2">
-                        <div className="product-meta">
-                          <span className="variant-text">{item.variant}</span>
-                        </div>
-                        
-                        <div className="product-company">
-                          <span className="company-badge">{item.companyName}</span>
-                        </div>
-                        
                         <div className="product-controls-inline">
-                          <div className="control-group">
+                          <div className="control-group qty-control">
                             <label>QTY:</label>
-                            <input
-                              type="number"
-                              min="1"
-                              value={item.quantity}
-                              onChange={(e) => updateProductQuantity(index, e.target.value)}
-                            />
+                            <div className="qty-buttons-wrapper">
+                              <button 
+                                className="qty-btn"
+                                onClick={() => updateProductQuantity(index, Math.max(1, item.quantity - 1))}
+                              >
+                                −
+                              </button>
+                              <input
+                                type="number"
+                                min="1"
+                                value={item.quantity}
+                                onChange={(e) => updateProductQuantity(index, e.target.value)}
+                              />
+                              <button 
+                                className="qty-btn"
+                                onClick={() => updateProductQuantity(index, item.quantity + 1)}
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                           
                           <div className="control-group">

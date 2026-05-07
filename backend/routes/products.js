@@ -47,7 +47,8 @@ router.get('/', async (req, res) => {
       minPrice, 
       maxPrice, 
       company, 
-      partnerOnly
+      partnerOnly,
+      isActive
     } = req.query;
     
     const query = {};
@@ -72,6 +73,11 @@ router.get('/', async (req, res) => {
     // Filter by company
     if (company) {
       query.company = company;
+    }
+    
+    // Filter by active status
+    if (isActive !== undefined) {
+      query.isActive = isActive === 'true';
     }
     
     // Build populate options for company

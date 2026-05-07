@@ -1,885 +1,503 @@
-import html2pdf from 'html2pdf.js';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-async function QuotationPDFGenerator(quotationData) {
-  const {
-    clientData,
-    items,
-    total,
-    quotationNumber,
-    quotationDate,
-    rooms = [] // Array of rooms with their products
-  } = quotationData;
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
-  // If rooms are provided, use them; otherwise create a single room from items
+/** Safely read localStorage */
+function getLocal(key, fallback = '') {
+  try {
+    return (typeof localStorage !== 'undefined' && localStorage.getItem(key)) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** Get the base origin from API_URL */
+function getBaseUrl() {
+  try {
+    return new URL(API_URL).origin;
+  } catch {
+    return '';
+  }
+}
+
+/** Calculate discounted rate for a single item */
+function calcDiscountedRate(item) {
+  const baseRate = parseFloat(item.rate ?? item.unitPrice ?? 0);
+  const discountPct = parseFloat(item.discountPercent ?? 0);
+  return baseRate * (1 - discountPct / 100);
+}
+
+/** Calculate total amount for a single line item */
+function calcLineAmount(item) {
+  return calcDiscountedRate(item) * parseInt(item.quantity ?? 1);
+}
+
+/** Load image as base64 for jsPDF */
+async function loadImageAsBase64(url) {
+  try {
+    const res = await fetch(url, { mode: 'cors' });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+// ─── Main generator ─────────────────────────────────────────────────────────
+
+async function QuotationPDFGenerator(quotationData) {
+  try {
+    const {
+      clientData,
+      items,
+      quotationNumber,
+      quotationDate,
+      rooms = [],
+    } = quotationData;
+
+  // Build rooms data
   let roomsData = [];
-  
+
   if (rooms.length > 0) {
-    // Process rooms with areas structure
-    roomsData = rooms.map(room => {
-      // Flatten products from all areas
+    roomsData = rooms.map((room) => {
       let allProducts = [];
       if (room.areas && Array.isArray(room.areas)) {
-        room.areas.forEach(area => {
+        room.areas.forEach((area) => {
           if (area.products && Array.isArray(area.products)) {
-            allProducts = [...allProducts, ...area.products];
+            area.products.forEach((product) => {
+              allProducts.push({ ...product, areaName: area.name || 'General' });
+            });
           }
         });
       } else if (room.products && Array.isArray(room.products)) {
-        // Fallback for old format
         allProducts = room.products;
       }
-      
-      return {
-        name: room.name,
-        products: allProducts
-      };
+      return { name: room.name, products: allProducts };
     });
   } else {
-    // Fallback for items array
-    roomsData = [
-      {
-        name: 'Products',
-        products: items || []
-      }
-    ];
+    roomsData = [{ name: 'Products', products: items || [] }];
   }
 
-  // Fetch company settings from API
-  let companySettings;
-  try {
-    const response = await fetch(`${API_URL}/company-settings`);
-    companySettings = await response.json();
+  // Pre-calculate totals
+  const enrichedRooms = roomsData.map((room) => ({
+    ...room,
+    calculatedTotal: (room.products || []).reduce(
+      (sum, item) => sum + calcLineAmount(item),
+      0
+    ),
+  }));
+
+  // Grand total
+  const grandTotal = enrichedRooms.reduce((s, r) => s + r.calculatedTotal, 0);
+
+  // Load logo image
+  const logoOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+  const logoUrl = `${logoOrigin}/gtss-logo.png`;
+  const logoBase64 = await loadImageAsBase64(logoUrl);
+
+  // Resolve admin info
+  const adminName = getLocal('adminName') || getLocal('staffName') || 'ADMIN';
+  const adminPhone = getLocal('adminPhone') || getLocal('staffPhone') || '';
+
+  // Create PDF
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const marginLeft = 5;     // 0.5cm = 5mm
+  const marginRight = 5;    // 0.5cm = 5mm
+  const marginTop = 10;     // 1cm = 10mm
+  const marginBottom = 5;   // 0.5cm = 5mm
+  let yPos = marginTop;
+
+  // ─── HEADER SECTION ───────────────────────────────────────────────────────
+
+  // Left side - Company info
+  const headerStartY = yPos;
+  
+  // Line 1: BATHTUB | CP FITTING | SANITARY WARE | TILES (Blue, Bold, 10pt)
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(37, 99, 235); // Blue color
+  doc.text('BATHTUB | CP FITTING | SANITARY WARE | TILES', marginLeft, yPos);
+  
+  yPos += 5;
+  
+  // Line 2: Address line 1 (Black, Bold, 9pt)
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0); // Black color
+  doc.text('104-105-106, Iscon Plaza, Opp. Star India Bazar,', marginLeft, yPos);
+  
+  yPos += 4.5;
+  
+  // Line 3: Address line 2 (Black, Bold, 9pt)
+  doc.text('Satellite Road, Ahmedabad - 380 015', marginLeft, yPos);
+  
+  yPos += 4.5;
+  const phoneLineY = yPos;
+  
+  // Line 4: Phone and Email (Black, Bold, 9pt)
+  doc.text('Phone: 92272 06063 | Email: gtss47@hotmail.com', marginLeft, yPos);
+  
+  yPos += 4.5;
+  const helplineY = yPos;
+  
+  // Line 5: Helpline (Red, Bold, 9pt)
+  doc.setTextColor(255, 0, 0); // Red color
+  doc.text('Helpline: 079-2692 0609 / 4006 6063', marginLeft, yPos);
+
+  // Calculate "Sanitary Stores" width to determine logo width
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  const sanitaryStoresText = 'Sanitary Stores';
+  const sanitaryStoresWidth = doc.getTextWidth(sanitaryStoresText);
+
+  // Right side - Logo (width matches "Sanitary Stores", height spans BATHTUB to Phone line)
+  if (logoBase64) {
+    // Logo height spans from BATHTUB to Phone line
+    const logoHeight = phoneLineY - headerStartY + 3;
+    // Logo width matches "Sanitary Stores" text width
+    const logoWidth = sanitaryStoresWidth;
+    const logoX = pageWidth - marginRight - logoWidth;
+    const logoY = headerStartY - 2;
+    try {
+      doc.addImage(logoBase64, 'PNG', logoX, logoY, logoWidth, logoHeight);
+    } catch (e) {
+      console.error('Error adding logo:', e);
+    }
+  }
+
+  // Company name (Black, Bold, 14pt, with slight spacing below logo)
+  doc.setFontSize(14); // Increased from 12 to 14
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  const companyName = 'Gujarat Tube & Sanitary Stores';
+  const companyNameWidth = doc.getTextWidth(companyName);
+  doc.text(companyName, pageWidth - marginRight - companyNameWidth, helplineY + 3); // Added 3mm spacing
+
+  yPos = helplineY + 9; // Adjusted for new company name position
+
+  // ─── QUOTATION TITLE ──────────────────────────────────────────────────────
+
+  // Line above QUOTATION
+  doc.setDrawColor(200, 200, 200);
+  doc.line(marginLeft, yPos, pageWidth - marginRight, yPos);
+  
+  yPos += 6;
+  
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  const title = 'QUOTATION';
+  const titleWidth = doc.getTextWidth(title);
+  doc.text(title, (pageWidth - titleWidth) / 2, yPos);
+  
+  yPos += 2;
+  
+  // Line below QUOTATION
+  doc.setDrawColor(200, 200, 200);
+  doc.line(marginLeft, yPos, pageWidth - marginRight, yPos);
+  
+  yPos += 6;
+
+  // ─── CLIENT INFORMATION BOX ───────────────────────────────────────────────
+
+  const boxStartY = yPos;
+  const boxHeight = 18;
+  
+  doc.setDrawColor(208, 208, 208);
+  doc.setLineWidth(0.3);
+  doc.rect(marginLeft, boxStartY, pageWidth - marginLeft - marginRight, boxHeight);
+
+  yPos += 5;
+  
+  // Left side - Client details
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  const clientName = clientData.companyName || clientData.customerName || '-';
+  doc.text(`TO: ${clientName}`, marginLeft + 3, yPos);
+  
+  yPos += 4;
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(102, 102, 102);
+  const clientEmail = clientData.email || clientData.customerEmail || '';
+  if (clientEmail) {
+    doc.text(`Email: ${clientEmail}`, marginLeft + 3, yPos);
+    yPos += 4;
+  }
+  doc.text(`GST Number: ${clientData.gstNumber || clientData.customerGST || '-'}`, marginLeft + 3, yPos);
+
+  // Right side - Date
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  const formattedDate = new Date(quotationDate).toLocaleDateString('en-GB');
+  const dateText = `Date: ${formattedDate}`;
+  const dateWidth = doc.getTextWidth(dateText);
+  doc.text(dateText, pageWidth - marginRight - dateWidth - 3, boxStartY + 5);
+
+  yPos = boxStartY + boxHeight + 8;
+
+  // ─── PRODUCTS TABLES ──────────────────────────────────────────────────────
+
+  for (const room of enrichedRooms) {
+    // Room title
+    doc.setFillColor(229, 231, 235);
+    doc.rect(marginLeft, yPos, pageWidth - marginLeft - marginRight, 7, 'F');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    const roomTitle = (room.name || 'Products').toUpperCase();
+    const roomTitleWidth = doc.getTextWidth(roomTitle);
+    doc.text(roomTitle, (pageWidth - roomTitleWidth) / 2, yPos + 5);
+    
+    yPos += 7;
+
+    // Group products by area
+    const productsByArea = {};
+    (room.products || []).forEach((product) => {
+      const areaName = product.areaName || '';
+      if (!productsByArea[areaName]) productsByArea[areaName] = [];
+      productsByArea[areaName].push(product);
+    });
+
+    // Build table data
+    const tableData = [];
+    let serialNumber = 1;
+
+    for (const [areaName, products] of Object.entries(productsByArea)) {
+      products.forEach((item, index) => {
+        const discountedRate = calcDiscountedRate(item);
+        const quantity = parseInt(item.quantity ?? 1);
+        const amount = discountedRate * quantity;
+
+        const itemName = item.productName || item.description || '';
+        const variant = item.variant || '';
+        const company = item.companyName || '';
+        const itemText = [itemName, variant, company].filter(Boolean).join('\n');
+
+        // For the first product in an area, add the area name with rowSpan
+        // For subsequent products, the area cell will be automatically merged
+        if (index === 0) {
+          tableData.push([
+            serialNumber.toString(),
+            { content: areaName.toUpperCase(), rowSpan: products.length, styles: { valign: 'middle', halign: 'center' } },
+            '', // Image placeholder
+            itemText,
+            quantity.toString(),
+            `Rs. ${discountedRate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          ]);
+        } else {
+          tableData.push([
+            serialNumber.toString(),
+            // Area cell is merged from first row, so we don't add it here
+            '', // Image placeholder
+            itemText,
+            quantity.toString(),
+            `Rs. ${discountedRate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          ]);
+        }
+        serialNumber++;
+      });
+    }
+
+    // Add subtotal row
+    tableData.push([
+      { content: 'SUBTOTAL:', colSpan: 6, styles: { fontStyle: 'bold', halign: 'right' } },
+      { content: `Rs. ${room.calculatedTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, styles: { fontStyle: 'bold', halign: 'right' } },
+    ]);
+
+    // Draw table
+    const availableWidth = pageWidth - marginLeft - marginRight;
+    doc.autoTable({
+      startY: yPos,
+      margin: { left: marginLeft, right: marginRight },
+      head: [['SR', 'AREA', 'IMAGE', 'ITEM', 'QTY', 'RATE', 'AMOUNT (Rs.)']],
+      body: tableData,
+      theme: 'grid',
+      tableWidth: availableWidth, // Force table to use full available width
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        lineColor: [200, 200, 200], // Light gray border
+        lineWidth: 0.1,
+      },
+      headStyles: {
+        fillColor: [249, 249, 249],
+        textColor: [50, 50, 50], // Darker gray text
+        fontStyle: 'bold',
+        halign: 'center',
+        fontSize: 9, // Increased from 8 to 9
+        lineColor: [200, 200, 200], // Light gray border for header
+      },
+      columnStyles: {
+        0: { cellWidth: availableWidth * 0.05, halign: 'center' },  // SR - 5%
+        1: { cellWidth: availableWidth * 0.12, halign: 'center', valign: 'middle' },  // AREA - 12%
+        2: { cellWidth: availableWidth * 0.15, halign: 'center' },  // IMAGE - 15%
+        3: { cellWidth: availableWidth * 0.30, halign: 'left' },    // ITEM - 30%
+        4: { cellWidth: availableWidth * 0.08, halign: 'center' },  // QTY - 8% (reverted to original)
+        5: { cellWidth: availableWidth * 0.15, halign: 'center' },  // RATE - 15%
+        6: { cellWidth: availableWidth * 0.15, halign: 'right' },   // AMOUNT - 15%
+      },
+    });
+
+    yPos = doc.lastAutoTable.finalY + 5;
+  }
+
+  // ─── GRAND TOTAL ──────────────────────────────────────────────────────────
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  
+  // Calculate positions for right alignment
+  const grandTotalText = `Rs. ${grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const grandTotalWidth = doc.getTextWidth(grandTotalText);
+  const grandTotalLabelWidth = doc.getTextWidth('GRAND TOTAL AMOUNT:');
+  
+  // Position GRAND TOTAL AMOUNT: label on the right side, before the amount
+  doc.text('GRAND TOTAL AMOUNT:', pageWidth - marginRight - grandTotalWidth - grandTotalLabelWidth - 5, yPos);
+  doc.text(grandTotalText, pageWidth - marginRight - grandTotalWidth, yPos);
+  
+  yPos += 2;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.3);
+  doc.line(marginLeft, yPos, pageWidth - marginRight, yPos);
+  
+  yPos += 8;
+
+  // ─── SUMMARY TABLE (if multiple rooms) ───────────────────────────────────
+
+  if (enrichedRooms.length > 1) {
+    // Summary title with gray background (same style as room titles)
+    doc.setFillColor(229, 231, 235);
+    doc.rect(marginLeft, yPos, pageWidth - marginLeft - marginRight, 7, 'F');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    const summaryTitle = 'SUMMARY';
+    const summaryTitleWidth = doc.getTextWidth(summaryTitle);
+    doc.text(summaryTitle, (pageWidth - summaryTitleWidth) / 2, yPos + 5);
+    
+    yPos += 7;
+
+    const summaryData = enrichedRooms.map((room, index) => [
+      (index + 1).toString(),
+      room.name || 'Products',
+      `Rs. ${room.calculatedTotal.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+    ]);
+
+    summaryData.push([
+      { content: 'TOTAL', colSpan: 2, styles: { fontStyle: 'bold', halign: 'center' } },
+      { content: `Rs. ${grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`, styles: { fontStyle: 'bold', halign: 'right' } },
+    ]);
+
+    const summaryAvailableWidth = pageWidth - marginLeft - marginRight;
+    doc.autoTable({
+      startY: yPos,
+      margin: { left: marginLeft, right: marginRight },
+      head: [['SR.NO.', 'BATHROOM', 'AMOUNT']],
+      body: summaryData,
+      theme: 'grid',
+      tableWidth: summaryAvailableWidth,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        lineColor: [200, 200, 200], // Light gray border
+        lineWidth: 0.1,
+      },
+      headStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        fontStyle: 'bold',
+        halign: 'center',
+        fontSize: 9,
+        lineColor: [200, 200, 200], // Light gray border for header
+      },
+      columnStyles: {
+        0: { cellWidth: summaryAvailableWidth * 0.15, halign: 'center' },  // SR.NO. - 15%
+        1: { cellWidth: summaryAvailableWidth * 0.60, halign: 'center' },  // BATHROOM - 60%
+        2: { cellWidth: summaryAvailableWidth * 0.25, halign: 'right' },   // AMOUNT - 25%
+      },
+    });
+
+    yPos = doc.lastAutoTable.finalY + 5;
+  }
+
+  // ─── TERMS & CONDITIONS ───────────────────────────────────────────────────
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('TERMS & CONDITIONS', marginLeft, yPos);
+  
+  yPos += 5;
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  
+  const terms = [
+    '1. PAYMENT ADVANCE ALONG WITH ORDER',
+    '2. RATES ARE INCLUSIVE OF GST',
+    '3. CARTING EXTRA',
+    '4. DELIVERY WITHIN A WEEK',
+  ];
+  
+  terms.forEach((term) => {
+    doc.text(term, marginLeft + 5, yPos);
+    yPos += 4;
+  });
+
+  // Creator info (right side)
+  const creatorY = yPos - 16;
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text('FROM,', pageWidth - marginRight - 40, creatorY);
+  doc.setFont('helvetica', 'bold');
+  doc.text(adminName, pageWidth - marginRight - 40, creatorY + 4);
+  doc.setFont('helvetica', 'normal');
+  if (adminPhone) {
+    doc.text(adminPhone, pageWidth - marginRight - 40, creatorY + 8);
+  }
+
+  // ─── FOOTER ───────────────────────────────────────────────────────────────
+
+  doc.setFillColor(44, 62, 80);
+  doc.rect(0, pageHeight - 10, pageWidth, 10, 'F');
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(255, 255, 255);
+  const footerText = `Thank you for your business! | Generated on ${new Date().toLocaleString('en-IN')}`;
+  const footerWidth = doc.getTextWidth(footerText);
+  doc.text(footerText, (pageWidth - footerWidth) / 2, pageHeight - 5);
+
+  // ─── SAVE PDF ─────────────────────────────────────────────────────────────
+
+  doc.save(`Quotation-${quotationNumber}.pdf`);
+  
   } catch (error) {
-    console.error('Error fetching company settings:', error);
-    // Fallback to default values if API fails
-    companySettings = {
-      bankName: 'State Bank of India',
-      accountNumber: '1234567890',
-      ifscCode: 'SBIN0001234',
-      branchName: 'Ahmedabad Main Branch',
-      termsAndConditions: {
-        paymentTerms: ['50% advance, 50% before dispatch'],
-        validity: ['Quotation valid for 30 days'],
-        delivery: ['Ex-Works Ahmedabad', 'Delivery charges extra if applicable'],
-        pricingAndTaxes: ['GST 18% applicable', 'Prices subject to change without notice']
-      }
-    };
+    console.error('Error generating PDF:', error);
+    alert(`Failed to generate PDF: ${error.message}`);
+    throw error;
   }
-
-  // Generate room sections HTML
-  const roomSectionsHTML = roomsData.map((room) => {
-    const roomProducts = room.products || [];
-    const roomTotal = roomProducts.reduce((sum, item) => {
-      const baseRate = parseFloat(item.rate || item.unitPrice || 0);
-      const gstRate = baseRate * 0.18;
-      const rateWithGST = baseRate + gstRate;
-      const quantity = parseInt(item.quantity || 1);
-      return sum + (rateWithGST * quantity);
-    }, 0);
-
-    return `
-      <div class="room-section">
-        <div class="room-title">${room.name || 'Products'}</div>
-        <div class="products-wrapper">
-          <table class="products-table">
-            <thead>
-              <tr>
-                <th class="col-sr">SR. NO.</th>
-                <th class="col-desc">DESCRIPTION</th>
-                <th class="col-qty">QTY</th>
-                <th class="col-rate">RATE (Incl. GST ₹)</th>
-                <th class="col-amount">AMOUNT (₹)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${roomProducts.map((item, index) => {
-                const baseRate = parseFloat(item.rate || item.unitPrice || 0);
-                const gstRate = baseRate * 0.18;
-                const rateWithGST = baseRate + gstRate;
-                const quantity = parseInt(item.quantity || 1);
-                const amountWithGST = rateWithGST * quantity;
-                
-                return `
-                <tr>
-                  <td class="col-sr">${index + 1}</td>
-                  <td class="col-desc">${item.productName || item.description || ''}</td>
-                  <td class="col-qty">${quantity}</td>
-                  <td class="col-rate">₹${rateWithGST.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                  <td class="col-amount">₹${amountWithGST.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                </tr>
-              `;
-              }).join('')}
-              <tr class="total-row-table">
-                <td colspan="4" class="total-label-cell">SUBTOTAL:</td>
-                <td class="total-value-cell">₹${roomTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Create HTML content for PDF
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-        
-        body {
-          font-family: Arial, Helvetica, sans-serif;
-          color: #000;
-          line-height: 1.2;
-          background: #fff;
-          margin: 0;
-          padding: 0;
-          font-weight: 500;
-          width: 100%;
-          position: relative;
-        }
-        
-        p {
-          margin: 0;
-          padding: 0;
-          line-height: 1.1;
-          display: block;
-        }
-        
-        .container {
-          width: 100%;
-          max-width: 100%;
-          margin: 0;
-          padding: 5px 5px 40px 5px;
-          background: white;
-          box-sizing: border-box;
-          position: relative;
-        }
-        
-        .footer {
-          margin-top: auto;
-        }
-        
-        .footer-note {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          width: 100%;
-          text-align: center;
-          color: #fff;
-          background: #2c3e50;
-          font-size: 9px;
-          padding: 10px 0;
-          margin: 0;
-        }
-        
-        /* Header Section */
-        .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: stretch;
-          gap: 30px;
-          margin: 0 0 10px 0;
-          padding: 0 0 10px 0;
-          border-bottom: 1px solid #d1d5db;
-        }
-        
-        .header-left {
-          width: 50%;
-          margin: 0;
-          padding: 0;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          align-items: flex-start;
-        }
-        
-        .company-logo {
-          width: auto;
-          height: 75px;
-          margin: 0;
-          padding: 0;
-          display: block;
-        }
-        
-        .company-logo img {
-          height: 100%;
-          width: auto;
-          object-fit: contain;
-        }
-        
-        .company-name {
-          font-size: 20px;
-          font-weight: bold;
-          color: #000;
-          margin: 0;
-          padding: 0;
-          line-height: 1.3;
-        }
-        
-        .header-right {
-          width: 50%;
-          text-align: right;
-          margin: 0;
-          padding: 0;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          align-items: flex-end;
-        }
-        
-        .right-content {
-          margin: 0;
-          padding: 0;
-          text-align: left;
-        }
-        
-        .company-tagline {
-          font-size: 13px;
-          color: #1e40af;
-          font-weight: 600;
-          margin: 0;
-          padding: 0;
-          letter-spacing: 0.7px;
-          line-height: 1.4;
-          text-align: left;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        
-        .company-info {
-          font-size: 13px;
-          color: #333;
-          line-height: 1.5;
-          margin: 0;
-          padding: 0;
-          text-align: left;
-          font-weight: bold;
-        }
-        
-        .company-name {
-          font-size: 20px;
-          font-weight: bold;
-          color: #000;
-          margin: 0;
-          padding: 0;
-          line-height: 1.3;
-          text-align: right;
-        }
-        
-        .company-info div {
-          margin: 0;
-          padding: 0;
-          line-height: 1.5;
-          display: block;
-        }
-        
-        .helpline {
-          margin: 0;
-          padding: 0;
-          font-weight: bold;
-          line-height: 1.5;
-          font-size: 13px;
-        }
-        
-        /* Title Section */
-        .title-section {
-          text-align: center;
-          margin: 10px 0;
-          padding: 0;
-        }
-        
-        .quotation-title {
-          font-size: 18px;
-          font-weight: bold;
-          color: #000;
-          margin: 5px 0;
-          padding: 0;
-          letter-spacing: 1px;
-          line-height: 1.2;
-        }
-        
-        .title-line {
-          width: 100%;
-          height: 1px;
-          background: #d1d5db;
-          margin: 5px auto;
-        }
-        
-        /* Client Information Box */
-        .client-box {
-          border: 1px solid #d1d5db;
-          padding: 5px 15px;
-          margin: 5px 0;
-          background: #fff;
-          height: 100px;
-          overflow: hidden;
-        }
-        
-        .client-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin: 0;
-          padding: 0;
-        }
-        
-        .client-header-row {
-          display: none;
-        }
-        
-        .client-to-inline {
-          font-size: 11px;
-          font-weight: bold;
-          color: #000;
-          margin: 0;
-          padding: 0;
-          line-height: 1.2;
-          flex: 1;
-          display: none;
-        }
-        
-        .client-attn-inline {
-          display: none;
-        }
-        
-        .client-ref-inline {
-          font-size: 11px;
-          color: #000;
-          margin: 0;
-          padding: 0;
-          line-height: 1.2;
-          flex: 0 0 auto;
-          text-align: right;
-          display: none;
-        }
-        
-        .client-content-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin: 0;
-          padding: 0;
-        }
-        
-        .client-left-content {
-          flex: 1;
-          margin: 0;
-          padding: 0;
-          max-width: 65%;
-          word-wrap: break-word;
-        }
-        
-        .client-right-content {
-          text-align: right;
-          min-width: 200px;
-          margin: 0;
-          padding: 0;
-        }
-        
-        .client-left {
-          flex: 1;
-          margin: 0;
-          padding: 0;
-        }
-        
-        .client-right-section {
-          text-align: right;
-          min-width: 400px;
-          margin: 0;
-          padding: 0;
-        }
-        
-        .client-right-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: baseline;
-          margin: 0 0 3px 0;
-          padding: 0;
-        }
-        
-        .client-to {
-          font-size: 11px;
-          font-weight: bold;
-          color: #000;
-          margin: 0 0 4px 0;
-          padding: 0;
-          line-height: 1.2;
-        }
-        
-        .client-name {
-          font-size: 11px;
-          font-weight: bold;
-          color: #000;
-          margin: 0 0 6px 0;
-          padding: 0;
-          line-height: 1.2;
-        }
-        
-        .client-address {
-          font-size: 11px;
-          color: #333;
-          margin: 0 0 4px 0;
-          padding: 0;
-          line-height: 1.5;
-          word-wrap: break-word;
-          white-space: normal;
-          max-width: 100%;
-        }
-        
-        .client-contact {
-          font-size: 11px;
-          color: #333;
-          margin: 0 0 4px 0;
-          padding: 0;
-          line-height: 1.5;
-          word-wrap: break-word;
-          white-space: normal;
-        }
-        
-        .client-gst {
-          font-size: 11px;
-          color: #333;
-          margin: 0 0 4px 0;
-          padding: 0;
-          line-height: 1.2;
-        }
-        
-        .client-email {
-          font-size: 11px;
-          color: #333;
-          margin: 0 0 2px 0;
-          padding: 0;
-          line-height: 1.2;
-        }
-        
-        .client-attn {
-          font-size: 11px;
-          color: #333;
-          margin: 0;
-          padding: 0;
-          line-height: 1.2;
-          font-weight: bold;
-          text-align: left;
-        }
-        
-        .client-right {
-          text-align: right;
-          min-width: 200px;
-          margin: 0;
-          padding: 0;
-        }
-        
-        .client-ref,
-        .client-date {
-          font-size: 11px;
-          color: #000;
-          margin: 0 0 3px 0;
-          padding: 0;
-          line-height: 1.2;
-        }
-        
-        .client-ref strong,
-        .client-date strong {
-          font-weight: bold;
-        }
-        
-        .client-name {
-          font-size: 13px;
-          font-weight: bold;
-          color: #000;
-          margin-bottom: 4px;
-        }
-        
-        .client-email {
-          font-size: 11px;
-          color: #333;
-          margin-bottom: 4px;
-        }
-        
-        .client-attn {
-          font-size: 11px;
-          color: #333;
-          margin-top: 6px;
-        }
-        
-        .client-right {
-          text-align: right;
-          min-width: 200px;
-        }
-        
-        .client-ref,
-        .client-date {
-          font-size: 11px;
-          color: #000;
-          margin-bottom: 4px;
-        }
-        
-        .client-ref strong,
-        .client-date strong {
-          font-weight: bold;
-        }
-        
-        /* Products Section - Simple Card-Based Format */
-        .room-card-simple {
-          margin-bottom: 20px;
-          page-break-inside: avoid;
-          border: 1px solid #d1d5db;
-          background: #fff;
-        }
-        
-        .room-card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: #f9fafb;
-          padding: 12px 15px;
-          border-bottom: 1px solid #d1d5db;
-        }
-        
-        .room-card-title {
-          margin: 0;
-          font-size: 14px;
-          font-weight: bold;
-          color: #1f2937;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-        
-        .room-card-total {
-          font-size: 14px;
-          font-weight: bold;
-          color: #1f2937;
-        }
-        
-        .room-products-list {
-          padding: 0;
-          margin: 0;
-        }
-        
-        .product-item-simple {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 12px 15px;
-          border-bottom: 1px solid #f3f4f6;
-          gap: 15px;
-        }
-        
-        .product-item-simple:last-child {
-          border-bottom: none;
-        }
-        
-        .product-item-left {
-          flex: 1;
-          min-width: 0;
-        }
-        
-        .product-item-name {
-          font-size: 12px;
-          font-weight: 600;
-          color: #1f2937;
-          margin: 0 0 4px 0;
-          word-wrap: break-word;
-        }
-        
-        .product-item-variant {
-          font-size: 11px;
-          color: #6b7280;
-          margin: 0;
-        }
-        
-        .product-item-qty {
-          font-size: 11px;
-          color: #4b5563;
-          white-space: nowrap;
-          flex-shrink: 0;
-        }
-        
-        .product-item-price {
-          font-size: 12px;
-          font-weight: bold;
-          color: #1f2937;
-          text-align: right;
-          white-space: nowrap;
-          flex-shrink: 0;
-          min-width: 100px;
-        }
-        
-        /* Footer */
-        .footer {
-          margin-top: 5px;
-        }
-        
-        .terms-box {
-          border: 1px solid #d1d5db;
-          background: #fff;
-          padding: 5px 10px;
-          border-radius: 0;
-          margin-bottom: 3px;
-        }
-        
-        .terms-title {
-          font-size: 13px;
-          font-weight: bold;
-          color: #000;
-          margin: 0 0 2px 0;
-          padding: 0;
-        }
-        
-        .terms-content {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 5px;
-          font-size: 11px;
-          color: #333;
-          line-height: 1.1;
-        }
-        
-        .terms-column {
-          margin: 0;
-          padding: 0;
-        }
-        
-        .terms-category {
-          margin-bottom: 0;
-        }
-        
-        .terms-category:last-child {
-          margin-bottom: 0;
-        }
-        
-        .terms-category-title {
-          font-weight: bold;
-          color: #000;
-          margin: 0;
-          font-size: 11px;
-        }
-        
-        .terms-category ul {
-          margin: 0;
-          padding: 0 0 0 15px;
-          list-style: disc;
-        }
-        
-        .terms-category li {
-          margin: 0;
-          padding: 0;
-          line-height: 1.1;
-        }
-        
-        .bank-details {
-          border: 1px solid #d1d5db;
-          padding: 5px 10px;
-          border-radius: 0;
-          margin-bottom: 3px;
-          background: #fff;
-        }
-        
-        .bank-title {
-          font-size: 13px;
-          font-weight: bold;
-          color: #000;
-          margin-bottom: 2px;
-        }
-        
-        .bank-content {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 5px;
-          font-size: 11px;
-          color: #333;
-          line-height: 1.1;
-        }
-        
-        .bank-column {
-          margin: 0;
-          padding: 0;
-        }
-        
-        .bank-item {
-          margin-bottom: 2px;
-        }
-        
-        .bank-item:last-child {
-          margin-bottom: 0;
-        }
-        
-        .bank-label {
-          font-weight: bold;
-          color: #000;
-          margin-bottom: 0;
-        }
-        
-        @media print {
-          body {
-            margin: 0;
-            padding: 0;
-          }
-          .container {
-            padding: 15px;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <!-- Header Section -->
-        <div class="header">
-          <div class="header-left">
-            <div class="right-content">
-              <div class="company-tagline">BATHTUB | CP FITTING | SANITARY WARE | TILES</div>
-              <div class="company-info">
-                <div>104-105-106, Iscon Plaza, Opp. Star India Bazar,</div>
-                <div>Satellite Road, Ahmedabad - 380 015</div>
-                <div>Phone: 92272 06063 | Email: gtss47@hotmail.com</div>
-                <div class="helpline" style="color: #dc2626; font-weight: 600;">Helpline: 079-2692 0609 / 4006 6063</div>
-              </div>
-            </div>
-          </div>
-          <div class="header-right">
-            <div class="company-logo">
-              <img src="${window.location.origin}/gtss-logo.png" alt="GTSS Logo" />
-            </div>
-            <div class="company-name">Gujarat Tube & Sanitary Stores</div>
-          </div>
-        </div>
-        
-        <!-- Title Section -->
-        <div class="title-section">
-          <div class="quotation-title">QUOTATION</div>
-          <div class="title-line"></div>
-        </div>
-        
-        <!-- Client Information Box -->
-        <div class="client-box">
-          <div class="client-content-row">
-            <div class="client-left-content">
-              <div style="display: flex; gap: 10px; margin-bottom: 6px;">
-                <div class="client-to" style="flex-shrink: 0;">TO:</div>
-                <div class="client-name" style="margin: 0; flex: 1;">${clientData.companyName || '-'}</div>
-              </div>
-              ${clientData.address ? `<div class="client-address">${clientData.address}</div>` : ''}
-              <div class="client-contact">
-                ${clientData.mobileNumber ? `Contact: ${clientData.mobileNumber}` : ''} ${clientData.mobileNumber && clientData.email ? '|' : ''} ${clientData.email ? `Email: ${clientData.email}` : ''}
-              </div>
-              <div class="client-gst">GST Number: ${clientData.gstNumber || '-'}</div>
-            </div>
-            <div class="client-right-content">
-              <div class="client-date"><strong>Date:</strong> ${new Date(quotationDate).toLocaleDateString('en-GB')}</div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Products Section - By Rooms -->
-        ${roomSectionsHTML}
-        
-        <!-- Grand Total -->
-        <div class="products-wrapper">
-          <table class="products-table">
-            <tbody>
-              <tr class="total-row-table">
-                <td colspan="4" class="total-label-cell">GRAND TOTAL AMOUNT:</td>
-                <td class="total-value-cell">₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        
-        <!-- Footer -->
-        <div class="footer">
-          <!-- Terms & Conditions -->
-          <div class="terms-box">
-            <div class="terms-title">Terms & Conditions</div>
-            <div class="terms-content">
-              <div class="terms-column">
-                <div class="terms-category">
-                  <div class="terms-category-title">Payment Terms:</div>
-                  <ul>
-                    ${companySettings.termsAndConditions.paymentTerms.map(term => `<li>${term}</li>`).join('')}
-                  </ul>
-                </div>
-                <div class="terms-category">
-                  <div class="terms-category-title">Validity:</div>
-                  <ul>
-                    ${companySettings.termsAndConditions.validity.map(term => `<li>${term}</li>`).join('')}
-                  </ul>
-                </div>
-              </div>
-              <div class="terms-column">
-                <div class="terms-category">
-                  <div class="terms-category-title">Delivery:</div>
-                  <ul>
-                    ${companySettings.termsAndConditions.delivery.map(term => `<li>${term}</li>`).join('')}
-                  </ul>
-                </div>
-                <div class="terms-category">
-                  <div class="terms-category-title">Pricing & Taxes:</div>
-                  <ul>
-                    ${companySettings.termsAndConditions.pricingAndTaxes.map(term => `<li>${term}</li>`).join('')}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Bank Details -->
-          <div class="bank-details">
-            <div class="bank-title">Bank Details:</div>
-            <div class="bank-content">
-              <div class="bank-column">
-                <div class="bank-item">
-                  <div class="bank-label">Bank Name:</div>
-                  <div>${companySettings.bankName}</div>
-                </div>
-                <div class="bank-item">
-                  <div class="bank-label">Account No:</div>
-                  <div>${companySettings.accountNumber}</div>
-                </div>
-              </div>
-              <div class="bank-column">
-                <div class="bank-item">
-                  <div class="bank-label">IFSC Code:</div>
-                  <div>${companySettings.ifscCode}</div>
-                </div>
-                <div class="bank-item">
-                  <div class="bank-label">Branch:</div>
-                  <div>${companySettings.branchName}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="footer-note">
-            Thank you for your business! | Generated on ${new Date().toLocaleString('en-IN')}
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  // PDF options
-  const options = {
-    margin: [3, 3, 3, 3],
-    filename: `Quotation-${quotationNumber}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, windowWidth: 1400 },
-    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4', compress: true }
-  };
-
-  // Generate PDF
-  html2pdf().set(options).from(htmlContent).save();
 }
 
 export default QuotationPDFGenerator;

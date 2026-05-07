@@ -78,7 +78,7 @@ const AdminProducts = () => {
     fetchCategories();
     fetchCompanies();
     fetchItemTypes();
-  }, [filterCategory, filterCompany, filterItemType, filterStatus]);
+  }, [filterCategory, filterCompany, filterItemType, filterStatus, searchTerm]);
 
   const handleSearch = () => {
     fetchProducts();
