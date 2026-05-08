@@ -98,6 +98,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     customerPhone: '',
     customerAddress: '',
     customerGST: '',
+    projectLocation: '', // NEW: Project Location field
     isNewCustomer: true,
     roomTemplate: null,
     roomName: '',
@@ -1238,6 +1239,16 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
             value={formData.customerAddress}
             onChange={(e) => setFormData(prev => ({ ...prev, customerAddress: e.target.value }))}
             placeholder="Full address"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Project Location</label>
+          <input
+            type="text"
+            value={formData.projectLocation}
+            onChange={(e) => setFormData(prev => ({ ...prev, projectLocation: e.target.value }))}
+            placeholder="Project location (e.g., Ahmedabad, Gujarat)"
           />
         </div>
 
@@ -2450,7 +2461,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       mobileNumber: formData.customerPhone,
                       email: formData.customerEmail,
                       address: formData.customerAddress,
-                      gstNumber: formData.customerGST
+                      gstNumber: formData.customerGST,
+                      projectLocation: formData.projectLocation
                     },
                     rooms: roomsWithEditedPrices,
                     total: calculateTotals().totalCost,
@@ -2509,7 +2521,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                         mobileNumber: formData.customerPhone,
                         email: formData.customerEmail,
                         address: formData.customerAddress,
-                        gstNumber: formData.customerGST
+                        gstNumber: formData.customerGST,
+                        projectLocation: formData.projectLocation
                       },
                       rooms: roomsWithEditedPrices,
                       total: calculateTotals().totalCost,

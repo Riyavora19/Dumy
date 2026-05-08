@@ -165,6 +165,11 @@ const budgetPlanSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  // Project location
+  projectLocation: {
+    type: String,
+    trim: true
+  },
   // Quotation-specific fields
   quotationValidity: {
     type: String,

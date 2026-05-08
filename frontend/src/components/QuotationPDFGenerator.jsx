@@ -275,6 +275,21 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
   }
   
   doc.text(`GST Number: ${clientData.gstNumber || clientData.customerGST || '-'}`, marginLeft + 3, clientYPos);
+  
+  // Project Location (centered between left and right sections)
+  const projectLocation = clientData.projectLocation || '';
+  if (projectLocation) {
+    const centerX = pageWidth / 2;
+    const projectLocationY = boxStartY + 12; // Vertically centered in the box
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Project Location:', centerX, projectLocationY, { align: 'center' });
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(102, 102, 102);
+    doc.text(projectLocation, centerX, projectLocationY + 4, { align: 'center' });
+  }
 
   // Right side - Date, Reference Number, Atten
   let rightYPos = boxStartY + 5;
@@ -297,18 +312,6 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
   const attenText = `Atten: ${clientData.attention || '-'}`;
   const attenWidth = doc.getTextWidth(attenText);
   doc.text(attenText, pageWidth - marginRight - attenWidth - 3, rightYPos);
-
-  // Center - Project Location
-  const projectLocation = clientData.projectLocation || '';
-  if (projectLocation) {
-    const centerYPos = boxStartY + boxHeight - 5;
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    const projectText = `Project Location: ${projectLocation}`;
-    const projectWidth = doc.getTextWidth(projectText);
-    doc.text(projectText, (pageWidth - projectWidth) / 2, centerYPos);
-  }
 
   yPos = boxStartY + boxHeight + 8;
 
@@ -559,13 +562,43 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
   const companiesTextWidth = doc.getTextWidth(companiesText);
   doc.text(companiesText, (pageWidth - companiesTextWidth) / 2, footerStartY + 5);
   
-  // Placeholder for company logos (to be added later with actual logo images)
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(102, 102, 102);
-  const placeholderText = 'Company logos will be displayed here';
-  const placeholderWidth = doc.getTextWidth(placeholderText);
-  doc.text(placeholderText, (pageWidth - placeholderWidth) / 2, footerStartY + 15);
+  // Company logos grid
+  const logos = [
+    'Artize.png', 'Duravit.png', 'Jaguar.png', 'Johnson.png',
+    'Kajaria.png', 'Kohler.png', 'Milagro.png', 'Parryware.png',
+    'Qutone.png', 'Simero.png', 'Simpolo.png', 'TrueBlock.png', 'Woven.png'
+  ];
+  
+  const logosPerRow = 7; // 7 logos in first row, 6 in second row
+  const logoWidth = 20;
+  const logoHeight = 8;
+  const logoSpacing = 6;
+  const startY = footerStartY + 8;
+  
+  // First row (7 logos)
+  const firstRowStartX = (pageWidth - (logosPerRow * logoWidth + (logosPerRow - 1) * logoSpacing)) / 2;
+  for (let i = 0; i < 7; i++) {
+    const logoPath = `/company-logos/${logos[i]}`;
+    const xPos = firstRowStartX + i * (logoWidth + logoSpacing);
+    try {
+      doc.addImage(logoPath, 'PNG', xPos, startY, logoWidth, logoHeight);
+    } catch (err) {
+      console.warn(`Failed to load logo: ${logos[i]}`);
+    }
+  }
+  
+  // Second row (6 logos)
+  const secondRowLogos = 6;
+  const secondRowStartX = (pageWidth - (secondRowLogos * logoWidth + (secondRowLogos - 1) * logoSpacing)) / 2;
+  for (let i = 7; i < 13; i++) {
+    const logoPath = `/company-logos/${logos[i]}`;
+    const xPos = secondRowStartX + (i - 7) * (logoWidth + logoSpacing);
+    try {
+      doc.addImage(logoPath, 'PNG', xPos, startY + logoHeight + 2, logoWidth, logoHeight);
+    } catch (err) {
+      console.warn(`Failed to load logo: ${logos[i]}`);
+    }
+  }
   
   // Bottom footer bar (5mm margin from bottom)
   doc.setFillColor(44, 62, 80);
