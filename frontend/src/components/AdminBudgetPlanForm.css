@@ -1263,25 +1263,49 @@
 .room-breakdown-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin-bottom: 12px;
+  max-height: 120px; /* Show only ~2-3 rooms, making it more compact */
+  overflow-y: auto; /* Add scrolling */
+  padding-right: 4px;
+}
+
+/* Scrollbar styling for room list */
+.room-breakdown-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.room-breakdown-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.room-breakdown-grid::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.room-breakdown-grid::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .room-breakdown-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  background: #fff;
-  border-radius: 8px;
-  font-size: 13px;
+  padding: 6px 10px; /* Even more compact padding */
+  background: #f9fafb;
+  border-radius: 6px;
+  font-size: 11px; /* Even smaller font */
   border: 1px solid #e5e7eb;
   transition: all 0.2s;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .room-breakdown-item:hover {
   border-color: #3b82f6;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  background: #fff;
 }
 
 .room-breakdown-name {

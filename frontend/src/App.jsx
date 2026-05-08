@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -14,8 +14,6 @@ import Categories from './pages/Categories'
 import CategoryProducts from './pages/CategoryProducts'
 import ProductVariants from './pages/ProductVariants'
 import Cart from './pages/Cart'
-import BudgetPlanner from './pages/BudgetPlanner'
-import MyBudgetPlans from './pages/MyBudgetPlans'
 import './App.css'
 
 function App() {
@@ -35,8 +33,6 @@ function App() {
         <Route path="/categories/:categoryId/company/:companyName" element={<ProductVariants />} />
         <Route path="/products/:categoryId/:itemTypeId" element={<ProductVariants />} />
         <Route path="/cart" element={<Cart />} />
-        <Route path="/budget-planner" element={<BudgetPlanner />} />
-        <Route path="/my-budget-plans" element={<MyBudgetPlans />} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -46,8 +42,8 @@ function App() {
           </ProtectedRoute>
         } />
         
-        {/* Staff Routes */}
-        <Route path="/staff/login" element={<StaffLogin />} />
+        {/* Staff Routes - Redirect to unified login */}
+        <Route path="/staff/login" element={<Navigate to="/admin/login" replace />} />
         <Route path="/staff" element={
           <ProtectedRoute type="staff">
             <StaffDashboard />

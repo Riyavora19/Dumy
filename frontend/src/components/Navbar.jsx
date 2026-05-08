@@ -148,9 +148,6 @@ const Navbar = () => {
           </div>
 
           <NavLink to="/catalogus" onClick={() => setMenuOpen(false)}>Catalogus</NavLink>
-          <NavLink to="/budget-planner" onClick={() => setMenuOpen(false)}>
-            💰 Budget Planner
-          </NavLink>
           <NavLink to="/about" onClick={() => setMenuOpen(false)}>About Us</NavLink>
           <NavLink to="/contact" onClick={() => setMenuOpen(false)}>Contact</NavLink>
         </nav>

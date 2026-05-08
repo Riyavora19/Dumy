@@ -261,17 +261,6 @@ const UserProfile = () => {
                 <polyline points="9 18 15 12 9 6"/>
               </svg>
             </Link>
-
-            <Link to="/budget-planner" className="user-profile__action-card">
-              <div className="user-profile__action-icon">💰</div>
-              <div className="user-profile__action-content">
-                <h3>Budget Planner</h3>
-                <p>Create a new budget plan for your space</p>
-              </div>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-            </Link>
           </div>
 
           {/* Profile Information */}

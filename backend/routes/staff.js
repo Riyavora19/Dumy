@@ -92,11 +92,16 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    // Find staff by email
-    const staff = await Staff.findOne({ email: email.toLowerCase() });
+    // Find staff by email or staffId
+    const staff = await Staff.findOne({
+      $or: [
+        { email: email.toLowerCase() },
+        { staffId: email } // Allow login with staffId
+      ]
+    });
     
     if (!staff) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
     
     // Check if staff is active
@@ -108,7 +113,7 @@ router.post('/login', async (req, res) => {
     const isMatch = await staff.comparePassword(password);
     
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
     
     // Update last login
@@ -213,121 +218,35 @@ router.post('/', verifyStaffToken, requireAdmin, async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     
-    // Generate employee ID manually
+    // Generate employee ID and staff ID manually
     const count = await Staff.countDocuments();
     const employeeId = `EMP${String(count + 1).padStart(4, '0')}`;
+    const staffId = `GTSS${String(count + 1).padStart(3, '0')}`;
     
-    // Set permissions based on role
-    let permissions = {};
-    switch (role) {
-      case 'admin':
-        permissions = {
-          canCreateQuotation: true,
-          canViewAllQuotations: true,
-          canEditQuotation: true,
-          canDeleteQuotation: true,
-          canCreateOrder: true,
-          canViewAllOrders: true,
-          canEditOrder: true,
-          canDeleteOrder: true,
-          canManageProducts: true,
-          canManageCategories: true,
-          canViewInventory: true,
-          canManageContacts: true,
-          canViewAllContacts: true,
-          canManageStaff: true,
-          canManageSettings: true,
-          canViewReports: true,
-          canViewOwnReports: true
-        };
-        break;
-      case 'manager':
-        permissions = {
-          canCreateQuotation: true,
-          canViewAllQuotations: true,
-          canEditQuotation: true,
-          canDeleteQuotation: true,
-          canCreateOrder: true,
-          canViewAllOrders: true,
-          canEditOrder: true,
-          canDeleteOrder: false,
-          canManageProducts: false,
-          canManageCategories: false,
-          canViewInventory: true,
-          canManageContacts: true,
-          canViewAllContacts: true,
-          canManageStaff: false,
-          canManageSettings: false,
-          canViewReports: true,
-          canViewOwnReports: true
-        };
-        break;
-      case 'sales_staff':
-        permissions = {
-          canCreateQuotation: true,
-          canViewAllQuotations: false,
-          canEditQuotation: true,
-          canDeleteQuotation: false,
-          canCreateOrder: true,
-          canViewAllOrders: false,
-          canEditOrder: false,
-          canDeleteOrder: false,
-          canManageProducts: false,
-          canManageCategories: false,
-          canViewInventory: true,
-          canManageContacts: true,
-          canViewAllContacts: false,
-          canManageStaff: false,
-          canManageSettings: false,
-          canViewReports: false,
-          canViewOwnReports: true
-        };
-        break;
-      case 'inventory_staff':
-        permissions = {
-          canCreateQuotation: false,
-          canViewAllQuotations: false,
-          canEditQuotation: false,
-          canDeleteQuotation: false,
-          canCreateOrder: false,
-          canViewAllOrders: false,
-          canEditOrder: false,
-          canDeleteOrder: false,
-          canManageProducts: true,
-          canManageCategories: true,
-          canViewInventory: true,
-          canManageContacts: false,
-          canViewAllContacts: false,
-          canManageStaff: false,
-          canManageSettings: false,
-          canViewReports: false,
-          canViewOwnReports: false
-        };
-        break;
-      default:
-        permissions = {
-          canCreateQuotation: true,
-          canViewAllQuotations: false,
-          canEditQuotation: true,
-          canDeleteQuotation: false,
-          canCreateOrder: true,
-          canViewAllOrders: false,
-          canEditOrder: false,
-          canDeleteOrder: false,
-          canManageProducts: false,
-          canManageCategories: false,
-          canViewInventory: true,
-          canManageContacts: true,
-          canViewAllContacts: false,
-          canManageStaff: false,
-          canManageSettings: false,
-          canViewReports: false,
-          canViewOwnReports: true
-        };
-    }
+    // Set permissions - ALL STAFF GET FULL PERMISSIONS
+    const permissions = {
+      canCreateQuotation: true,
+      canViewAllQuotations: true,
+      canEditQuotation: true,
+      canDeleteQuotation: true,
+      canCreateOrder: true,
+      canViewAllOrders: true,
+      canEditOrder: true,
+      canDeleteOrder: true,
+      canManageProducts: true,
+      canManageCategories: true,
+      canViewInventory: true,
+      canManageContacts: true,
+      canViewAllContacts: true,
+      canManageStaff: true,
+      canManageSettings: true,
+      canViewReports: true,
+      canViewOwnReports: true
+    };
     
     // Create new staff
     const staff = new Staff({
+      staffId,
       name,
       email: email.toLowerCase(),
       password: hashedPassword,

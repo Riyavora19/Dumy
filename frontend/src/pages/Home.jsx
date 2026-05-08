@@ -6,6 +6,8 @@ import axios from 'axios';
 const Home = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [stats, setStats] = useState({
     products: 0,
@@ -15,6 +17,8 @@ const Home = () => {
 
   useEffect(() => {
     fetchCategories();
+    fetchFeaturedProducts();
+    fetchCompanies();
     checkLoginStatus();
     fetchStats();
   }, []);
@@ -32,6 +36,30 @@ const Home = () => {
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/products');
+      if (response.data.success) {
+        // Get random 6 products
+        const shuffled = response.data.data.sort(() => 0.5 - Math.random());
+        setFeaturedProducts(shuffled.slice(0, 6));
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
+  const fetchCompanies = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/companies');
+      if (response.data.success) {
+        setCompanies(response.data.data.slice(0, 8));
+      }
+    } catch (error) {
+      console.error('Error fetching companies:', error);
     }
   };
 
@@ -82,13 +110,6 @@ const Home = () => {
                   <rect x="3" y="14" width="7" height="7"/>
                 </svg>
                 Browse Categories
-              </Link>
-              <Link to="/budget-planner" className="hero__btn hero__btn--secondary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="12" y1="1" x2="12" y2="23"/>
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
-                Plan Your Budget
               </Link>
             </div>
             <div className="hero__stats">
@@ -180,6 +201,154 @@ const Home = () => {
               ))}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Featured Products Section */}
+      <section className="home-featured">
+        <div className="home-featured__container">
+          <div className="home-featured__header">
+            <div>
+              <span className="section-badge">Popular Choices</span>
+              <h2>Featured Products</h2>
+              <p>Handpicked products loved by our customers</p>
+            </div>
+          </div>
+
+          {featuredProducts.length > 0 && (
+            <div className="home-featured__grid">
+              {featuredProducts.map(product => (
+                <div key={product._id} className="home-featured__card">
+                  <div className="home-featured__image">
+                    {product.images && product.images.length > 0 ? (
+                      <img 
+                        src={`http://localhost:5000${product.images[0]}`} 
+                        alt={product.name}
+                      />
+                    ) : (
+                      <div className="home-featured__placeholder">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        </svg>
+                      </div>
+                    )}
+                    {product.discountPercentage > 0 && (
+                      <span className="home-featured__badge">-{product.discountPercentage}%</span>
+                    )}
+                  </div>
+                  <div className="home-featured__content">
+                    <h3>{product.name}</h3>
+                    <p className="home-featured__company">
+                      {typeof product.company === 'object' ? product.company?.name : product.company}
+                    </p>
+                    <div className="home-featured__price">
+                      <span className="price-current">₹{product.price.toLocaleString()}</span>
+                      {product.mrp && product.mrp > product.price && (
+                        <span className="price-old">₹{product.mrp.toLocaleString()}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Brands Section */}
+      {companies.length > 0 && (
+        <section className="home-brands">
+          <div className="home-brands__container">
+            <div className="home-brands__header">
+              <span className="section-badge">Trusted Partners</span>
+              <h2>Our Premium Brands</h2>
+              <p>We partner with the best brands in the industry</p>
+            </div>
+            <div className="home-brands__grid">
+              {companies.map(company => (
+                <div key={company._id} className="home-brands__card">
+                  {company.logo ? (
+                    <img 
+                      src={`http://localhost:5000${company.logo}`} 
+                      alt={company.name}
+                    />
+                  ) : (
+                    <span className="home-brands__name">{company.name}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Testimonials Section */}
+      <section className="home-testimonials">
+        <div className="home-testimonials__container">
+          <div className="home-testimonials__header">
+            <span className="section-badge">Customer Reviews</span>
+            <h2>What Our Customers Say</h2>
+            <p>Real experiences from real customers</p>
+          </div>
+          <div className="home-testimonials__grid">
+            <div className="home-testimonials__card">
+              <div className="home-testimonials__rating">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} width="20" height="20" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="1">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                ))}
+              </div>
+              <p className="home-testimonials__text">
+                "Excellent quality products and amazing customer service. The delivery was prompt and the products exceeded my expectations!"
+              </p>
+              <div className="home-testimonials__author">
+                <div className="home-testimonials__avatar">R</div>
+                <div>
+                  <strong>Rajesh Kumar</strong>
+                  <span>Verified Buyer</span>
+                </div>
+              </div>
+            </div>
+            <div className="home-testimonials__card">
+              <div className="home-testimonials__rating">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} width="20" height="20" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="1">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                ))}
+              </div>
+              <p className="home-testimonials__text">
+                "Best place to buy bathroom and kitchen products. Wide variety and competitive prices. Highly recommended!"
+              </p>
+              <div className="home-testimonials__author">
+                <div className="home-testimonials__avatar">P</div>
+                <div>
+                  <strong>Priya Patel</strong>
+                  <span>Verified Buyer</span>
+                </div>
+              </div>
+            </div>
+            <div className="home-testimonials__card">
+              <div className="home-testimonials__rating">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} width="20" height="20" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="1">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                ))}
+              </div>
+              <p className="home-testimonials__text">
+                "Professional service and genuine products. They helped me choose the right products for my home renovation project."
+              </p>
+              <div className="home-testimonials__author">
+                <div className="home-testimonials__avatar">A</div>
+                <div>
+                  <strong>Amit Shah</strong>
+                  <span>Verified Buyer</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

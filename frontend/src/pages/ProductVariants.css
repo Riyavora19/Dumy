@@ -132,6 +132,137 @@
   margin: 0 0 16px 0;
 }
 
+/* Checkbox Filter */
+.product-variants__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 10px 0;
+  user-select: none;
+}
+
+.product-variants__checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #1e40af;
+}
+
+.product-variants__checkbox-label span {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.product-variants__checkbox-label:hover span {
+  color: #1e40af;
+}
+
+/* Custom Dropdown */
+.product-variants__custom-dropdown {
+  position: relative;
+}
+
+.product-variants__dropdown-btn {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  font-weight: 500;
+}
+
+.product-variants__dropdown-btn:hover {
+  border-color: #1e40af;
+  background: #f8fafc;
+}
+
+.product-variants__dropdown-btn svg {
+  flex-shrink: 0;
+  color: #666;
+}
+
+.product-variants__dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 100;
+  animation: dropdownSlideDown 0.2s ease;
+}
+
+@keyframes dropdownSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.product-variants__dropdown-item {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: white;
+  text-align: left;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.product-variants__dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.product-variants__dropdown-item:hover {
+  background: #f8fafc;
+  color: #1e40af;
+}
+
+.product-variants__dropdown-item.active {
+  background: #1e40af;
+  color: white;
+  font-weight: 600;
+}
+
+.product-variants__dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.product-variants__dropdown-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.product-variants__dropdown-menu::-webkit-scrollbar-thumb {
+  background: #1e40af;
+  border-radius: 3px;
+}
+
+.product-variants__dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: #1e3a8a;
+}
+
 .product-variants__select {
   width: 100%;
   padding: 10px 12px;

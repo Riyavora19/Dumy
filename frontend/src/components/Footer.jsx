@@ -9,12 +9,14 @@ const Footer = () => {
         {/* Company Info */}
         <div className="footer__section">
           <div className="footer__logo">
-            <div className="footer__logo-icon">K</div>
-            <span className="footer__logo-text">Company Name</span>
+            <div className="footer__logo-icon">
+              <img src="/gtss-logo.png" alt="GTSS Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+            <span className="footer__logo-text">Gujarat Tube & Sanitary Stores</span>
           </div>
-          <p className="footer__tagline">Premium Products &amp; Supplies</p>
+          <p className="footer__tagline">TILES | CP FITTING | SANITARY | BATHTUB</p>
           <p className="footer__description">
-            Delivering quality products and exceptional service to homes and businesses since day one.
+            Delivering quality products and exceptional service to homes and businesses.
           </p>
         </div>
 
@@ -73,7 +75,7 @@ const Footer = () => {
 
       {/* Bottom Bar */}
       <div className="footer__bottom">
-        <p>&copy; {new Date().getFullYear()} Company Name. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Gujarat Tube & Sanitary Stores. All rights reserved.</p>
         <div className="footer__social">
           <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">

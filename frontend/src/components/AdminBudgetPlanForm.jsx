@@ -2,6 +2,295 @@ import { useState, useEffect } from 'react';
 import './AdminBudgetPlanForm.css';
 import QuotationPDFGenerator from './QuotationPDFGenerator';
 
+// Define room templates with preset areas and default essential products (outside component)
+const roomTemplatePresets = {
+  'Master Bathroom': {
+    areas: [
+      {
+        id: 'shower',
+        name: 'Shower Area',
+        icon: '🚿',
+        suggestedProducts: ['Rain Shower', 'Hand Shower', 'Shower Mixer', 'Diverter', 'Body Jets'],
+        defaultProducts: [
+          { keyword: 'Rain Shower', quantity: 1, essential: true },
+          { keyword: 'Hand Shower', quantity: 1, essential: true },
+          { keyword: 'Shower Mixer', quantity: 1, essential: true },
+          { keyword: 'Diverter', quantity: 1, essential: true },
+          { keyword: 'Shower Arm', quantity: 1, essential: true },
+          { keyword: 'Sliding Rail', quantity: 1, essential: true },
+          { keyword: 'Drain', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 2, essential: true }
+        ]
+      },
+      {
+        id: 'basin',
+        name: 'Basin Area',
+        icon: '🪣',
+        suggestedProducts: ['Table Top Basin', 'Basin Mixer', 'LED Mirror', 'Vanity Unit'],
+        defaultProducts: [
+          { keyword: 'Table Top Basin', quantity: 1, essential: true },
+          { keyword: 'Basin Mixer', quantity: 1, essential: true },
+          { keyword: 'Mirror', quantity: 1, essential: true },
+          { keyword: 'Towel', quantity: 2, essential: true },
+          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
+          { keyword: 'Waste Coupling', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 2, essential: true },
+          { keyword: 'Bottle Trap', quantity: 1, essential: true }
+        ]
+      },
+      {
+        id: 'wc',
+        name: 'WC Area',
+        icon: '🚽',
+        suggestedProducts: ['One Piece WC', 'Flush Plate', 'Health Faucet'],
+        defaultProducts: [
+          { keyword: 'One Piece', quantity: 1, essential: true },
+          { keyword: 'Health Faucet', quantity: 1, essential: true },
+          { keyword: 'Seat Cover', quantity: 1, essential: true },
+          { keyword: 'Flush', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 1, essential: true },
+          { keyword: 'Toilet Paper', quantity: 1, essential: true }
+        ]
+      },
+      {
+        id: 'bathtub',
+        name: 'Bathtub Area',
+        icon: '🛁',
+        suggestedProducts: ['Bathtub', 'Bath Spout', 'Bath Mixer'],
+        defaultProducts: [
+          { keyword: 'Bathtub', quantity: 1, essential: false },
+          { keyword: 'Bath Spout', quantity: 1, essential: false },
+          { keyword: 'Bath Mixer', quantity: 1, essential: false },
+          { keyword: 'Drain', quantity: 1, essential: false }
+        ]
+      }
+    ]
+  },
+  'Children Bathroom': {
+    areas: [
+      {
+        id: 'shower',
+        name: 'Shower Area',
+        icon: '🚿',
+        suggestedProducts: ['Hand Shower', 'Shower Mixer', 'Sliding Rail'],
+        defaultProducts: [
+          { keyword: 'Hand Shower', quantity: 1, essential: true },
+          { keyword: 'Shower Mixer', quantity: 1, essential: true },
+          { keyword: 'Sliding Rail', quantity: 1, essential: true },
+          { keyword: 'Shower Arm', quantity: 1, essential: true },
+          { keyword: 'Drain', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 2, essential: true }
+        ]
+      },
+      {
+        id: 'basin',
+        name: 'Basin Area',
+        icon: '🪣',
+        suggestedProducts: ['Wall Hung Basin', 'Basin Mixer', 'Mirror'],
+        defaultProducts: [
+          { keyword: 'Basin', quantity: 1, essential: true },
+          { keyword: 'Basin Mixer', quantity: 1, essential: true },
+          { keyword: 'Mirror', quantity: 1, essential: true },
+          { keyword: 'Towel', quantity: 2, essential: true },
+          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
+          { keyword: 'Waste Coupling', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 2, essential: true },
+          { keyword: 'Bottle Trap', quantity: 1, essential: true }
+        ]
+      },
+      {
+        id: 'wc',
+        name: 'WC Area',
+        icon: '🚽',
+        suggestedProducts: ['Two Piece WC', 'Flush Tank', 'Health Faucet'],
+        defaultProducts: [
+          { keyword: 'WC', quantity: 1, essential: true },
+          { keyword: 'Health Faucet', quantity: 1, essential: true },
+          { keyword: 'Seat Cover', quantity: 1, essential: true },
+          { keyword: 'Flush Tank', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 1, essential: true },
+          { keyword: 'Toilet Paper', quantity: 1, essential: true }
+        ]
+      }
+    ]
+  },
+  'Parents Bathroom': {
+    areas: [
+      {
+        id: 'shower',
+        name: 'Shower Area',
+        icon: '🚿',
+        suggestedProducts: ['Rain Shower', 'Hand Shower', 'Shower Mixer', 'Diverter'],
+        defaultProducts: [
+          { keyword: 'Rain Shower', quantity: 1, essential: true },
+          { keyword: 'Hand Shower', quantity: 1, essential: true },
+          { keyword: 'Shower Mixer', quantity: 1, essential: true },
+          { keyword: 'Diverter', quantity: 1, essential: true },
+          { keyword: 'Shower Arm', quantity: 1, essential: true },
+          { keyword: 'Drain', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 2, essential: true }
+        ]
+      },
+      {
+        id: 'basin',
+        name: 'Basin Area',
+        icon: '🪣',
+        suggestedProducts: ['Table Top Basin', 'Basin Mixer', 'LED Mirror', 'Vanity Unit'],
+        defaultProducts: [
+          { keyword: 'Basin', quantity: 1, essential: true },
+          { keyword: 'Basin Mixer', quantity: 1, essential: true },
+          { keyword: 'Mirror', quantity: 1, essential: true },
+          { keyword: 'Towel', quantity: 2, essential: true },
+          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
+          { keyword: 'Waste Coupling', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 2, essential: true },
+          { keyword: 'Bottle Trap', quantity: 1, essential: true }
+        ]
+      },
+      {
+        id: 'wc',
+        name: 'WC Area',
+        icon: '🚽',
+        suggestedProducts: ['One Piece WC', 'Flush Plate', 'Health Faucet'],
+        defaultProducts: [
+          { keyword: 'One Piece', quantity: 1, essential: true },
+          { keyword: 'Health Faucet', quantity: 1, essential: true },
+          { keyword: 'Seat Cover', quantity: 1, essential: true },
+          { keyword: 'Flush', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 1, essential: true },
+          { keyword: 'Toilet Paper', quantity: 1, essential: true }
+        ]
+      }
+    ]
+  },
+  'Powder Bathroom': {
+    areas: [
+      {
+        id: 'basin',
+        name: 'Basin Area',
+        icon: '🪣',
+        suggestedProducts: ['Wall Hung Basin', 'Basin Mixer', 'Mirror', 'Towel Rack'],
+        defaultProducts: [
+          { keyword: 'Basin', quantity: 1, essential: true },
+          { keyword: 'Basin Mixer', quantity: 1, essential: true },
+          { keyword: 'Mirror', quantity: 1, essential: true },
+          { keyword: 'Towel', quantity: 1, essential: true },
+          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
+          { keyword: 'Waste Coupling', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 2, essential: true },
+          { keyword: 'Bottle Trap', quantity: 1, essential: true }
+        ]
+      },
+      {
+        id: 'wc',
+        name: 'WC Area',
+        icon: '🚽',
+        suggestedProducts: ['Wall Hung WC', 'Concealed Cistern', 'Flush Plate', 'Health Faucet'],
+        defaultProducts: [
+          { keyword: 'WC', quantity: 1, essential: true },
+          { keyword: 'Flush Plate', quantity: 1, essential: true },
+          { keyword: 'Health Faucet', quantity: 1, essential: true },
+          { keyword: 'Seat Cover', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 1, essential: true },
+          { keyword: 'Toilet Paper', quantity: 1, essential: true }
+        ]
+      }
+    ]
+  },
+  'Powder Toilet': {
+    areas: [
+      {
+        id: 'basin',
+        name: 'Basin Area',
+        icon: '🪣',
+        suggestedProducts: ['Wall Hung Basin', 'Pillar Cock', 'Mirror'],
+        defaultProducts: [
+          { keyword: 'Basin', quantity: 1, essential: true },
+          { keyword: 'Pillar', quantity: 1, essential: true },
+          { keyword: 'Mirror', quantity: 1, essential: true },
+          { keyword: 'Towel', quantity: 1, essential: true },
+          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
+          { keyword: 'Waste Coupling', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 2, essential: true },
+          { keyword: 'Bottle Trap', quantity: 1, essential: true }
+        ]
+      },
+      {
+        id: 'wc',
+        name: 'WC Area',
+        icon: '🚽',
+        suggestedProducts: ['Wall Hung WC', 'Concealed Cistern', 'Flush Plate'],
+        defaultProducts: [
+          { keyword: 'WC', quantity: 1, essential: true },
+          { keyword: 'Flush', quantity: 1, essential: true },
+          { keyword: 'Seat Cover', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 1, essential: true },
+          { keyword: 'Toilet Paper', quantity: 1, essential: true }
+        ]
+      }
+    ]
+  },
+  'Children Toilet': {
+    areas: [
+      {
+        id: 'basin',
+        name: 'Basin Area',
+        icon: '🪣',
+        suggestedProducts: ['Wall Hung Basin', 'Basin Mixer', 'Mirror'],
+        defaultProducts: [
+          { keyword: 'Basin', quantity: 1, essential: true },
+          { keyword: 'Mixer', quantity: 1, essential: true },
+          { keyword: 'Mirror', quantity: 1, essential: true },
+          { keyword: 'Towel', quantity: 1, essential: true },
+          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
+          { keyword: 'Waste Coupling', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 2, essential: true },
+          { keyword: 'Bottle Trap', quantity: 1, essential: true }
+        ]
+      },
+      {
+        id: 'wc',
+        name: 'WC Area',
+        icon: '🚽',
+        suggestedProducts: ['Two Piece WC', 'Flush Tank', 'Health Faucet'],
+        defaultProducts: [
+          { keyword: 'WC', quantity: 1, essential: true },
+          { keyword: 'Health Faucet', quantity: 1, essential: true },
+          { keyword: 'Seat Cover', quantity: 1, essential: true },
+          { keyword: 'Flush Tank', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 1, essential: true },
+          { keyword: 'Toilet Paper', quantity: 1, essential: true }
+        ]
+      }
+    ]
+  },
+  'Kitchen': {
+    areas: [
+      {
+        id: 'sink',
+        name: 'Sink Area',
+        icon: '🚰',
+        suggestedProducts: ['Kitchen Sink', 'Sink Mixer', 'Soap Dispenser'],
+        defaultProducts: [
+          { keyword: 'Kitchen Sink', quantity: 1, essential: true },
+          { keyword: 'Sink Mixer', quantity: 1, essential: true },
+          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
+          { keyword: 'Drain', quantity: 1, essential: true },
+          { keyword: 'Angle Valve', quantity: 2, essential: true },
+          { keyword: 'Waste Coupling', quantity: 1, essential: true }
+        ]
+      },
+      {
+        id: 'countertop',
+        name: 'Countertop Area',
+        icon: '🔲',
+        suggestedProducts: ['Countertop', 'Backsplash Tiles'],
+        defaultProducts: []
+      }
+    ]
+  }
+};
+
 const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [saveOption, setSaveOption] = useState(null); // 'quotation' or 'order'
@@ -37,6 +326,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
   // Preset room name options for each template type
   const getRoomNameOptions = (templateName) => {
+    if (!templateName) return [{ id: 'custom', label: 'Custom Room', isCustom: true }];
+    
     const lowerName = templateName.toLowerCase();
     
     if (lowerName.includes('bathroom')) {
@@ -69,8 +360,18 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   };
 
   // Function to get areas based on room name/template
-  // Now all rooms have the same 3 areas
+  // Now uses preset templates with predefined areas
   const getAreasForRoom = (roomName) => {
+    // Check if we have a preset template for this room name (case-insensitive)
+    const presetKey = Object.keys(roomTemplatePresets).find(
+      key => key.toLowerCase() === roomName.toLowerCase()
+    );
+    
+    if (presetKey && roomTemplatePresets[presetKey]) {
+      return roomTemplatePresets[presetKey].areas;
+    }
+    
+    // Fallback to standard areas
     return standardAreas;
   };
   
@@ -99,6 +400,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     customerAddress: '',
     customerGST: '',
     projectLocation: '', // NEW: Project Location field
+    attention: '', // NEW: Attention/Contact person field
     isNewCustomer: true,
     roomTemplate: null,
     roomName: '',
@@ -161,6 +463,19 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   
   // Product type suggestions for each area
   const getAreaSuggestions = (areaId) => {
+    // First, check if we have a current room with preset suggestions for this area
+    if (viewingRoomId) {
+      const currentRoom = formData.rooms.find(r => r.id === viewingRoomId);
+      if (currentRoom) {
+        const area = currentRoom.areas.find(a => a.id === areaId);
+        if (area && area.suggestedProducts && area.suggestedProducts.length > 0) {
+          // Return preset suggestions for this specific room's area
+          return area.suggestedProducts;
+        }
+      }
+    }
+    
+    // Fallback to general suggestions
     const suggestions = {
       all: [
         // Combined suggestions from products that actually exist
@@ -181,6 +496,15 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       ],
       urinal: [
         'Urinal', 'Wall Hung', 'Floor Mounted', 'Flat Back', 'Corner', 'Sensor', 'Manual', 'Waterless', 'Spreader', 'Flush Valve', 'Partition'
+      ],
+      bathtub: [
+        'Bathtub', 'Freestanding', 'Built-in', 'Jacuzzi', 'Bath Spout', 'Bath Mixer', 'Bath Filler'
+      ],
+      sink: [
+        'Kitchen Sink', 'Single Bowl', 'Double Bowl', 'Sink Mixer', 'Soap Dispenser', 'Drain Basket'
+      ],
+      countertop: [
+        'Countertop', 'Granite', 'Marble', 'Quartz', 'Backsplash', 'Tiles'
       ]
     };
     
@@ -265,10 +589,10 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     if (productSearchQuery.trim()) {
       const query = productSearchQuery.toLowerCase();
       filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(query) ||
-        product.variant?.toLowerCase().includes(query) ||
-        product.company?.name?.toLowerCase().includes(query) ||
-        product.itemTypeName?.toLowerCase().includes(query)
+        (product.name && product.name.toLowerCase().includes(query)) ||
+        (product.variant && product.variant.toLowerCase().includes(query)) ||
+        (product.company?.name && product.company.name.toLowerCase().includes(query)) ||
+        (product.itemTypeName && product.itemTypeName.toLowerCase().includes(query))
       );
     }
 
@@ -289,7 +613,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
       if (areaKeywords.length > 0) {
         filtered = filtered.filter(product => {
-          const searchText = `${product.name} ${product.variant || ''} ${product.itemTypeName || ''}`.toLowerCase();
+          const searchText = `${product.name || ''} ${product.variant || ''} ${product.itemTypeName || ''}`.toLowerCase();
           return areaKeywords.some(keyword => searchText.includes(keyword));
         });
       }
@@ -376,7 +700,119 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   };
 
   // NEW: Handle adding room from template with selected name
-  const handleAddRoomFromTemplate = (roomNameOption, customName = '') => {
+  // Function to auto-add default products for a room
+  const autoAddDefaultProducts = (roomId, roomName) => {
+    try {
+      const roomPreset = roomTemplatePresets[roomName];
+      if (!roomPreset || !roomPreset.areas) {
+        console.log('No preset found for room:', roomName);
+        return;
+      }
+      
+      // Check if products are loaded
+      if (!allProducts || allProducts.length === 0) {
+        console.warn('Products not loaded yet, skipping auto-add');
+        return;
+      }
+
+      // Collect all default products from all areas
+      const defaultProductsToAdd = [];
+      
+      for (const area of roomPreset.areas) {
+        if (area.defaultProducts && area.defaultProducts.length > 0) {
+          for (const defaultProd of area.defaultProducts) {
+            // Safety check for keyword
+            if (!defaultProd || !defaultProd.keyword) {
+              console.warn('Invalid default product config:', defaultProd);
+              continue;
+            }
+            
+            // Search for a product matching the keyword
+            const matchingProduct = allProducts.find(p => 
+              (p.name && p.name.toLowerCase().includes(defaultProd.keyword.toLowerCase())) ||
+              (p.variant && p.variant.toLowerCase().includes(defaultProd.keyword.toLowerCase()))
+            );
+            
+            if (matchingProduct) {
+              console.log(`✓ Found product for "${defaultProd.keyword}":`, matchingProduct.name);
+              defaultProductsToAdd.push({
+                product: matchingProduct,
+                areaId: area.id,
+                quantity: defaultProd.quantity || 1,
+                essential: defaultProd.essential || false
+              });
+            } else {
+              console.warn(`✗ No product found for keyword: "${defaultProd.keyword}" in area: ${area.name}`);
+            }
+          }
+        }
+      }
+
+      // Add all found products to the room
+      if (defaultProductsToAdd.length > 0) {
+        setFormData(prev => {
+          const updatedRooms = prev.rooms.map(room => {
+            if (room.id === roomId) {
+              const updatedAreas = room.areas.map(area => {
+                const productsForThisArea = defaultProductsToAdd.filter(p => p.areaId === area.id);
+                
+                if (productsForThisArea.length > 0) {
+                  const newProducts = productsForThisArea.map(p => {
+                    const unitPrice = p.product.price || 0;
+                    const discountPercent = p.product.discountPercentage || 0;
+                    const discountedPrice = unitPrice * (1 - discountPercent / 100);
+                    const totalPrice = discountedPrice * p.quantity;
+                    
+                    return {
+                      _id: p.product._id,
+                      productId: p.product._id,
+                      productName: p.product.name,
+                      variant: p.product.variant || '',
+                      company: p.product.company?._id || p.product.company,
+                      companyName: p.product.company?.name || '',
+                      category: p.product.category?._id || p.product.category,
+                      categoryName: p.product.category?.name || '',
+                      quantity: p.quantity,
+                      unitPrice: unitPrice,
+                      rate: unitPrice,
+                      discountPercent: discountPercent,
+                      totalPrice: totalPrice,
+                      images: p.product.images || [],
+                      sku: p.product.sku || '',
+                      isEssential: p.essential // Mark as essential
+                    };
+                  });
+                  
+                  return {
+                    ...area,
+                    products: [...area.products, ...newProducts]
+                  };
+                }
+                return area;
+              });
+              
+              return {
+                ...room,
+                areas: updatedAreas
+              };
+            }
+            return room;
+          });
+          
+          return {
+            ...prev,
+            rooms: updatedRooms
+          };
+        });
+        
+        console.log(`Auto-added ${defaultProductsToAdd.length} products to ${roomName}`);
+      }
+    } catch (error) {
+      console.error('Error auto-adding products:', error);
+    }
+  };
+
+  const handleAddRoomFromTemplate = async (roomNameOption, customName = '') => {
     if (!selectedTemplate) return;
 
     const finalRoomName = roomNameOption.isCustom && customName 
@@ -388,17 +824,22 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       ? (selectedTemplate.estimatedBudget?.recommended || selectedTemplate.estimatedBudget?.min || 50000)
       : 0;
 
-    // Create new room with the 4 standard areas
+    // Get preset areas for this room name, or fallback to standard areas
+    const roomAreas = getAreasForRoom(finalRoomName);
+
+    // Create new room with preset areas from template
     const newRoom = {
       id: Date.now().toString() + Math.random(),
       name: finalRoomName,
       budget: roomBudget,
       templateId: selectedTemplate._id,
       templateName: selectedTemplate.name,
-      areas: standardAreas.map(area => ({
+      areas: roomAreas.map(area => ({
         id: area.id,
         name: area.name,
         icon: area.icon,
+        suggestedProducts: area.suggestedProducts || [], // Store suggested product keywords
+        defaultProducts: area.defaultProducts || [], // Store default products config
         products: []
       }))
     };
@@ -416,6 +857,11 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     // Close modal and reset
     setShowTemplateModal(false);
     setSelectedTemplate(null);
+
+    // Auto-add default products after a short delay to ensure room is created
+    setTimeout(() => {
+      autoAddDefaultProducts(newRoom.id, finalRoomName);
+    }, 100);
   };
 
   // NEW: Handle adding multiple selected rooms
@@ -426,19 +872,26 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       ? (selectedTemplate.estimatedBudget?.recommended || selectedTemplate.estimatedBudget?.min || 50000)
       : 0;
 
-    const newRooms = selectedRoomNames.map(roomName => ({
-      id: Date.now().toString() + Math.random(),
-      name: roomName,
-      budget: roomBudget,
-      templateId: selectedTemplate._id,
-      templateName: selectedTemplate.name,
-      areas: standardAreas.map(area => ({
-        id: area.id,
-        name: area.name,
-        icon: area.icon,
-        products: []
-      }))
-    }));
+    const newRooms = selectedRoomNames.map(roomName => {
+      // Get preset areas for this room name
+      const roomAreas = getAreasForRoom(roomName);
+      
+      return {
+        id: Date.now().toString() + Math.random(),
+        name: roomName,
+        budget: roomBudget,
+        templateId: selectedTemplate._id,
+        templateName: selectedTemplate.name,
+        areas: roomAreas.map(area => ({
+          id: area.id,
+          name: area.name,
+          icon: area.icon,
+          suggestedProducts: area.suggestedProducts || [], // Store suggested product keywords
+          defaultProducts: area.defaultProducts || [], // Store default products config
+          products: []
+        }))
+      };
+    });
 
     setFormData(prev => ({
       ...prev,
@@ -455,6 +908,13 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     setSelectedTemplate(null);
     setSelectedRoomNames([]);
     setCustomRoomName('');
+
+    // Auto-add default products for all new rooms
+    setTimeout(() => {
+      newRooms.forEach(room => {
+        autoAddDefaultProducts(room.id, room.name);
+      });
+    }, 100);
   };
 
   // Toggle room name selection
@@ -1253,6 +1713,16 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         </div>
 
         <div className="form-group">
+          <label>Attention (Contact Person)</label>
+          <input
+            type="text"
+            value={formData.attention}
+            onChange={(e) => setFormData(prev => ({ ...prev, attention: e.target.value }))}
+            placeholder="Contact person name (e.g., Mr. Rajesh Kumar)"
+          />
+        </div>
+
+        <div className="form-group">
           <label>Project / Room Name</label>
           <input
             type="text"
@@ -1367,54 +1837,55 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   };
 
   const renderStep2 = () => {
-    const totals = calculateTotals(); // Total across all rooms
-    const viewingTotals = viewingRoomId ? calculateTotals(viewingRoomId, viewingAreaId) : totals; // Totals for viewing room/area
+    try {
+      const totals = calculateTotals(); // Total across all rooms
+      const viewingTotals = viewingRoomId ? calculateTotals(viewingRoomId, viewingAreaId) : totals; // Totals for viewing room/area
 
-    // Show loading state if products haven't loaded yet
-    if (allProducts.length === 0) {
-      return (
-        <div className="form-step product-selection-step">
-          <div className="loading-products">
-            <p>Loading products...</p>
+      // Show loading state if products haven't loaded yet
+      if (allProducts.length === 0) {
+        return (
+          <div className="form-step product-selection-step">
+            <div className="loading-products">
+              <p>Loading products...</p>
+            </div>
           </div>
-        </div>
-      );
-    }
-
-    const currentRoom = getCurrentRoom();
-    
-    // Determine which room's products to display in cart
-    let displayRoomId = viewingRoomId;
-    
-    // If no viewing room is set but rooms exist, default to current room
-    if (!displayRoomId && formData.rooms.length > 0) {
-      displayRoomId = formData.currentRoomId;
-      setViewingRoomId(displayRoomId);
-      setViewingAreaId('all');
-    }
-    
-    const viewingRoom = formData.rooms.find(r => r.id === displayRoomId);
-    
-    // Get products based on viewing area
-    let currentProducts = [];
-    if (formData.rooms.length > 0 && viewingRoom) {
-      if (viewingAreaId === 'all') {
-        // Show all products from all areas in this room
-        viewingRoom.areas.forEach(area => {
-          currentProducts = [...currentProducts, ...area.products];
-        });
-      } else {
-        // Show products from specific area ONLY
-        const viewingArea = viewingRoom.areas.find(a => a.id === viewingAreaId);
-        if (viewingArea) {
-          currentProducts = viewingArea.products;
-        } else {
-          currentProducts = [];
-        }
+        );
       }
-    } else {
-      currentProducts = formData.selectedProducts;
-    }
+
+      const currentRoom = getCurrentRoom();
+      
+      // Determine which room's products to display in cart
+      let displayRoomId = viewingRoomId;
+      
+      // If no viewing room is set but rooms exist, default to current room
+      if (!displayRoomId && formData.rooms.length > 0) {
+        displayRoomId = formData.currentRoomId;
+        setViewingRoomId(displayRoomId);
+        setViewingAreaId('all');
+      }
+      
+      const viewingRoom = formData.rooms.find(r => r.id === displayRoomId);
+      
+      // Get products based on viewing area
+      let currentProducts = [];
+      if (formData.rooms.length > 0 && viewingRoom) {
+        if (viewingAreaId === 'all') {
+          // Show all products from all areas in this room
+          viewingRoom.areas.forEach(area => {
+            currentProducts = [...currentProducts, ...area.products];
+          });
+        } else {
+          // Show products from specific area ONLY
+          const viewingArea = viewingRoom.areas.find(a => a.id === viewingAreaId);
+          if (viewingArea) {
+            currentProducts = viewingArea.products;
+          } else {
+            currentProducts = [];
+          }
+        }
+      } else {
+        currentProducts = formData.selectedProducts;
+      }
 
     return (
       <div className="form-step product-selection-step">
@@ -1830,7 +2301,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                               <span className="discount-badge-cart">{item.discountPercent}% OFF</span>
                             )}
                           </div>
-                          <span className="total-price-large">₹{item.totalPrice.toLocaleString()}</span>
+                          <span className="total-price-large">₹{(item.totalPrice || 0).toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
@@ -1844,6 +2315,21 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         </div>
       </div>
     );
+    } catch (error) {
+      console.error('Error rendering Step 2:', error);
+      return (
+        <div className="form-step product-selection-step">
+          <div className="error-message">
+            <h3>Error Loading Products</h3>
+            <p>There was an error loading the product selection page.</p>
+            <p style={{ color: '#666', fontSize: '14px' }}>{error.message}</p>
+            <button onClick={() => window.location.reload()} className="btn-primary">
+              Reload Page
+            </button>
+          </div>
+        </div>
+      );
+    }
   };
 
   const renderStep3 = () => {
@@ -2202,7 +2688,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                   <div className="custom-room-input-checkbox">
                     <input
                       type="text"
-                      placeholder={`Enter custom ${selectedTemplate.name.toLowerCase()} name`}
+                      placeholder={`Enter custom ${selectedTemplate?.name?.toLowerCase() || 'room'} name`}
                       value={customRoomName}
                       onChange={(e) => setCustomRoomName(e.target.value)}
                       onKeyPress={(e) => {
@@ -2462,7 +2948,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       email: formData.customerEmail,
                       address: formData.customerAddress,
                       gstNumber: formData.customerGST,
-                      projectLocation: formData.projectLocation
+                      projectLocation: formData.projectLocation,
+                      attention: formData.attention
                     },
                     rooms: roomsWithEditedPrices,
                     total: calculateTotals().totalCost,
@@ -2522,7 +3009,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                         email: formData.customerEmail,
                         address: formData.customerAddress,
                         gstNumber: formData.customerGST,
-                        projectLocation: formData.projectLocation
+                        projectLocation: formData.projectLocation,
+                        attention: formData.attention
                       },
                       rooms: roomsWithEditedPrices,
                       total: calculateTotals().totalCost,

@@ -18,6 +18,12 @@ const ProductVariants = () => {
   const [sortBy, setSortBy] = useState('price-asc');
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [selectedColor, setSelectedColor] = useState('all');
+  const [selectedCompany, setSelectedCompany] = useState('all');
+  const [selectedMaterial, setSelectedMaterial] = useState('all');
+  const [selectedSize, setSelectedSize] = useState('all');
+  const [selectedWarranty, setSelectedWarranty] = useState('all');
+  const [showInStockOnly, setShowInStockOnly] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null); // Track which dropdown is open
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -31,7 +37,7 @@ const ProductVariants = () => {
   // Apply filters and sorting whenever filter values change
   useEffect(() => {
     applyFilters();
-  }, [sortBy, priceRange, selectedColor, allProducts]);
+  }, [sortBy, priceRange, selectedColor, selectedCompany, selectedMaterial, selectedSize, selectedWarranty, showInStockOnly, allProducts]);
 
   const fetchData = async () => {
     try {
@@ -113,12 +119,64 @@ const ProductVariants = () => {
   const applyFilters = () => {
     let filtered = [...allProducts];
 
+    console.log('Applying filters:', {
+      selectedColor,
+      selectedCompany,
+      selectedMaterial,
+      selectedSize,
+      selectedWarranty,
+      showInStockOnly,
+      totalProducts: allProducts.length
+    });
+
     // Filter by price range
     filtered = filtered.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
 
     // Filter by color
     if (selectedColor !== 'all') {
-      filtered = filtered.filter(p => p.specifications?.color?.toLowerCase() === selectedColor.toLowerCase());
+      filtered = filtered.filter(p => {
+        const productColor = p.specifications?.color || p.color;
+        return productColor && productColor.toLowerCase() === selectedColor.toLowerCase();
+      });
+    }
+
+    // Filter by company
+    if (selectedCompany !== 'all') {
+      filtered = filtered.filter(p => {
+        const productCompany = typeof p.company === 'object' && p.company?.name 
+          ? p.company.name 
+          : p.companyName || p.company;
+        return productCompany === selectedCompany;
+      });
+    }
+
+    // Filter by material
+    if (selectedMaterial !== 'all') {
+      filtered = filtered.filter(p => {
+        const productMaterial = p.specifications?.material || p.material;
+        return productMaterial && productMaterial.toLowerCase() === selectedMaterial.toLowerCase();
+      });
+    }
+
+    // Filter by size
+    if (selectedSize !== 'all') {
+      filtered = filtered.filter(p => {
+        const productSize = p.specifications?.size || p.size;
+        return productSize && productSize.toLowerCase() === selectedSize.toLowerCase();
+      });
+    }
+
+    // Filter by warranty
+    if (selectedWarranty !== 'all') {
+      filtered = filtered.filter(p => {
+        const productWarranty = p.specifications?.warranty || p.warranty;
+        return productWarranty && productWarranty.toLowerCase() === selectedWarranty.toLowerCase();
+      });
+    }
+
+    // Filter by stock status
+    if (showInStockOnly) {
+      filtered = filtered.filter(p => p.stock > 0);
     }
 
     // Sort
@@ -130,11 +188,21 @@ const ProductVariants = () => {
       filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
+    console.log('Filtered products:', filtered.length);
     setProducts(filtered);
   };
 
-  // Get unique colors from all products
-  const colors = [...new Set(allProducts.map(p => p.specifications?.color).filter(Boolean))];
+  // Get unique values from all products for filters
+  const colors = [...new Set(allProducts.map(p => p.specifications?.color || p.color).filter(Boolean))];
+  const companies = [...new Set(allProducts.map(p => {
+    const company = typeof p.company === 'object' && p.company?.name 
+      ? p.company.name 
+      : p.companyName || p.company;
+    return company;
+  }).filter(Boolean))];
+  const materials = [...new Set(allProducts.map(p => p.specifications?.material || p.material).filter(Boolean))];
+  const sizes = [...new Set(allProducts.map(p => p.specifications?.size || p.size).filter(Boolean))];
+  const warranties = [...new Set(allProducts.map(p => p.specifications?.warranty || p.warranty).filter(Boolean))];
 
   const nextImage = () => {
     if (selectedProduct && currentImageIndex < selectedProduct.images.length - 1) {
@@ -257,25 +325,270 @@ const ProductVariants = () => {
               </p>
             </div>
 
+            {/* Stock Status Filter */}
+            <div className="product-variants__filter-section">
+              <label className="product-variants__checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={showInStockOnly}
+                  onChange={(e) => setShowInStockOnly(e.target.checked)}
+                  className="product-variants__checkbox"
+                />
+                <span>Show In Stock Only</span>
+              </label>
+            </div>
+
+            {/* Company Filter */}
+            {companies.length > 0 && (
+              <div className="product-variants__filter-section">
+                <h3>Brand</h3>
+                <div className="product-variants__custom-dropdown">
+                  <button
+                    className="product-variants__dropdown-btn"
+                    onClick={() => setOpenDropdown(openDropdown === 'company' ? null : 'company')}
+                  >
+                    <span>{selectedCompany === 'all' ? 'All Brands' : selectedCompany}</span>
+                    <svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2"
+                      style={{ transform: openDropdown === 'company' ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
+                    >
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+                  {openDropdown === 'company' && (
+                    <div className="product-variants__dropdown-menu">
+                      <button
+                        className={`product-variants__dropdown-item ${selectedCompany === 'all' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedCompany('all');
+                          setOpenDropdown(null);
+                        }}
+                      >
+                        All Brands
+                      </button>
+                      {companies.map(company => (
+                        <button
+                          key={company}
+                          className={`product-variants__dropdown-item ${selectedCompany === company ? 'active' : ''}`}
+                          onClick={() => {
+                            setSelectedCompany(company);
+                            setOpenDropdown(null);
+                          }}
+                        >
+                          {company}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Color Filter */}
             {colors.length > 0 && (
               <div className="product-variants__filter-section">
                 <h3>Color</h3>
-                <div className="product-variants__color-filter">
+                <div className="product-variants__custom-dropdown">
                   <button
-                    className={`product-variants__color-btn ${selectedColor === 'all' ? 'active' : ''}`}
-                    onClick={() => setSelectedColor('all')}
+                    className="product-variants__dropdown-btn"
+                    onClick={() => setOpenDropdown(openDropdown === 'color' ? null : 'color')}
                   >
-                    All Colors
-                  </button>
-                  {colors.map(color => (
-                    <button
-                      key={color}
-                      className={`product-variants__color-btn ${selectedColor === color ? 'active' : ''}`}
-                      onClick={() => setSelectedColor(color)}
+                    <span>{selectedColor === 'all' ? 'All Colors' : selectedColor}</span>
+                    <svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2"
+                      style={{ transform: openDropdown === 'color' ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
                     >
-                      {color}
-                    </button>
-                  ))}
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+                  {openDropdown === 'color' && (
+                    <div className="product-variants__dropdown-menu">
+                      <button
+                        className={`product-variants__dropdown-item ${selectedColor === 'all' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedColor('all');
+                          setOpenDropdown(null);
+                        }}
+                      >
+                        All Colors
+                      </button>
+                      {colors.map(color => (
+                        <button
+                          key={color}
+                          className={`product-variants__dropdown-item ${selectedColor === color ? 'active' : ''}`}
+                          onClick={() => {
+                            setSelectedColor(color);
+                            setOpenDropdown(null);
+                          }}
+                        >
+                          {color}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Material Filter */}
+            {materials.length > 0 && (
+              <div className="product-variants__filter-section">
+                <h3>Material</h3>
+                <div className="product-variants__custom-dropdown">
+                  <button
+                    className="product-variants__dropdown-btn"
+                    onClick={() => setOpenDropdown(openDropdown === 'material' ? null : 'material')}
+                  >
+                    <span>{selectedMaterial === 'all' ? 'All Materials' : selectedMaterial}</span>
+                    <svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2"
+                      style={{ transform: openDropdown === 'material' ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
+                    >
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+                  {openDropdown === 'material' && (
+                    <div className="product-variants__dropdown-menu">
+                      <button
+                        className={`product-variants__dropdown-item ${selectedMaterial === 'all' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedMaterial('all');
+                          setOpenDropdown(null);
+                        }}
+                      >
+                        All Materials
+                      </button>
+                      {materials.map(material => (
+                        <button
+                          key={material}
+                          className={`product-variants__dropdown-item ${selectedMaterial === material ? 'active' : ''}`}
+                          onClick={() => {
+                            setSelectedMaterial(material);
+                            setOpenDropdown(null);
+                          }}
+                        >
+                          {material}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Size Filter */}
+            {sizes.length > 0 && (
+              <div className="product-variants__filter-section">
+                <h3>Size</h3>
+                <div className="product-variants__custom-dropdown">
+                  <button
+                    className="product-variants__dropdown-btn"
+                    onClick={() => setOpenDropdown(openDropdown === 'size' ? null : 'size')}
+                  >
+                    <span>{selectedSize === 'all' ? 'All Sizes' : selectedSize}</span>
+                    <svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2"
+                      style={{ transform: openDropdown === 'size' ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
+                    >
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+                  {openDropdown === 'size' && (
+                    <div className="product-variants__dropdown-menu">
+                      <button
+                        className={`product-variants__dropdown-item ${selectedSize === 'all' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedSize('all');
+                          setOpenDropdown(null);
+                        }}
+                      >
+                        All Sizes
+                      </button>
+                      {sizes.map(size => (
+                        <button
+                          key={size}
+                          className={`product-variants__dropdown-item ${selectedSize === size ? 'active' : ''}`}
+                          onClick={() => {
+                            setSelectedSize(size);
+                            setOpenDropdown(null);
+                          }}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Warranty Filter */}
+            {warranties.length > 0 && (
+              <div className="product-variants__filter-section">
+                <h3>Warranty</h3>
+                <div className="product-variants__custom-dropdown">
+                  <button
+                    className="product-variants__dropdown-btn"
+                    onClick={() => setOpenDropdown(openDropdown === 'warranty' ? null : 'warranty')}
+                  >
+                    <span>{selectedWarranty === 'all' ? 'All Warranties' : selectedWarranty}</span>
+                    <svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2"
+                      style={{ transform: openDropdown === 'warranty' ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
+                    >
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+                  {openDropdown === 'warranty' && (
+                    <div className="product-variants__dropdown-menu">
+                      <button
+                        className={`product-variants__dropdown-item ${selectedWarranty === 'all' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedWarranty('all');
+                          setOpenDropdown(null);
+                        }}
+                      >
+                        All Warranties
+                      </button>
+                      {warranties.map(warranty => (
+                        <button
+                          key={warranty}
+                          className={`product-variants__dropdown-item ${selectedWarranty === warranty ? 'active' : ''}`}
+                          onClick={() => {
+                            setSelectedWarranty(warranty);
+                            setOpenDropdown(null);
+                          }}
+                        >
+                          {warranty}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

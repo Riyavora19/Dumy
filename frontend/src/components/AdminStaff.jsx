@@ -349,10 +349,14 @@ function AdminStaff() {
 
               <div className="role-permissions-info">
                 <h4>Role Permissions:</h4>
-                {formData.role === 'admin' && <p>✓ Full access to all features</p>}
-                {formData.role === 'manager' && <p>✓ Manage quotations, orders, and customers</p>}
-                {formData.role === 'sales_staff' && <p>✓ Create quotations and orders for walk-in customers</p>}
-                {formData.role === 'inventory_staff' && <p>✓ Manage products and inventory</p>}
+                <div>
+                  <p><strong>✓ All staff members have full access to all features:</strong></p>
+                  <p>✓ Create and manage quotations and orders</p>
+                  <p>✓ Manage products, categories, and inventory</p>
+                  <p>✓ Manage contacts and customers</p>
+                  <p>✓ Manage staff and settings</p>
+                  <p>✓ View all reports and data</p>
+                </div>
               </div>
 
               <div className="modal-footer">

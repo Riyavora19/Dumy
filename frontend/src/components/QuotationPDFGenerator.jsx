@@ -52,6 +52,158 @@ async function loadImageAsBase64(url) {
   }
 }
 
+/** Draw header on page */
+function drawHeader(doc, logoBase64, pageWidth, pageHeight) {
+  const marginLeft = 5;
+  const marginRight = 5;
+  let yPos = 5;
+
+  // Line 1: TILES | CP FITTING | SANITARY | BATHTUB (Blue, Bold, 10pt)
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(37, 99, 235);
+  doc.text('TILES | CP FITTING | SANITARY | BATHTUB', marginLeft, yPos);
+  
+  yPos += 5;
+  
+  // Line 2: Address line 1 (Black, Bold, 9pt)
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('104-105-106, Iscon Plaza, Opp. Star India Bazar,', marginLeft, yPos);
+  
+  yPos += 4.5;
+  
+  // Line 3: Address line 2 (Black, Bold, 9pt)
+  doc.text('Satellite Road, Ahmedabad - 380 015', marginLeft, yPos);
+  
+  yPos += 4.5;
+  const phoneLineY = yPos;
+  
+  // Line 4: Phone and Email (Black, Bold, 9pt)
+  doc.text('Phone: 92272 06063 | Email: gtts47@gmail.com', marginLeft, yPos);
+  
+  yPos += 4.5;
+  const helplineY = yPos;
+  
+  // Line 5: Helpline (Red, Bold, 9pt)
+  doc.setTextColor(255, 0, 0);
+  doc.text('Helpline: 079-2692 0609 / 4006 6063', marginLeft, yPos);
+
+  // Calculate "Sanitary Stores" width to determine logo width
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  const sanitaryStoresText = 'Sanitary Stores';
+  const sanitaryStoresWidth = doc.getTextWidth(sanitaryStoresText);
+
+  // Right side - Logo
+  if (logoBase64) {
+    const logoHeight = phoneLineY - 5 + 3;
+    const logoWidth = sanitaryStoresWidth * 0.5;
+    const logoX = pageWidth - marginRight - logoWidth;
+    const logoY = 5 - 2;
+    try {
+      doc.addImage(logoBase64, 'PNG', logoX, logoY, logoWidth, logoHeight);
+    } catch (e) {
+      console.error('Error adding logo:', e);
+    }
+  }
+
+  // Company name (Black, Bold, 14pt, aligned with helpline)
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  const companyName = 'Gujarat Tube & Sanitary Stores';
+  const companyNameWidth = doc.getTextWidth(companyName);
+  doc.text(companyName, pageWidth - marginRight - companyNameWidth, helplineY);
+
+  yPos += 3;
+
+  // Line above QUOTATION
+  doc.setDrawColor(200, 200, 200);
+  doc.line(marginLeft, yPos, pageWidth - marginRight, yPos);
+  
+  yPos += 5;
+  
+  // QUOTATION text
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  const title = 'QUOTATION';
+  const titleWidth = doc.getTextWidth(title);
+  doc.text(title, (pageWidth - titleWidth) / 2, yPos);
+  
+  yPos += 2;
+  
+  // Line below QUOTATION
+  doc.setDrawColor(200, 200, 200);
+  doc.line(marginLeft, yPos, pageWidth - marginRight, yPos);
+  
+  yPos += 3;
+  
+  return yPos; // Return Y position after header (around 40mm)
+}
+
+/** Draw footer on page */
+function drawFooter(doc, pageWidth, pageHeight) {
+  const footerStartY = pageHeight - 30;
+  
+  // Company logos section (25mm height) - NO HEADER TEXT
+  doc.setFillColor(249, 249, 249);
+  doc.rect(0, footerStartY, pageWidth, 25, 'F');
+  
+  // Company logos grid - SMALLER WIDTH to prevent stretching
+  const logos = [
+    'Artize.png', 'Duravit.png', 'Jaguar.png', 'Johnson.png',
+    'Kajaria.png', 'Kohler.png', 'Milagro.png', 'Parryware.png',
+    'Qutone.png', 'Simero.png', 'Simpolo.png', 'TrueBlock.png', 'Woven.png'
+  ];
+  
+  const logosPerRow = 7;
+  const logoWidth = 15; // Reduced from 20 to 15 to prevent stretching
+  const logoHeight = 8;
+  const logoSpacing = 6;
+  const startY = footerStartY + 5; // Start higher since no header text
+  
+  // First row (7 logos)
+  const firstRowStartX = (pageWidth - (logosPerRow * logoWidth + (logosPerRow - 1) * logoSpacing)) / 2;
+  for (let i = 0; i < 7; i++) {
+    const logoPath = `/company-logos/${logos[i]}`;
+    const xPos = firstRowStartX + i * (logoWidth + logoSpacing);
+    try {
+      doc.addImage(logoPath, 'PNG', xPos, startY, logoWidth, logoHeight);
+    } catch (err) {
+      console.warn(`Failed to load logo: ${logos[i]}`);
+    }
+  }
+  
+  // Second row (6 logos)
+  const secondRowLogos = 6;
+  const secondRowStartX = (pageWidth - (secondRowLogos * logoWidth + (secondRowLogos - 1) * logoSpacing)) / 2;
+  for (let i = 7; i < 13; i++) {
+    const logoPath = `/company-logos/${logos[i]}`;
+    const xPos = secondRowStartX + (i - 7) * (logoWidth + logoSpacing);
+    try {
+      doc.addImage(logoPath, 'PNG', xPos, startY + logoHeight + 2, logoWidth, logoHeight);
+    } catch (err) {
+      console.warn(`Failed to load logo: ${logos[i]}`);
+    }
+  }
+  
+  // Bottom footer bar (5mm margin from bottom)
+  doc.setFillColor(44, 62, 80);
+  doc.rect(0, pageHeight - 5, pageWidth, 5, 'F');
+  doc.setFontSize(6);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(255, 255, 255);
+  const footerText = `Thank you for your business! | Generated on ${new Date().toLocaleString('en-IN')}`;
+  const footerWidth = doc.getTextWidth(footerText);
+  doc.text(footerText, (pageWidth - footerWidth) / 2, pageHeight - 2);
+  
+  return footerStartY; // Return Y position where footer starts
+}
+
 // ─── Single PDF Generator (for one room or all rooms) ──────────────────────
 
 async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber = null) {
@@ -312,9 +464,24 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
 
   yPos = boxStartY + boxHeight + 5;
 
+  // Draw footer on first page (before any autoTable)
+  drawFooter(doc, pageWidth, pageHeight);
+
   // ─── PRODUCTS TABLES ──────────────────────────────────────────────────────
 
   for (const room of enrichedRooms) {
+    // Check if we need a new page for this room
+    // If less than 50mm space remaining, start new page
+    const spaceNeeded = 50; // Room title + header rows + at least 2 product rows
+    const spaceRemaining = (pageHeight - 35) - yPos; // 35mm reserved for footer
+    
+    if (spaceRemaining < spaceNeeded) {
+      doc.addPage();
+      // Draw header and footer on new page
+      yPos = drawHeader(doc, logoBase64, pageWidth, pageHeight);
+      drawFooter(doc, pageWidth, pageHeight);
+    }
+    
     // Room title
     doc.setFillColor(229, 231, 235);
     doc.rect(marginLeft, yPos, pageWidth - marginLeft - marginRight, 7, 'F');
@@ -390,35 +557,44 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     const availableWidth = pageWidth - marginLeft - marginRight;
     doc.autoTable({
       startY: yPos,
-      margin: { left: marginLeft, right: marginRight },
+      margin: { left: marginLeft, right: marginRight, top: 40, bottom: 35 }, // Reserve space for header/footer
       head: [['SR', 'AREA', 'IMAGE', 'ITEM', 'QTY', 'MRP', 'YOUR PRICE', 'TOTAL']],
       body: tableData,
       theme: 'grid',
-      tableWidth: availableWidth, // Force table to use full available width
+      tableWidth: availableWidth,
+      rowPageBreak: 'avoid', // Prevent rows from breaking across pages
       styles: {
         fontSize: 8,
         cellPadding: 2,
-        lineColor: [200, 200, 200], // Light gray border
+        lineColor: [200, 200, 200],
         lineWidth: 0.1,
       },
       headStyles: {
         fillColor: [249, 249, 249],
-        textColor: [50, 50, 50], // Darker gray text
+        textColor: [50, 50, 50],
         fontStyle: 'bold',
         halign: 'center',
-        fontSize: 9, // Increased from 8 to 9
-        lineColor: [200, 200, 200], // Light gray border for header
+        fontSize: 9,
+        lineColor: [200, 200, 200],
       },
       columnStyles: {
-        0: { cellWidth: availableWidth * 0.05, halign: 'center' },  // SR - 5%
-        1: { cellWidth: availableWidth * 0.10, halign: 'center', valign: 'middle' },  // AREA - 10%
-        2: { cellWidth: availableWidth * 0.12, halign: 'center' },  // IMAGE - 12%
-        3: { cellWidth: availableWidth * 0.28, halign: 'left' },    // ITEM - 28%
-        4: { cellWidth: availableWidth * 0.07, halign: 'center' },  // QTY - 7%
-        5: { cellWidth: availableWidth * 0.12, halign: 'center' },  // MRP - 12%
-        6: { cellWidth: availableWidth * 0.13, halign: 'center' },  // YOUR PRICE - 13%
-        7: { cellWidth: availableWidth * 0.13, halign: 'right' },   // TOTAL - 13%
+        0: { cellWidth: availableWidth * 0.05, halign: 'center' },
+        1: { cellWidth: availableWidth * 0.10, halign: 'center', valign: 'middle' },
+        2: { cellWidth: availableWidth * 0.12, halign: 'center' },
+        3: { cellWidth: availableWidth * 0.28, halign: 'left' },
+        4: { cellWidth: availableWidth * 0.07, halign: 'center' },
+        5: { cellWidth: availableWidth * 0.12, halign: 'center' },
+        6: { cellWidth: availableWidth * 0.13, halign: 'center' },
+        7: { cellWidth: availableWidth * 0.13, halign: 'right' },
       },
+      didDrawPage: function(data) {
+        // Draw header on pages after the first
+        if (data.pageNumber > 1) {
+          drawHeader(doc, logoBase64, pageWidth, pageHeight);
+        }
+        // Draw footer on ALL pages including first page
+        drawFooter(doc, pageWidth, pageHeight);
+      }
     });
 
     yPos = doc.lastAutoTable.finalY + 5;
@@ -449,6 +625,16 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
   // ─── SUMMARY TABLE (if multiple rooms) ───────────────────────────────────
 
   if (enrichedRooms.length > 1) {
+    // Check if we need a new page for summary
+    const spaceNeeded = 40; // Space for summary table
+    const spaceRemaining = (pageHeight - 35) - yPos;
+    
+    if (spaceRemaining < spaceNeeded) {
+      doc.addPage();
+      yPos = drawHeader(doc, logoBase64, pageWidth, pageHeight);
+      drawFooter(doc, pageWidth, pageHeight);
+    }
+    
     // Summary title with gray background (same style as room titles)
     doc.setFillColor(229, 231, 235);
     doc.rect(marginLeft, yPos, pageWidth - marginLeft - marginRight, 7, 'F');
@@ -475,7 +661,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     const summaryAvailableWidth = pageWidth - marginLeft - marginRight;
     doc.autoTable({
       startY: yPos,
-      margin: { left: marginLeft, right: marginRight },
+      margin: { left: marginLeft, right: marginRight, top: 40, bottom: 35 },
       head: [['SR.NO.', 'BATHROOM', 'AMOUNT']],
       body: summaryData,
       theme: 'grid',
@@ -483,7 +669,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
       styles: {
         fontSize: 8,
         cellPadding: 2,
-        lineColor: [200, 200, 200], // Light gray border
+        lineColor: [200, 200, 200],
         lineWidth: 0.1,
       },
       headStyles: {
@@ -492,19 +678,35 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         fontStyle: 'bold',
         halign: 'center',
         fontSize: 9,
-        lineColor: [200, 200, 200], // Light gray border for header
+        lineColor: [200, 200, 200],
       },
       columnStyles: {
-        0: { cellWidth: summaryAvailableWidth * 0.15, halign: 'center' },  // SR.NO. - 15%
-        1: { cellWidth: summaryAvailableWidth * 0.60, halign: 'center' },  // BATHROOM - 60%
-        2: { cellWidth: summaryAvailableWidth * 0.25, halign: 'right' },   // AMOUNT - 25%
+        0: { cellWidth: summaryAvailableWidth * 0.15, halign: 'center' },
+        1: { cellWidth: summaryAvailableWidth * 0.60, halign: 'center' },
+        2: { cellWidth: summaryAvailableWidth * 0.25, halign: 'right' },
       },
+      didDrawPage: function(data) {
+        if (data.pageNumber > 1) {
+          drawHeader(doc, logoBase64, pageWidth, pageHeight);
+        }
+        drawFooter(doc, pageWidth, pageHeight);
+      }
     });
 
     yPos = doc.lastAutoTable.finalY + 5;
   }
 
   // ─── TERMS & CONDITIONS ───────────────────────────────────────────────────
+
+  // Check if we need a new page for terms
+  const termsSpaceNeeded = 30; // Space for terms section
+  const termsSpaceRemaining = (pageHeight - 35) - yPos;
+  
+  if (termsSpaceRemaining < termsSpaceNeeded) {
+    doc.addPage();
+    yPos = drawHeader(doc, logoBase64, pageWidth, pageHeight);
+    drawFooter(doc, pageWidth, pageHeight);
+  }
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
@@ -543,69 +745,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     doc.text(adminPhone, pageWidth - marginRight - 40, creatorY + 8);
   }
 
-  // ─── FOOTER (25mm space for company logos + 5mm bottom margin) ───────────
-
-  // Footer starts 30mm from bottom (25mm footer + 5mm margin)
-  const footerStartY = pageHeight - 30;
-  
-  // Company logos section (25mm height)
-  doc.setFillColor(249, 249, 249);
-  doc.rect(0, footerStartY, pageWidth, 25, 'F');
-  
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0);
-  const companiesText = 'COMPANIES WE SERVE';
-  const companiesTextWidth = doc.getTextWidth(companiesText);
-  doc.text(companiesText, (pageWidth - companiesTextWidth) / 2, footerStartY + 5);
-  
-  // Company logos grid
-  const logos = [
-    'Artize.png', 'Duravit.png', 'Jaguar.png', 'Johnson.png',
-    'Kajaria.png', 'Kohler.png', 'Milagro.png', 'Parryware.png',
-    'Qutone.png', 'Simero.png', 'Simpolo.png', 'TrueBlock.png', 'Woven.png'
-  ];
-  
-  const logosPerRow = 7; // 7 logos in first row, 6 in second row
-  const logoWidth = 20;
-  const logoHeight = 8;
-  const logoSpacing = 6;
-  const startY = footerStartY + 8;
-  
-  // First row (7 logos)
-  const firstRowStartX = (pageWidth - (logosPerRow * logoWidth + (logosPerRow - 1) * logoSpacing)) / 2;
-  for (let i = 0; i < 7; i++) {
-    const logoPath = `/company-logos/${logos[i]}`;
-    const xPos = firstRowStartX + i * (logoWidth + logoSpacing);
-    try {
-      doc.addImage(logoPath, 'PNG', xPos, startY, logoWidth, logoHeight);
-    } catch (err) {
-      console.warn(`Failed to load logo: ${logos[i]}`);
-    }
-  }
-  
-  // Second row (6 logos)
-  const secondRowLogos = 6;
-  const secondRowStartX = (pageWidth - (secondRowLogos * logoWidth + (secondRowLogos - 1) * logoSpacing)) / 2;
-  for (let i = 7; i < 13; i++) {
-    const logoPath = `/company-logos/${logos[i]}`;
-    const xPos = secondRowStartX + (i - 7) * (logoWidth + logoSpacing);
-    try {
-      doc.addImage(logoPath, 'PNG', xPos, startY + logoHeight + 2, logoWidth, logoHeight);
-    } catch (err) {
-      console.warn(`Failed to load logo: ${logos[i]}`);
-    }
-  }
-  
-  // Bottom footer bar (5mm margin from bottom)
-  doc.setFillColor(44, 62, 80);
-  doc.rect(0, pageHeight - 5, pageWidth, 5, 'F');
-  doc.setFontSize(6);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(255, 255, 255);
-  const footerText = `Thank you for your business! | Generated on ${new Date().toLocaleString('en-IN')}`;
-  const footerWidth = doc.getTextWidth(footerText);
-  doc.text(footerText, (pageWidth - footerWidth) / 2, pageHeight - 2);
+  // Footer is now drawn by didDrawPage callback on all pages
 
   // ─── SAVE PDF ─────────────────────────────────────────────────────────────
 

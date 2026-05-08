@@ -79,14 +79,14 @@ const StaffLogin = () => {
           )}
 
           <div className="staff-login__field">
-            <label>Email Address</label>
+            <label>Email or Staff ID</label>
             <input
-              type="email"
+              type="text"
               name="email"
               value={formData.email}
               onChange={handleChange}
               required
-              placeholder="staff@example.com"
+              placeholder="staff@example.com or GTSS001"
               autoComplete="email"
             />
           </div>

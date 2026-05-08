@@ -1,3 +1,14 @@
+/* Import Eurostile Bold Extended font (using similar web-safe alternative) */
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@800;900&display=swap');
+
+/* Global company name styling */
+.company-name {
+  font-family: 'Exo 2', 'Arial Black', sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
 :root {
   font: 16px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
   color: #333;
