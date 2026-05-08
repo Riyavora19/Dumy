@@ -251,6 +251,18 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
   const clientName = clientData.companyName || clientData.customerName || '-';
   doc.text(`TO: ${clientName}`, marginLeft + 3, clientYPos);
   
+  // Project Location (centered, aligned with first line)
+  const projectLocation = clientData.projectLocation || '';
+  if (projectLocation) {
+    const centerX = pageWidth / 2;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    const projectText = `Project Location: ${projectLocation}`;
+    const projectWidth = doc.getTextWidth(projectText);
+    doc.text(projectText, centerX - projectWidth / 2, clientYPos);
+  }
+  
   clientYPos += 4;
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
@@ -268,28 +280,13 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     clientYPos += 4;
   }
   
-  const clientPhone = clientData.phone || clientData.customerPhone || '';
+  const clientPhone = clientData.mobileNumber || clientData.phone || clientData.customerPhone || '';
   if (clientPhone) {
     doc.text(`Phone Number: ${clientPhone}`, marginLeft + 3, clientYPos);
     clientYPos += 4;
   }
   
   doc.text(`GST Number: ${clientData.gstNumber || clientData.customerGST || '-'}`, marginLeft + 3, clientYPos);
-  
-  // Project Location (centered between left and right sections)
-  const projectLocation = clientData.projectLocation || '';
-  if (projectLocation) {
-    const centerX = pageWidth / 2;
-    const projectLocationY = boxStartY + 12; // Vertically centered in the box
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text('Project Location:', centerX, projectLocationY, { align: 'center' });
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(102, 102, 102);
-    doc.text(projectLocation, centerX, projectLocationY + 4, { align: 'center' });
-  }
 
   // Right side - Date, Reference Number, Atten
   let rightYPos = boxStartY + 5;
@@ -304,7 +301,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
   
   rightYPos += 4;
   doc.setFont('helvetica', 'normal');
-  const refText = `Reference Number: ${displayQuotationNumber}`;
+  const refText = `Rf No.: ${displayQuotationNumber}`;
   const refWidth = doc.getTextWidth(refText);
   doc.text(refText, pageWidth - marginRight - refWidth - 3, rightYPos);
   
@@ -313,7 +310,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
   const attenWidth = doc.getTextWidth(attenText);
   doc.text(attenText, pageWidth - marginRight - attenWidth - 3, rightYPos);
 
-  yPos = boxStartY + boxHeight + 8;
+  yPos = boxStartY + boxHeight + 5;
 
   // ─── PRODUCTS TABLES ──────────────────────────────────────────────────────
 
