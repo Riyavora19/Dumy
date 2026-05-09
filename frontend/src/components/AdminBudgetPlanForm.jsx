@@ -586,15 +586,67 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   const filterProducts = () => {
     let filtered = [...allProducts];
 
-    // Filter by search query
+    // Filter by search query — also checks itemType name for suggestion chip matches
     if (productSearchQuery.trim()) {
       const query = productSearchQuery.toLowerCase();
-      filtered = filtered.filter(product =>
-        (product.name && product.name.toLowerCase().includes(query)) ||
-        (product.variant && product.variant.toLowerCase().includes(query)) ||
-        (product.company?.name && product.company.name.toLowerCase().includes(query)) ||
-        (product.itemTypeName && product.itemTypeName.toLowerCase().includes(query))
-      );
+
+      // Build a keyword map: suggestion label → keywords to match in product fields
+      const suggestionKeywords = {
+        'table top basin': ['table top', 'countertop basin', 'vessel', 'table top basin'],
+        'wall hung basin': ['wall hung basin', 'wall mount basin', 'wall hung wash'],
+        'pedestal basin': ['pedestal', 'full pedestal', 'half pedestal'],
+        'basin mixer': ['basin mixer', 'basin tap', 'basin faucet', 'pillar cock', 'pillar tap', 'mono bloc', 'single lever'],
+        'led mirror': ['led mirror', 'backlit mirror', 'illuminated mirror', 'smart mirror'],
+        'mirror': ['mirror'],
+        'vanity unit': ['vanity', 'vanity unit', 'vanity cabinet'],
+        'rain shower': ['rain shower', 'overhead shower', 'ceiling shower'],
+        'hand shower': ['hand shower', 'hand held shower'],
+        'shower mixer': ['shower mixer', 'shower valve', 'diverter'],
+        'shower panel': ['shower panel', 'shower column', 'shower tower', 'shower system'],
+        'one piece': ['one piece', 'one-piece', '1 piece'],
+        'two piece': ['two piece', 'two-piece', '2 piece', 'flush tank'],
+        'wall hung toilet': ['wall hung toilet', 'wall hung wc', 'concealed cistern', 'flush plate'],
+        'health faucet': ['health faucet', 'bidet'],
+        'flush plate': ['flush plate', 'flush button'],
+        'smart toilet': ['smart toilet', 'intelligent toilet'],
+        'sensor faucet': ['sensor', 'touchless', 'automatic tap'],
+        'angle valve': ['angle valve', 'stop cock', 'ball valve'],
+        'bathtub': ['bathtub', 'bath tub'],
+        'jacuzzi': ['jacuzzi', 'whirlpool', 'spa bath'],
+        'urinal': ['urinal'],
+        'floor tiles': ['floor tile', 'flooring'],
+        'wall tiles': ['wall tile', 'ceramic tile', 'porcelain', 'vitrified', 'tile'],
+      };
+
+      // Check if the query matches a known suggestion label
+      const knownKeywords = suggestionKeywords[query];
+
+      filtered = filtered.filter(product => {
+        const searchText = [
+          product.name || '',
+          product.variant || '',
+          product.itemTypeName || '',
+          // also check the populated itemType name
+          (typeof product.itemType === 'object' && product.itemType?.name) ? product.itemType.name : '',
+          product.broadCategory || '',
+          product.cat || '',
+        ].join(' ').toLowerCase();
+
+        if (knownKeywords) {
+          // Match by item type name first (most reliable)
+          const itemTypeName = [
+            product.itemTypeName || '',
+            (typeof product.itemType === 'object' && product.itemType?.name) ? product.itemType.name : ''
+          ].join(' ').toLowerCase();
+
+          if (itemTypeName && knownKeywords.some(kw => itemTypeName.includes(kw))) return true;
+          // Fallback: keyword match on full text
+          return knownKeywords.some(kw => searchText.includes(kw));
+        }
+
+        // Regular free-text search
+        return searchText.includes(query);
+      });
     }
 
     // Filter by category
@@ -608,13 +660,16 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     if (formData.currentArea !== 'all') {
       const currentRoom = getCurrentRoom();
       const roomName = currentRoom ? currentRoom.name : null;
-      
-      // Get area-specific keywords based on room type (or general if no room)
       const areaKeywords = getAreaKeywords(roomName, formData.currentArea);
 
       if (areaKeywords.length > 0) {
         filtered = filtered.filter(product => {
-          const searchText = `${product.name || ''} ${product.variant || ''} ${product.itemTypeName || ''}`.toLowerCase();
+          const searchText = [
+            product.name || '',
+            product.variant || '',
+            product.itemTypeName || '',
+            (typeof product.itemType === 'object' && product.itemType?.name) ? product.itemType.name : '',
+          ].join(' ').toLowerCase();
           return areaKeywords.some(keyword => searchText.includes(keyword));
         });
       }
@@ -624,35 +679,43 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   };
 
   // Get keywords for filtering products based on room type and area
+  // Also maps area → item type names for reliable matching
   const getAreaKeywords = (roomName, areaId) => {
     const areaKeywords = {
       shower: [
-        'shower', 'rain', 'hand shower', 'overhead', 'shower head', 'shower panel',
-        'shower column', 'shower tower', 'shower system', 'shower mixer', 'diverter',
+        // item type names
+        'shower head', 'rain shower', 'shower panel',
+        // product name keywords
+        'shower', 'rain', 'hand shower', 'overhead', 'shower mixer', 'diverter',
         'spray', 'body jet', 'body spray', 'shower arm', 'sliding rail', 'slide rail',
         'shower drain', 'shower tray', 'shower enclosure', 'shower cabin', 'shower door',
         'shower screen', 'shower curtain', 'shower hose', 'shower bracket', 'shower holder',
-        'bath spout', 'bath mixer', 'bath filler'
+        'bath spout', 'bath mixer', 'bath filler', 'bathtub', 'freestanding bathtub', 'jacuzzi'
       ],
       basin: [
+        // item type names
+        'basin faucet', 'table top basin', 'wall hung basin', 'pedestal basin',
+        'sensor faucet', 'led mirror', 'smart mirror', 'vanity cabinet', 'wall cabinet',
+        // product name keywords
         'basin', 'washbasin', 'wash basin', 'sink', 'lavatory', 'faucet', 'tap', 'mixer',
-        'pillar cock', 'pillar tap', 'counter', 'vanity', 'cabinet', 'mirror', 'led mirror',
-        'sensor tap', 'sensor faucet', 'touchless', 'angle valve', 'stop cock', 'waste coupling',
+        'pillar cock', 'pillar tap', 'counter', 'vanity', 'cabinet', 'mirror',
+        'sensor tap', 'touchless', 'angle valve', 'stop cock', 'waste coupling',
         'bottle trap', 'p-trap', 'drain', 'strainer', 'aerator', 'soap dispenser', 'soap dish',
         'towel bar', 'towel ring', 'towel rack', 'robe hook', 'toilet paper holder',
         'paper holder', 'tumbler', 'toothbrush', 'grab bar', 'accessories', 'accessory',
         'o-ring', 'oring', 'washer', 'screw', 'nut', 'bolt', 'spring', 'clip', 'seal',
         'gasket', 'fitting', 'connector', 'adapter', 'elbow', 'tee', 'reducer', 'coupling',
-        'nipple', 'flange', 'bracket', 'anchor', 'aspirator', 'strainer'
+        'nipple', 'flange', 'bracket', 'anchor', 'aspirator', 'spud', 'combo pack'
       ],
       wc: [
+        // item type names
+        'one piece toilet', 'two piece toilet', 'wall hung toilet', 'smart toilet',
+        // product name keywords
         'toilet', 'wc', 'commode', 'closet', 'flush', 'seat', 'cistern', 'tank', 'bowl',
-        'bidet', 'health faucet', 'one piece', 'two piece', 'wall hung toilet', 'smart toilet',
-        'flush plate', 'concealed cistern', 'urinal spud', 'seat cover'
+        'bidet', 'health faucet', 'one piece', 'two piece', 'flush plate', 'seat cover'
       ],
       urinal: [
-        'urinal', 'urinals', 'wall hung urinal', 'floor mounted urinal', 'sensor urinal',
-        'waterless', 'spreader', 'flush valve', 'partition'
+        'urinal', 'urinals', 'flush valve', 'partition', 'spreader', 'waterless'
       ]
     };
     return areaKeywords[areaId] || [];
