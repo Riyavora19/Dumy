@@ -260,7 +260,50 @@ const AdminProducts = () => {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    setSelectedFiles(files);
+    setSelectedFiles(prev => {
+      const combined = [...prev, ...files];
+      return combined.slice(0, 10); // max 10
+    });
+  };
+
+  // Drag & drop handlers for product image upload
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length === 0) return;
+    setSelectedFiles(prev => [...prev, ...files].slice(0, 10));
+  };
+
+  // Paste handler — captures Ctrl+V image paste
+  const handlePaste = (e) => {
+    const items = Array.from(e.clipboardData?.items || []);
+    const imageFiles = items
+      .filter(item => item.type.startsWith('image/'))
+      .map(item => item.getAsFile())
+      .filter(Boolean);
+    if (imageFiles.length === 0) return;
+    setSelectedFiles(prev => [...prev, ...imageFiles].slice(0, 10));
+    showNotification(`${imageFiles.length} image(s) pasted!`, 'success');
+  };
+
+  const removeSelectedFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -1838,15 +1881,29 @@ const AdminProducts = () => {
 
               <div className="admin-products__field">
                 <label>Product Images * {editingProduct && '(Add more images)'}</label>
-                <div className="admin-products__upload-options">
-                  <div className="admin-products__upload-option">
-                    <label className="admin-products__upload-label">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" y1="3" x2="12" y2="15"/>
-                      </svg>
-                      <span>Select Multiple Images</span>
+                <div
+                  className={`admin-products__drop-zone ${isDragging ? 'admin-products__drop-zone--active' : ''}`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onPaste={handlePaste}
+                  tabIndex={0}
+                  onFocus={() => {}}
+                >
+                  <div className="admin-products__drop-zone-inner">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    <p className="admin-products__drop-title">
+                      {isDragging ? 'Drop images here' : 'Drag & drop images here'}
+                    </p>
+                    <p className="admin-products__drop-sub">
+                      or paste with <kbd>Ctrl+V</kbd> · or click to browse
+                    </p>
+                    <label className="admin-products__drop-browse-btn">
+                      Browse Files
                       <input
                         type="file"
                         accept="image/*"
@@ -1857,12 +1914,28 @@ const AdminProducts = () => {
                     </label>
                   </div>
                 </div>
-                <small>Select multiple images at once (Max 10 images, 5MB each)</small>
+                <small>Max 10 images · 5MB each · JPG, PNG, WEBP</small>
+
                 {selectedFiles.length > 0 && (
-                  <div className="admin-products__file-list">
-                    <strong>{selectedFiles.length} file(s) selected:</strong>
+                  <div className="admin-products__image-preview-grid">
                     {selectedFiles.map((file, index) => (
-                      <span key={index}>📷 {file.name}</span>
+                      <div key={index} className="admin-products__image-preview-item">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={file.name}
+                        />
+                        <button
+                          type="button"
+                          className="admin-products__image-preview-remove"
+                          onClick={() => removeSelectedFile(index)}
+                          title="Remove"
+                        >
+                          ×
+                        </button>
+                        <span className="admin-products__image-preview-name">
+                          {file.name.length > 14 ? file.name.slice(0, 12) + '…' : file.name}
+                        </span>
+                      </div>
                     ))}
                   </div>
                 )}

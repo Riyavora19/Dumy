@@ -1220,3 +1220,141 @@
   color: #fff;
   border-color: #1e40af;
 }
+
+/* ── Drag & Drop / Paste Image Upload Zone ─────────────────────────── */
+.admin-products__drop-zone {
+  border: 2px dashed #c7d2fe;
+  border-radius: 12px;
+  background: #f8faff;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  outline: none;
+}
+
+.admin-products__drop-zone:focus,
+.admin-products__drop-zone:hover {
+  border-color: #6366f1;
+  background: #eef2ff;
+}
+
+.admin-products__drop-zone--active {
+  border-color: #4f46e5;
+  background: #e0e7ff;
+  transform: scale(1.01);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+.admin-products__drop-zone-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  gap: 8px;
+  text-align: center;
+}
+
+.admin-products__drop-zone-inner svg {
+  color: #6366f1;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.admin-products__drop-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.admin-products__drop-sub {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.admin-products__drop-sub kbd {
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 12px;
+  font-family: monospace;
+  color: #374151;
+}
+
+.admin-products__drop-browse-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 20px;
+  background: #4f46e5;
+  color: white;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.admin-products__drop-browse-btn:hover {
+  background: #4338ca;
+}
+
+/* Image preview thumbnails */
+.admin-products__image-preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.admin-products__image-preview-item {
+  position: relative;
+  width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-products__image-preview-item img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+}
+
+.admin-products__image-preview-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.2s;
+}
+
+.admin-products__image-preview-remove:hover {
+  background: #dc2626;
+}
+
+.admin-products__image-preview-name {
+  font-size: 10px;
+  color: #6b7280;
+  text-align: center;
+  word-break: break-all;
+  max-width: 80px;
+}
