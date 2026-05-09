@@ -18,7 +18,7 @@
   font-size: 14px;
   color: #666;
   position: sticky;
-  top: 100px;
+  top: 70px;
   background: #f7f8fa;
   padding: 10px 0;
   z-index: 10;
@@ -42,7 +42,7 @@
 .product-variants__header {
   margin-bottom: 30px;
   position: sticky;
-  top: 140px;
+  top: 110px;
   background: #f7f8fa;
   padding: 10px 0 20px;
   z-index: 10;
@@ -91,9 +91,9 @@
   padding: 24px;
   border-radius: 12px;
   height: fit-content;
-  max-height: calc(100vh - 320px);
+  max-height: calc(100vh - 280px);
   position: sticky;
-  top: 240px;
+  top: 200px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow-y: auto;
 }

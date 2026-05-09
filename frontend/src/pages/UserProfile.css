@@ -379,3 +379,35 @@
 
 
 
+
+@media (max-width: 480px) {
+  .user-profile {
+    padding: 0.75rem;
+  }
+
+  .user-profile__header {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .user-profile__header-info h1 {
+    font-size: 1.4rem;
+  }
+
+  .user-profile__section {
+    padding: 1.25rem;
+  }
+
+  .user-profile__field input {
+    font-size: 16px; /* Prevents iOS zoom */
+  }
+
+  .user-profile__info-item {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .user-profile__info-item strong {
+    min-width: unset;
+  }
+}

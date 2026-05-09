@@ -159,3 +159,25 @@
 
 
 
+
+@media (max-width: 480px) {
+  .budget-planner-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .planner-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .room-template-card {
+    padding: 1.25rem;
+  }
+
+  .room-template-card h3 {
+    font-size: 1.2rem;
+  }
+
+  .template-icon {
+    font-size: 3rem;
+  }
+}

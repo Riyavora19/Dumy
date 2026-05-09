@@ -538,3 +538,41 @@
 
 
 
+
+@media (max-width: 480px) {
+  .cart {
+    padding: 24px 12px;
+  }
+
+  .cart__header h1 {
+    font-size: 26px;
+  }
+
+  .cart__item {
+    grid-template-columns: 70px 1fr;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .cart__item-image {
+    width: 70px;
+    height: 70px;
+  }
+
+  .cart__item-details h3 {
+    font-size: 15px;
+  }
+
+  .cart__item-price {
+    font-size: 16px;
+  }
+
+  .cart__summary-card {
+    padding: 16px;
+  }
+
+  .cart__form-field input,
+  .cart__form-field textarea {
+    font-size: 16px; /* Prevents iOS zoom */
+  }
+}

@@ -417,3 +417,34 @@
 
 
 
+
+@media (max-width: 480px) {
+  .budget-builder-page {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .header-content h1 {
+    font-size: 1.3rem;
+  }
+
+  .budget-amount {
+    font-size: 1.75rem;
+  }
+
+  .products-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .product-image {
+    height: 130px;
+  }
+
+  .summary-card {
+    padding: 1.25rem;
+  }
+
+  .item-recommendation {
+    padding: 1.25rem;
+  }
+}

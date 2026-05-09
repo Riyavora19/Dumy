@@ -320,3 +320,30 @@
 
 
 
+
+@media (max-width: 480px) {
+  .category-products {
+    padding: 20px 12px 40px;
+  }
+
+  .category-products__category-info h1 {
+    font-size: 20px;
+  }
+
+  .category-products__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .category-products__content {
+    padding: 12px;
+  }
+
+  .category-products__content h3 {
+    font-size: 14px;
+  }
+
+  .category-products__price {
+    font-size: 18px;
+  }
+}

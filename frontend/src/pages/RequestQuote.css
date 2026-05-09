@@ -242,3 +242,28 @@
 
 
 
+
+@media (max-width: 480px) {
+  .request-quote-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .request-quote-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .request-quote-form {
+    padding: 1.25rem;
+  }
+
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    font-size: 16px; /* Prevents iOS zoom */
+  }
+
+  .submit-btn {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+}
