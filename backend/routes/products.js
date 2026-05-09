@@ -4,6 +4,21 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Product = require('../models/Product');
+const Company = require('../models/Company');
+
+// Helper: when a product links a company + category, add that category to the company's categories array
+const linkCompanyToCategory = async (companyId, categoryId) => {
+  if (!companyId || !categoryId) return;
+  try {
+    await Company.findByIdAndUpdate(
+      companyId,
+      { $addToSet: { categories: categoryId } }, // $addToSet prevents duplicates
+      { new: true }
+    );
+  } catch (err) {
+    console.warn('Could not link company to category:', err.message);
+  }
+};
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -278,7 +293,8 @@ router.post('/', upload.array('images', 10), async (req, res) => {
       itemType,
       itemTypeName,
       price, 
-      sku, 
+      sku,
+      itemCode,
       stock, 
       isActive,
       variant,
@@ -290,7 +306,25 @@ router.post('/', upload.array('images', 10), async (req, res) => {
       rating,
       reviewCount,
       popularity,
-      existingImages
+      existingImages,
+      // Pricing fields
+      mrp,
+      nrp,
+      sdp,
+      npp,
+      clp,
+      effectivePriceListDate,
+      hsnCode,
+      gst,
+      // Classification fields
+      broadCategory,
+      cat,
+      subCat,
+      range,
+      segment,
+      flag,
+      channelType,
+      schemeType
     } = req.body;
 
     console.log('📦 Creating product with data:', {
@@ -339,21 +373,38 @@ router.post('/', upload.array('images', 10), async (req, res) => {
       name,
       description,
       category,
-      company: company && company.length === 24 ? company : undefined, // Only set if it's a valid ObjectId
-      companyName: company || companyName, // Use company name from Excel or form
+      company: company && company.length === 24 ? company : undefined,
+      companyName: company || companyName,
       brand,
       itemType: itemType && itemType.length === 24 ? itemType : undefined,
       itemTypeName,
       price: parseFloat(price),
       images,
       sku,
+      itemCode,
       stock: stock ? parseInt(stock) : 0,
       isActive: isActive === 'true' || isActive === true,
       variant: variant || '',
       variantDescription,
+      mrp: mrp ? parseFloat(mrp) : (originalPrice ? parseFloat(originalPrice) : parseFloat(price)),
       originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
+      nrp: nrp ? parseFloat(nrp) : undefined,
+      sdp: sdp ? parseFloat(sdp) : undefined,
+      npp: npp ? parseFloat(npp) : undefined,
+      clp: clp ? parseFloat(clp) : undefined,
+      effectivePriceListDate,
       discount: discount ? parseFloat(discount) : undefined,
       specifications: parsedSpecs,
+      hsnCode,
+      gst: gst ? parseFloat(gst) : undefined,
+      broadCategory,
+      cat,
+      subCat,
+      range,
+      segment,
+      flag,
+      channelType,
+      schemeType,
       tags: tags ? (Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim())) : [],
       rating: rating ? parseFloat(rating) : 0,
       reviewCount: reviewCount ? parseInt(reviewCount) : 0,
@@ -362,6 +413,11 @@ router.post('/', upload.array('images', 10), async (req, res) => {
 
     await product.save();
     await product.populate('category');
+
+    // Auto-link company to category so it shows in Categories > Companies column
+    if (product.company && product.category) {
+      await linkCompanyToCategory(product.company, product.category);
+    }
 
     res.status(201).json({
       success: true,
@@ -393,7 +449,8 @@ router.put('/:id', upload.array('images', 10), async (req, res) => {
       itemType,
       itemTypeName,
       price, 
-      sku, 
+      sku,
+      itemCode,
       stock, 
       isActive, 
       existingImages,
@@ -405,7 +462,25 @@ router.put('/:id', upload.array('images', 10), async (req, res) => {
       tags,
       rating,
       reviewCount,
-      popularity
+      popularity,
+      // Pricing fields
+      mrp,
+      nrp,
+      sdp,
+      npp,
+      clp,
+      effectivePriceListDate,
+      hsnCode,
+      gst,
+      // Classification fields
+      broadCategory,
+      cat,
+      subCat,
+      range,
+      segment,
+      flag,
+      channelType,
+      schemeType
     } = req.body;
 
     const product = await Product.findById(req.params.id);
@@ -440,21 +515,38 @@ router.put('/:id', upload.array('images', 10), async (req, res) => {
     product.name = name || product.name;
     product.description = description || product.description;
     product.category = category || product.category;
-    product.company = company && company.length === 24 ? company : product.company; // Only set if valid ObjectId
-    product.companyName = company || companyName || product.companyName; // Use company name from Excel or form
+    product.company = company && company.length === 24 ? company : product.company;
+    product.companyName = company || companyName || product.companyName;
     product.brand = brand !== undefined ? brand : product.brand;
     product.itemType = itemType && itemType.length === 24 ? itemType : product.itemType;
     product.itemTypeName = itemTypeName || product.itemTypeName;
     product.price = price ? parseFloat(price) : product.price;
     product.sku = sku || product.sku;
+    product.itemCode = itemCode !== undefined ? itemCode : product.itemCode;
     product.stock = stock !== undefined ? parseInt(stock) : product.stock;
     product.isActive = isActive !== undefined ? (isActive === 'true' || isActive === true) : product.isActive;
     product.images = images.length > 0 ? images : product.images;
     product.variant = variant !== undefined ? variant : product.variant;
     product.variantDescription = variantDescription || product.variantDescription;
+    product.mrp = mrp ? parseFloat(mrp) : (originalPrice ? parseFloat(originalPrice) : product.mrp);
     product.originalPrice = originalPrice ? parseFloat(originalPrice) : product.originalPrice;
+    product.nrp = nrp ? parseFloat(nrp) : product.nrp;
+    product.sdp = sdp ? parseFloat(sdp) : product.sdp;
+    product.npp = npp ? parseFloat(npp) : product.npp;
+    product.clp = clp ? parseFloat(clp) : product.clp;
+    product.effectivePriceListDate = effectivePriceListDate || product.effectivePriceListDate;
     product.discount = discount ? parseFloat(discount) : product.discount;
     product.specifications = parsedSpecs;
+    product.hsnCode = hsnCode !== undefined ? hsnCode : product.hsnCode;
+    product.gst = gst ? parseFloat(gst) : product.gst;
+    product.broadCategory = broadCategory !== undefined ? broadCategory : product.broadCategory;
+    product.cat = cat !== undefined ? cat : product.cat;
+    product.subCat = subCat !== undefined ? subCat : product.subCat;
+    product.range = range !== undefined ? range : product.range;
+    product.segment = segment !== undefined ? segment : product.segment;
+    product.flag = flag !== undefined ? flag : product.flag;
+    product.channelType = channelType !== undefined ? channelType : product.channelType;
+    product.schemeType = schemeType !== undefined ? schemeType : product.schemeType;
     product.tags = tags ? (Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim())) : product.tags;
     product.rating = rating !== undefined ? parseFloat(rating) : product.rating;
     product.reviewCount = reviewCount !== undefined ? parseInt(reviewCount) : product.reviewCount;
@@ -462,6 +554,11 @@ router.put('/:id', upload.array('images', 10), async (req, res) => {
 
     await product.save();
     await product.populate('category');
+
+    // Auto-link company to category so it shows in Categories > Companies column
+    if (product.company && product.category) {
+      await linkCompanyToCategory(product.company, product.category);
+    }
 
     res.json({
       success: true,
@@ -736,6 +833,24 @@ router.put('/:id/company-pricing', async (req, res) => {
       message: 'Failed to update company pricing',
       error: error.message
     });
+  }
+});
+
+// Sync all existing products — links each company to its product categories
+// Call once: POST /api/products/sync-company-categories
+router.post('/sync-company-categories', async (req, res) => {
+  try {
+    const products = await Product.find({ company: { $exists: true, $ne: null } });
+    let synced = 0;
+    for (const p of products) {
+      if (p.company && p.category) {
+        await linkCompanyToCategory(p.company, p.category);
+        synced++;
+      }
+    }
+    res.json({ success: true, message: `Synced ${synced} products` });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

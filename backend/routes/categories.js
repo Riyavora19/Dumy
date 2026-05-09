@@ -2,6 +2,58 @@ const express = require('express');
 const router = express.Router();
 const Category = require('../models/Category');
 
+// Find or create category by name (used during Excel import)
+router.post('/find-or-create', async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category name is required'
+      });
+    }
+
+    const trimmedName = name.trim();
+
+    // Try to find existing category (case-insensitive)
+    let category = await Category.findOne({
+      name: { $regex: new RegExp(`^${trimmedName}$`, 'i') }
+    });
+
+    if (category) {
+      return res.json({
+        success: true,
+        created: false,
+        data: category
+      });
+    }
+
+    // Create new category with just the name
+    category = new Category({
+      name: trimmedName,
+      icon: '📦',
+      color: '#d6e4f0',
+      isActive: true
+    });
+
+    await category.save();
+
+    res.status(201).json({
+      success: true,
+      created: true,
+      data: category
+    });
+  } catch (error) {
+    console.error('Error in find-or-create category:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to find or create category',
+      error: error.message
+    });
+  }
+});
+
 // Get all categories
 router.get('/', async (req, res) => {
   try {

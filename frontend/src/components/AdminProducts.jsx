@@ -357,26 +357,28 @@ const AdminProducts = () => {
     setFormData({
       name: product.name || '',
       description: product.description || '',
-      category: product.category?._id || '',
-      company: (typeof product.company === 'object' ? product.company?._id : product.company) || '',
-      companyName: (typeof product.company === 'object' ? product.company?.name : product.company) || '',
+      category: product.category?._id || product.category || '',
+      company: (typeof product.company === 'object' ? product.company?._id : '') || '',
+      companyName: (typeof product.company === 'object' ? product.company?.name : product.companyName) || product.company || '',
       brand: product.brand || '',
       itemType: (typeof product.itemType === 'object' ? product.itemType?._id : product.itemType) || '',
       itemTypeName: (typeof product.itemType === 'object' ? product.itemType?.name : product.itemTypeName) || '',
       variant: product.variant || '',
       price: product.price || '',
-      originalPrice: product.originalPrice || product.price || '',
+      originalPrice: product.originalPrice || product.mrp || product.price || '',
       sku: product.sku || '',
       stock: product.stock || 0,
       isActive: product.isActive !== undefined ? product.isActive : true,
-      tags: product.tags ? product.tags.join(', ') : '',
+      tags: Array.isArray(product.tags) ? product.tags.join(', ') : (product.tags || ''),
       rating: product.rating || 0,
-      specifications: product.specifications || {
-        material: '',
-        size: '',
-        color: '',
-        warranty: '',
-        features: ''
+      specifications: {
+        material: product.specifications?.material || '',
+        size: product.specifications?.size || '',
+        color: product.specifications?.color || '',
+        warranty: product.specifications?.warranty || '',
+        features: Array.isArray(product.specifications?.features)
+          ? product.specifications.features.join(', ')
+          : (product.specifications?.features || '')
       }
     });
     setExistingImages(product.images || []);
@@ -392,9 +394,12 @@ const AdminProducts = () => {
       if (response.data.success) {
         showNotification('Product deleted successfully!', 'success');
         fetchProducts();
+      } else {
+        showNotification(response.data.message || 'Failed to delete product', 'error');
       }
     } catch (error) {
-      showNotification('Failed to delete product', 'error');
+      console.error('Delete error:', error);
+      showNotification(error.response?.data?.message || 'Failed to delete product', 'error');
     }
   };
 
@@ -680,7 +685,7 @@ const AdminProducts = () => {
         const detectColumn = (row, keywords) => {
           const rowKeys = Object.keys(row);
           
-          // Try exact match first
+          // Try exact match first (case-insensitive)
           for (const keyword of keywords) {
             const exactMatch = rowKeys.find(k => k.toLowerCase().trim() === keyword.toLowerCase().trim());
             if (exactMatch && row[exactMatch] !== undefined && row[exactMatch] !== null && row[exactMatch] !== '') {
@@ -688,8 +693,9 @@ const AdminProducts = () => {
             }
           }
           
-          // Try partial match
+          // Try partial match only for keywords longer than 4 chars to avoid false matches
           for (const keyword of keywords) {
+            if (keyword.length <= 4) continue; // skip short keywords like 'CAT', 'SKU', 'MRP' in partial match
             const partialMatch = rowKeys.find(k => 
               k.toLowerCase().includes(keyword.toLowerCase()) || 
               keyword.toLowerCase().includes(k.toLowerCase())
@@ -702,40 +708,125 @@ const AdminProducts = () => {
           return '';
         };
 
-        // Parse Excel data into products - matches manual entry form fields
+        // Dedicated category column detector — exact match only to avoid 'Broad Category' false match
+        const detectCategoryColumn = (row) => {
+          const rowKeys = Object.keys(row);
+          // Exact matches in priority order
+          const exactKeys = ['Category', 'category', 'Product Category', 'CATEGORY', 'Category Name'];
+          for (const key of exactKeys) {
+            const found = rowKeys.find(k => k.toLowerCase().trim() === key.toLowerCase().trim());
+            if (found && row[found] !== undefined && row[found] !== null && row[found] !== '') {
+              return String(row[found]);
+            }
+          }
+          return '';
+        };
+
+        // Parse Excel data into products - matches all fields in manual entry form
         const parsedProducts = jsonData.map((row, index) => {
+          const statusVal = detectColumn(row, ['Status']);
+          // Read category name from Excel using dedicated detector
+          const categoryNameFromExcel = detectCategoryColumn(row);
           return {
             id: Date.now() + index,
-            name: detectColumn(row, ['Product Name', 'product_name', 'name', 'Item Description', 'Product', 'Description']),
-            description: detectColumn(row, ['Description', 'desc', 'Item Description']),
-            category: '',
+            name: detectColumn(row, ['Product Name', 'product_name', 'name', 'Item Description', 'Product']),
+            description: detectColumn(row, ['Description', 'desc']),
+            category: '',           // will be resolved to ObjectId below
+            categoryName: categoryNameFromExcel, // raw name from Excel for auto-matching
             company: detectColumn(row, ['Company Name', 'Company', 'Manufacturer', 'Supplier']),
             brand: detectColumn(row, ['Brand', 'Brand Name']),
-            price: parseFloat(detectColumn(row, ['Price', 'CLP', 'Selling Price', 'SDP', 'NRP'])) || 0,
-            originalPrice: parseFloat(detectColumn(row, ['MRP', 'Original Price'])) || 0,
-            sku: detectColumn(row, ['SKU', 'sku_code', 'Code', 'Item Code']) || `SKU-${Date.now()}-${index}`,
+            variant: detectColumn(row, ['Variant / Model', 'Variant', 'Model', 'Type']),
+            price: parseFloat(detectColumn(row, ['Price', 'CLP (Cost List Price)', 'CLP', 'Selling Price'])) || 0,
+            originalPrice: parseFloat(detectColumn(row, ['Original Price (MRP)', 'MRP', 'Original Price'])) || 0,
             stock: parseInt(detectColumn(row, ['Stock', 'Quantity', 'qty'])) || 0,
-            variant: detectColumn(row, ['Variant', 'Model', 'Type', 'Size']),
+            sku: detectColumn(row, ['SKU', 'sku_code', 'Code']) || `SKU-${Date.now()}-${index}`,
+            rating: parseFloat(detectColumn(row, ['Rating (0-5)', 'Rating'])) || 0,
+            tags: detectColumn(row, ['Tags', 'Tag']),
+            // Specifications
             material: detectColumn(row, ['Material']),
+            size: detectColumn(row, ['Size']),
+            color: detectColumn(row, ['Color', 'Colour']),
+            warranty: detectColumn(row, ['Warranty']),
+            features: detectColumn(row, ['Features']),
+            // Pricing fields
+            itemCode: detectColumn(row, ['Item Code', 'ItemCode']),
+            mrp: parseFloat(detectColumn(row, ['MRP', 'Original Price (MRP)', 'Original Price'])) || 0,
+            nrp: parseFloat(detectColumn(row, ['NRP (Net Retail Price)', 'NRP', 'Net Retail Price'])) || 0,
+            sdp: parseFloat(detectColumn(row, ['SDP (Suggested Dealer Price)', 'SDP', 'Suggested Dealer Price'])) || 0,
+            npp: parseFloat(detectColumn(row, ['NPP (Net Purchase Price)', 'NPP', 'Net Purchase Price'])) || 0,
+            clp: parseFloat(detectColumn(row, ['CLP (Cost List Price)', 'CLP', 'Cost List Price'])) || 0,
+            effectivePriceListDate: detectColumn(row, ['Effective Price List Date', 'Price List Date']),
             hsnCode: detectColumn(row, ['HSN Code', 'HSN']),
             gst: parseFloat(detectColumn(row, ['GST %', 'GST', 'Tax'])) || 0,
-            broadCategory: detectColumn(row, ['Broad Category', 'CAT', 'Category']),
+            // Category classification fields (separate from the main Category column)
+            broadCategory: detectColumn(row, ['Broad Category']),
+            cat: detectColumn(row, ['CAT (Category)']),
+            subCat: detectColumn(row, ['SUB CAT (Sub Category)', 'SUB CAT']),
+            range: detectColumn(row, ['RANGE', 'Range']),
             segment: detectColumn(row, ['Segment']),
+            // Other fields
+            status: statusVal || 'Active',
+            flag: detectColumn(row, ['Flag']),
+            channelType: detectColumn(row, ['Channel Type', 'Channel']),
+            schemeType: detectColumn(row, ['Scheme Type', 'Scheme']),
             images: [],
-            isActive: true
+            isActive: !statusVal || statusVal.toLowerCase() !== 'inactive'
           };
         });
 
-        console.log('Parsed products:', parsedProducts);
-        console.log('First parsed product:', parsedProducts[0]);
+        // Auto-match category names from Excel to category IDs
+        // categories state is available in closure
+        const resolvedProducts = parsedProducts.map(p => {
+          // Resolve category
+          let resolvedCategory = p.category;
+          if (!resolvedCategory && p.categoryName) {
+            const matchedCat = categories.find(cat =>
+              cat.name.toLowerCase().trim() === p.categoryName.toLowerCase().trim()
+            );
+            if (matchedCat) resolvedCategory = matchedCat._id;
+          }
+
+          // Resolve company name to existing company ID (if already loaded)
+          let resolvedCompanyId = '';
+          let resolvedCompanyName = p.company;
+          if (p.company) {
+            const matchedComp = companies.find(comp =>
+              comp.name.toLowerCase().trim() === p.company.toLowerCase().trim()
+            );
+            if (matchedComp) {
+              resolvedCompanyId = matchedComp._id;
+              resolvedCompanyName = matchedComp.name;
+            }
+          }
+
+          return {
+            ...p,
+            category: resolvedCategory,
+            companyId: resolvedCompanyId,       // ObjectId if matched, empty if new
+            company: resolvedCompanyName,        // always keep the name string
+            companyAutoMatched: !!resolvedCompanyId
+          };
+        });
+
+        console.log('Parsed products:', resolvedProducts);
+        console.log('First parsed product:', resolvedProducts[0]);
+
+        const autoMatched = resolvedProducts.filter(p => p.category).length;
+        const companyMatched = resolvedProducts.filter(p => p.companyAutoMatched).length;
+        const newCompanies = resolvedProducts.filter(p => p.company && !p.companyAutoMatched).length;
 
         setExcelData({
           file: file.name,
-          products: parsedProducts,
+          products: resolvedProducts,
           totalRows: jsonData.length
         });
         setShowExcelPreview(true);
-        showNotification(`Excel file loaded! Found ${jsonData.length} products`, 'success');
+        showNotification(
+          `Excel loaded! ${jsonData.length} products. ` +
+          `${autoMatched}/${jsonData.length} categories matched. ` +
+          `${companyMatched} companies matched, ${newCompanies} will be auto-created.`,
+          autoMatched === jsonData.length ? 'success' : 'warning'
+        );
       } catch (error) {
         console.error('Error parsing Excel file:', error);
         showNotification('Error parsing Excel file. Make sure it has columns: Product Name, Price, etc.', 'error');
@@ -750,38 +841,134 @@ const AdminProducts = () => {
       return;
     }
 
-    // Check if all products have required category
-    const productsWithoutCategory = excelData.products.filter(p => !p.category);
-    if (productsWithoutCategory.length > 0) {
-      showNotification(`Please select a category for all ${productsWithoutCategory.length} product(s)`, 'error');
-      return;
-    }
+    // All category/company resolution happens per-product during upload loop below
 
     let successCount = 0;
     let failCount = 0;
     const errors = [];
 
+    // Build a category name → ID cache to avoid duplicate API calls
+    const categoryCache = {};
+    // Pre-populate with already-matched categories
+    for (const product of excelData.products) {
+      if (product.categoryName && product.category) {
+        categoryCache[product.categoryName.toLowerCase().trim()] = product.category;
+      }
+    }
+
+    // Build a company name → ID cache to avoid duplicate API calls
+    const companyCache = {};
+    // Pre-populate cache with already-matched companies
+    for (const product of excelData.products) {
+      if (product.company && product.companyId) {
+        companyCache[product.company.toLowerCase().trim()] = product.companyId;
+      }
+    }
+
     for (const product of excelData.products) {
       try {
+        // Resolve category: use existing ID, or find-or-create via API
+        let resolvedCategoryId = product.category || '';
+        if (!resolvedCategoryId && product.categoryName) {
+          const catKey = product.categoryName.toLowerCase().trim();
+          if (categoryCache[catKey]) {
+            resolvedCategoryId = categoryCache[catKey];
+          } else {
+            try {
+              const catRes = await axios.post('http://localhost:5000/api/categories/find-or-create', {
+                name: product.categoryName
+              });
+              if (catRes.data.success) {
+                resolvedCategoryId = catRes.data.data._id;
+                categoryCache[catKey] = resolvedCategoryId;
+                if (catRes.data.created) {
+                  console.log(`✅ Auto-created category: ${product.categoryName}`);
+                }
+              }
+            } catch (catErr) {
+              console.warn(`Could not resolve category "${product.categoryName}":`, catErr.message);
+            }
+          }
+        }
+
+        if (!resolvedCategoryId) {
+          failCount++;
+          errors.push(`${product.name}: No category provided and could not auto-create`);
+          continue;
+        }
+
+        // Resolve company: use cached ID, or find-or-create via API
+        let resolvedCompanyId = product.companyId || '';
+        if (product.company && !resolvedCompanyId) {
+          const key = product.company.toLowerCase().trim();
+          if (companyCache[key]) {
+            resolvedCompanyId = companyCache[key];
+          } else {
+            try {
+              const compRes = await axios.post('http://localhost:5000/api/companies/find-or-create', {
+                name: product.company
+              });
+              if (compRes.data.success) {
+                resolvedCompanyId = compRes.data.data._id;
+                companyCache[key] = resolvedCompanyId;
+                if (compRes.data.created) {
+                  console.log(`✅ Auto-created company: ${product.company}`);
+                }
+              }
+            } catch (compErr) {
+              console.warn(`Could not resolve company "${product.company}":`, compErr.message);
+            }
+          }
+        }
+
         const data = new FormData();
         data.append('name', product.name || 'Unnamed Product');
         data.append('description', product.description || '');
-        data.append('category', product.category);
-        data.append('company', product.company || '');
+        data.append('category', resolvedCategoryId);
+        data.append('company', resolvedCompanyId || '');
+        data.append('companyName', product.company || '');
         data.append('brand', product.brand || '');
+        data.append('variant', product.variant || 'Standard');
         data.append('price', product.price || 0);
-        data.append('originalPrice', product.originalPrice || product.price || 0);
+        data.append('originalPrice', product.originalPrice || product.mrp || product.price || 0);
         data.append('sku', product.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
         data.append('stock', product.stock || 0);
-        data.append('variant', product.variant || 'Standard');
-        data.append('isActive', product.isActive);
-        
-        // Add all the detailed fields from Excel
-        if (product.material) data.append('specifications[material]', product.material);
+        data.append('isActive', product.isActive !== false);
+        data.append('rating', product.rating || 0);
+        if (product.tags) data.append('tags', product.tags);
+
+        // Specifications
+        const specs = {
+          material: product.material || '',
+          size: product.size || '',
+          color: product.color || '',
+          warranty: product.warranty || '',
+          features: product.features || ''
+        };
+        data.append('specifications', JSON.stringify(specs));
+
+        // Pricing fields
+        if (product.itemCode) data.append('itemCode', product.itemCode);
+        if (product.mrp) data.append('mrp', product.mrp);
+        if (product.nrp) data.append('nrp', product.nrp);
+        if (product.sdp) data.append('sdp', product.sdp);
+        if (product.npp) data.append('npp', product.npp);
+        if (product.clp) data.append('clp', product.clp);
+        if (product.effectivePriceListDate) data.append('effectivePriceListDate', product.effectivePriceListDate);
         if (product.hsnCode) data.append('hsnCode', product.hsnCode);
         if (product.gst) data.append('gst', product.gst);
+
+        // Category / classification fields
         if (product.broadCategory) data.append('broadCategory', product.broadCategory);
+        if (product.cat) data.append('cat', product.cat);
+        if (product.subCat) data.append('subCat', product.subCat);
+        if (product.range) data.append('range', product.range);
         if (product.segment) data.append('segment', product.segment);
+
+        // Other fields
+        if (product.flag) data.append('flag', product.flag);
+        if (product.channelType) data.append('channelType', product.channelType);
+        if (product.schemeType) data.append('schemeType', product.schemeType);
 
         const response = await axios.post(
           'http://localhost:5000/api/products',
@@ -809,6 +996,8 @@ const AdminProducts = () => {
 
     showNotification(message, successCount > 0 ? 'success' : 'error');
     fetchProducts();
+    fetchCategories();
+    fetchCompanies();
     closeExcelPreview();
     closeBulkModal();
   };
@@ -830,40 +1019,81 @@ const AdminProducts = () => {
   // Download Excel template
   const downloadExcelTemplate = () => {
     try {
-      // Create sample data with ONLY essential fields - minimal template
+      // Full template matching all fields in the manual product entry form
       const templateData = [
         {
           'Product Name': 'GRAB BAR 300mm',
-          'Price': 1105,
+          'Category': 'Toilet',
           'Company Name': 'Jaguar',
-          'Brand': '',
-          'Stock': 0,
+          'Brand': 'Premium',
+          'Variant / Model': 'Chrome Finish',
+          'Description': 'High quality stainless steel grab bar',
+          'Price': 1105,
+          'Original Price (MRP)': 1300,
+          'Stock': 10,
           'SKU': 'ACN-BLM',
+          'Rating (0-5)': 4.5,
+          'Tags': 'grab bar, bathroom, safety',
           'Material': 'Stainless Steel',
+          'Size': '300mm',
+          'Color': 'Chrome',
+          'Warranty': '2 Years',
+          'Features': 'Anti-slip, Corrosion resistant',
+          'Item Code': 'JG-GB-300',
+          'MRP': 1300,
+          'NRP (Net Retail Price)': 1200,
+          'SDP (Suggested Dealer Price)': 1100,
+          'NPP (Net Purchase Price)': 950,
+          'CLP (Cost List Price)': 1105,
+          'Effective Price List Date': '01-04-2026',
           'HSN Code': '7326.90.00',
-          'GST %': 18
+          'GST %': 18,
+          'Broad Category': 'Bathroom Accessories',
+          'CAT (Category)': 'Grab Bars',
+          'SUB CAT (Sub Category)': 'Safety Bars',
+          'RANGE': 'Premium',
+          'Segment': 'Residential',
+          'Status': 'Active',
+          'Flag': 'New',
+          'Channel Type': 'Retail',
+          'Scheme Type': 'Standard'
         },
         {
           'Product Name': 'GRAB BAR 200mm',
+          'Category': 'Faucet',
+          'Company Name': 'Jaguar',
+          'Brand': 'Standard',
+          'Variant / Model': 'White',
+          'Description': 'Compact grab bar for small spaces',
           'Price': 1160,
-          'Company Name': 'Jaguar',
-          'Brand': '',
-          'Stock': 0,
+          'Original Price (MRP)': 1400,
+          'Stock': 5,
           'SKU': 'ACN-CH',
+          'Rating (0-5)': 4.2,
+          'Tags': 'grab bar, compact',
           'Material': 'Stainless Steel',
+          'Size': '200mm',
+          'Color': 'White',
+          'Warranty': '1 Year',
+          'Features': 'Easy install',
+          'Item Code': 'JG-GB-200',
+          'MRP': 1400,
+          'NRP (Net Retail Price)': 1250,
+          'SDP (Suggested Dealer Price)': 1150,
+          'NPP (Net Purchase Price)': 1000,
+          'CLP (Cost List Price)': 1160,
+          'Effective Price List Date': '01-04-2026',
           'HSN Code': '7326.90.00',
-          'GST %': 18
-        },
-        {
-          'Product Name': 'GRAB BAR 300mm',
-          'Price': 1200,
-          'Company Name': 'Jaguar',
-          'Brand': '',
-          'Stock': 0,
-          'SKU': 'ACN-CH',
-          'Material': 'Stainless Steel',
-          'HSN Code': '7326.90.00',
-          'GST %': 18
+          'GST %': 18,
+          'Broad Category': 'Bathroom Accessories',
+          'CAT (Category)': 'Grab Bars',
+          'SUB CAT (Sub Category)': 'Safety Bars',
+          'RANGE': 'Standard',
+          'Segment': 'Residential',
+          'Status': 'Active',
+          'Flag': '',
+          'Channel Type': 'Retail',
+          'Scheme Type': 'Standard'
         }
       ];
 
@@ -872,57 +1102,110 @@ const AdminProducts = () => {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Products');
 
-      // Set column widths - minimal columns only
+      // Set column widths for all columns
       ws['!cols'] = [
-        { wch: 25 }, // Product Name
-        { wch: 12 }, // Price
+        { wch: 28 }, // Product Name
+        { wch: 15 }, // Category
         { wch: 18 }, // Company Name
         { wch: 15 }, // Brand
+        { wch: 20 }, // Variant / Model
+        { wch: 35 }, // Description
+        { wch: 12 }, // Price
+        { wch: 22 }, // Original Price (MRP)
         { wch: 10 }, // Stock
         { wch: 15 }, // SKU
+        { wch: 14 }, // Rating (0-5)
+        { wch: 25 }, // Tags
         { wch: 20 }, // Material
-        { wch: 15 }, // HSN Code
-        { wch: 10 }  // GST %
+        { wch: 15 }, // Size
+        { wch: 15 }, // Color
+        { wch: 15 }, // Warranty
+        { wch: 30 }, // Features
+        { wch: 15 }, // Item Code
+        { wch: 12 }, // MRP
+        { wch: 22 }, // NRP
+        { wch: 26 }, // SDP
+        { wch: 24 }, // NPP
+        { wch: 22 }, // CLP
+        { wch: 26 }, // Effective Price List Date
+        { wch: 16 }, // HSN Code
+        { wch: 10 }, // GST %
+        { wch: 22 }, // Broad Category
+        { wch: 18 }, // CAT
+        { wch: 22 }, // SUB CAT
+        { wch: 15 }, // RANGE
+        { wch: 18 }, // Segment
+        { wch: 12 }, // Status
+        { wch: 12 }, // Flag
+        { wch: 15 }, // Channel Type
+        { wch: 15 }, // Scheme Type
       ];
 
       // Add instructions sheet
       const instructionsSheet = XLSX.utils.aoa_to_sheet([
-        ['PRODUCT IMPORT TEMPLATE - Minimal Format'],
-        ['Upload your products with just the essential information'],
+        ['PRODUCT IMPORT TEMPLATE - Full Format'],
+        ['This template matches all fields available in the manual Add Product form.'],
         [''],
         ['REQUIRED FIELDS (marked with *)'],
-        ['- Product Name: Name of the product *'],
-        ['- Price: Selling price *'],
-        ['- Company Name: Supplier/Manufacturer name'],
+        ['- Product Name *: Name of the product'],
+        ['- Price *: Selling / CLP price'],
+        ['- Category: Name must exactly match a category in your admin panel (e.g., Toilet, Faucet, Tiles)'],
+        ['  If matched, the product is auto-assigned. If not matched, you select it in the preview.'],
         [''],
         ['OPTIONAL FIELDS'],
-        ['- Brand: Product brand/line'],
-        ['- Stock: Available quantity'],
-        ['- SKU: Stock keeping unit/code'],
-        ['- Material: Product material'],
-        ['- HSN Code: Harmonized System Nomenclature code'],
-        ['- GST %: Tax percentage (default 18%)'],
+        ['- Company Name: Supplier / Manufacturer name (e.g., Jaguar, Kohler)'],
+        ['- Brand: Product brand or line (e.g., Premium, Standard, Luxury)'],
+        ['- Variant / Model: Model or variant name (e.g., White Ceramic, Chrome Finish)'],
+        ['- Description: Product description'],
+        ['- Original Price (MRP): MRP for showing discounts'],
+        ['- Stock: Available quantity (default 0)'],
+        ['- SKU: Stock keeping unit code'],
+        ['- Rating (0-5): Product rating'],
+        ['- Tags: Comma-separated tags (e.g., premium, ceramic, soft-close)'],
+        ['- Material: Product material (e.g., Ceramic, Brass, Glass)'],
+        ['- Size: Product size (e.g., 24x18 inches)'],
+        ['- Color: Product color (e.g., White)'],
+        ['- Warranty: Warranty period (e.g., 2 Years)'],
+        ['- Features: Comma-separated features'],
+        ['- Item Code: Internal item code (e.g., SKU-001)'],
+        ['- MRP: Maximum Retail Price'],
+        ['- NRP (Net Retail Price): Net retail price'],
+        ['- SDP (Suggested Dealer Price): Suggested dealer price'],
+        ['- NPP (Net Purchase Price): Net purchase price'],
+        ['- CLP (Cost List Price): Cost list price'],
+        ['- Effective Price List Date: Date in DD-MM-YYYY format'],
+        ['- HSN Code: Harmonized System Nomenclature code (e.g., 6910.10.00)'],
+        ['- GST %: Tax percentage (default 18)'],
+        ['- Broad Category: Broad product category (e.g., Bathroom Fixtures)'],
+        ['- CAT (Category): Product category label (e.g., Toilet Seats)'],
+        ['- SUB CAT (Sub Category): Sub-category (e.g., Ceramic)'],
+        ['- RANGE: Product range (e.g., Premium, Standard)'],
+        ['- Segment: Market segment (e.g., Residential, Commercial)'],
+        ['- Status: Active / Inactive / Draft (default Active)'],
+        ['- Flag: Product flag (e.g., New, Featured)'],
+        ['- Channel Type: Sales channel (e.g., Retail, Wholesale)'],
+        ['- Scheme Type: Scheme type (e.g., Standard, Promotional)'],
         [''],
         ['INSTRUCTIONS'],
         ['1. Fill in at least Product Name and Price'],
-        ['2. Other fields are optional - leave blank if not needed'],
-        ['3. You can add more details after upload in the admin panel'],
-        ['4. Do not modify column headers'],
-        ['5. Save the file as .xlsx format'],
-        ['6. Upload using "Bulk Upload (Form)" option'],
+        ['2. All other fields are optional - leave blank if not needed'],
+        ['3. Do not modify column headers'],
+        ['4. Save the file as .xlsx format before uploading'],
+        ['5. After upload, select a Category for each product in the preview'],
+        ['6. Images can be added separately after product creation'],
         [''],
         ['NOTES'],
         ['- Stock defaults to 0 if not provided'],
-        ['- GST % defaults to 18% if not provided'],
-        ['- You can edit all details after uploading'],
-        ['- Images can be added separately after product creation']
+        ['- GST % defaults to 18 if not provided'],
+        ['- Status defaults to Active if not provided'],
+        ['- You can edit all details after uploading in the admin panel']
       ]);
 
       XLSX.utils.book_append_sheet(wb, instructionsSheet, 'Instructions');
 
       // Download the file
-      XLSX.writeFile(wb, 'Product_Template_Minimal.xlsx');
-      showNotification('Excel template downloaded! Use this format to upload your products.', 'success');
+      XLSX.writeFile(wb, 'Product_Import_Template.xlsx');
+      showNotification('Excel template downloaded! Fill in the columns and upload.', 'success');
     } catch (error) {
       console.error('Error downloading template:', error);
       showNotification('Error downloading template', 'error');
@@ -1140,7 +1423,7 @@ const AdminProducts = () => {
                 >
                   <option value="">Select item type (optional)</option>
                   {itemTypes
-                    .filter(it => !formData.category || it.category._id === formData.category)
+                    .filter(it => !formData.category || (it.category && it.category._id === formData.category))
                     .map(it => (
                       <option key={it._id} value={it._id}>
                         {it.icon} {it.name}
@@ -2149,34 +2432,61 @@ const AdminProducts = () => {
 
             <div className="admin-products__excel-preview">
               <div className="admin-products__info-box">
-                <p>Found <strong>{excelData.totalRows}</strong> products. Please select a category for all products:</p>
+                <p>
+                  Found <strong>{excelData.totalRows}</strong> products.&nbsp;
+                  <span style={{ color: '#16a34a' }}>
+                    ✅ {excelData.products.filter(p => p.category).length} categories auto-matched.
+                  </span>
+                  {excelData.products.filter(p => !p.category).length > 0 && (
+                    <span style={{ color: '#dc2626' }}>
+                      &nbsp;⚠️ {excelData.products.filter(p => !p.category).length} product(s) need a category selected below.
+                    </span>
+                  )}
+                </p>
+                <p style={{ marginTop: '6px' }}>
+                  <span style={{ color: '#16a34a' }}>
+                    🏢 {excelData.products.filter(p => p.companyAutoMatched).length} companies matched to existing.
+                  </span>
+                  {excelData.products.filter(p => p.company && !p.companyAutoMatched).length > 0 && (
+                    <span style={{ color: '#f59e0b' }}>
+                      &nbsp;⚡ {[...new Set(excelData.products.filter(p => p.company && !p.companyAutoMatched).map(p => p.company))].length} new company/companies will be auto-created on upload.
+                    </span>
+                  )}
+                </p>
               </div>
 
-              <div className="admin-products__field">
-                <label>Category * (for all products)</label>
-                <select
-                  value={excelData.products[0]?.category || ''}
-                  onChange={(e) => {
-                    const categoryId = e.target.value;
-                    setExcelData(prev => ({
-                      ...prev,
-                      products: prev.products.map(p => ({ ...p, category: categoryId }))
-                    }));
-                  }}
-                  required
-                >
-                  <option value="">-- Select a category --</option>
-                  {categories.map(cat => (
-                    <option key={cat._id} value={cat._id}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
+              {/* Apply one category to ALL unmatched products */}
+              {excelData.products.some(p => !p.category) && (
+                <div className="admin-products__field" style={{ background: '#fef9c3', padding: '12px', borderRadius: '8px', marginBottom: '12px' }}>
+                  <label style={{ fontWeight: 600 }}>⚡ Apply category to all unmatched products:</label>
+                  <select
+                    defaultValue=""
+                    onChange={(e) => {
+                      const categoryId = e.target.value;
+                      if (!categoryId) return;
+                      setExcelData(prev => ({
+                        ...prev,
+                        products: prev.products.map(p => p.category ? p : { ...p, category: categoryId })
+                      }));
+                    }}
+                  >
+                    <option value="">-- Select to apply to unmatched --</option>
+                    {categories.map(cat => (
+                      <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    ))}
+                  </select>
+                  <small style={{ display: 'block', marginTop: '6px', color: '#92400e' }}>
+                    💡 Or just click <strong>Upload</strong> — if your Excel has a Category column, categories will be auto-created. If blank, products will be uploaded without a category assignment.
+                  </small>
+                </div>
+              )}
 
               <div className="admin-products__excel-table-container">
                 <table className="admin-products__excel-table">
                   <thead>
                     <tr>
                       <th>Product Name</th>
+                      <th>Category</th>
                       <th>Price</th>
                       <th>Company</th>
                       <th>Stock</th>
@@ -2189,7 +2499,7 @@ const AdminProducts = () => {
                   </thead>
                   <tbody>
                     {excelData.products.map((product, index) => (
-                      <tr key={index}>
+                      <tr key={index} style={{ background: product.category ? 'inherit' : '#fff7ed' }}>
                         <td>
                           <input
                             type="text"
@@ -2198,6 +2508,31 @@ const AdminProducts = () => {
                             className="admin-products__excel-input"
                             placeholder="Product name"
                           />
+                        </td>
+                        <td>
+                          <select
+                            value={product.category || ''}
+                            onChange={(e) => updateExcelProduct(index, 'category', e.target.value)}
+                            style={{
+                              border: product.category ? '1px solid #16a34a' : '2px solid #dc2626',
+                              borderRadius: '4px',
+                              padding: '4px',
+                              fontSize: '12px',
+                              minWidth: '120px',
+                              background: product.category ? '#f0fdf4' : '#fff1f2'
+                            }}
+                            required
+                          >
+                            <option value="">⚠️ Select category</option>
+                            {categories.map(cat => (
+                              <option key={cat._id} value={cat._id}>{cat.name}</option>
+                            ))}
+                          </select>
+                          {product.category && product.categoryName && (
+                            <div style={{ fontSize: '10px', color: '#16a34a', marginTop: '2px' }}>
+                              ✅ Auto: {product.categoryName}
+                            </div>
+                          )}
                         </td>
                         <td>
                           <input
@@ -2216,7 +2551,7 @@ const AdminProducts = () => {
                             value={product.company}
                             onChange={(e) => updateExcelProduct(index, 'company', e.target.value)}
                             className="admin-products__excel-input"
-                            placeholder="Brand"
+                            placeholder="Company"
                           />
                         </td>
                         <td>
@@ -2272,7 +2607,6 @@ const AdminProducts = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              // Show detailed view for this product
                               const detailsDiv = document.getElementById(`product-details-${index}`);
                               if (detailsDiv) {
                                 detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
@@ -2394,7 +2728,6 @@ const AdminProducts = () => {
                   type="button" 
                   onClick={handleExcelUpload} 
                   className="admin-products__btn-submit"
-                  disabled={!excelData.products[0]?.category}
                 >
                   Upload {excelData.totalRows} Products
                 </button>

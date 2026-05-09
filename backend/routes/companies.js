@@ -38,6 +38,57 @@ const upload = multer({
   }
 });
 
+// Find or create company by name (used during Excel import)
+router.post('/find-or-create', async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Company name is required'
+      });
+    }
+
+    const trimmedName = name.trim();
+
+    // Try to find existing company (case-insensitive)
+    let company = await Company.findOne({
+      name: { $regex: new RegExp(`^${trimmedName}$`, 'i') }
+    });
+
+    if (company) {
+      return res.json({
+        success: true,
+        created: false,
+        data: company
+      });
+    }
+
+    // Create new company with just the name
+    company = new Company({
+      name: trimmedName,
+      isActive: true,
+      isPartner: false
+    });
+
+    await company.save();
+
+    res.status(201).json({
+      success: true,
+      created: true,
+      data: company
+    });
+  } catch (error) {
+    console.error('Error in find-or-create company:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to find or create company',
+      error: error.message
+    });
+  }
+});
+
 // Get all companies
 router.get('/', async (req, res) => {
   try {
