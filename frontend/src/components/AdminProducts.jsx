@@ -318,16 +318,16 @@ const AdminProducts = () => {
       showNotification('Please fill in all required fields: Name, Category, and Price', 'error');
       return;
     }
-    
+
+    // Image validation:
+    // - New product: must upload at least one image
+    // - Editing: OK if existing images remain OR new ones added. Only block if both are empty.
     if (!editingProduct && selectedFiles.length === 0) {
       showNotification('Please select at least one image for the product', 'error');
       return;
     }
-    
-    if (editingProduct && existingImages.length === 0 && selectedFiles.length === 0) {
-      showNotification('Please select at least one image for the product', 'error');
-      return;
-    }
+    // When editing, allow saving without new images as long as existing images exist
+    // If product had no images (e.g. Excel upload), allow saving without images too
     
     const data = new FormData();
     data.append('name', formData.name);
@@ -1865,22 +1865,33 @@ const AdminProducts = () => {
                 </div>
               </div>
 
-              {editingProduct && existingImages.length > 0 && (
-                <div className="admin-products__field">
-                  <label>Existing Images</label>
-                  <div className="admin-products__existing-images">
-                    {existingImages.map((img, index) => (
-                      <div key={index} className="admin-products__existing-image">
-                        <img src={`http://localhost:5000${img}`} alt="" />
-                        <button type="button" onClick={() => removeExistingImage(index)}>×</button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               <div className="admin-products__field">
                 <label>Product Images * {editingProduct && '(Add more images)'}</label>
+
+                {/* Show existing images when editing */}
+                {editingProduct && existingImages.length > 0 && (
+                  <div style={{ marginBottom: '10px' }}>
+                    <small style={{ color: '#16a34a', fontWeight: 600 }}>
+                      ✅ {existingImages.length} existing image(s) — add more below or keep as is
+                    </small>
+                    <div className="admin-products__existing-images" style={{ marginTop: '8px' }}>
+                      {existingImages.map((img, index) => (
+                        <div key={index} className="admin-products__existing-image">
+                          <img src={`http://localhost:5000${img}`} alt="" />
+                          <button type="button" onClick={() => removeExistingImage(index)}>×</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Show info when editing product with no images */}
+                {editingProduct && existingImages.length === 0 && selectedFiles.length === 0 && (
+                  <small style={{ color: '#f59e0b', display: 'block', marginBottom: '8px' }}>
+                    ⚠️ This product has no images. You can add images below or save without them.
+                  </small>
+                )}
+
                 <div
                   className={`admin-products__drop-zone ${isDragging ? 'admin-products__drop-zone--active' : ''}`}
                   onDragOver={handleDragOver}
