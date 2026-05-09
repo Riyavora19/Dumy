@@ -22,6 +22,7 @@ const roomTemplatePresets = {
           { keyword: 'Angle Valve', quantity: 2, essential: true }
         ]
       },
+
       {
         id: 'basin',
         name: 'Basin Area',
@@ -624,14 +625,36 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
   // Get keywords for filtering products based on room type and area
   const getAreaKeywords = (roomName, areaId) => {
-    // Simplified keywords for the 4 standard areas
     const areaKeywords = {
-      shower: ['shower', 'rain', 'hand shower', 'shower head', 'shower panel', 'diverter', 'spray', 'overhead'],
-      basin: ['basin', 'washbasin', 'wash basin', 'sink', 'faucet', 'tap', 'mixer', 'counter', 'vanity', 'cabinet', 'mirror'],
-      wc: ['toilet', 'wc', 'commode', 'flush', 'seat', 'cistern', 'tank', 'bowl', 'bidet'],
-      urinal: ['urinal', 'urinals', 'wall hung', 'floor mounted', 'sensor urinal', 'waterless']
+      shower: [
+        'shower', 'rain', 'hand shower', 'overhead', 'shower head', 'shower panel',
+        'shower column', 'shower tower', 'shower system', 'shower mixer', 'diverter',
+        'spray', 'body jet', 'body spray', 'shower arm', 'sliding rail', 'slide rail',
+        'shower drain', 'shower tray', 'shower enclosure', 'shower cabin', 'shower door',
+        'shower screen', 'shower curtain', 'shower hose', 'shower bracket', 'shower holder',
+        'bath spout', 'bath mixer', 'bath filler'
+      ],
+      basin: [
+        'basin', 'washbasin', 'wash basin', 'sink', 'lavatory', 'faucet', 'tap', 'mixer',
+        'pillar cock', 'pillar tap', 'counter', 'vanity', 'cabinet', 'mirror', 'led mirror',
+        'sensor tap', 'sensor faucet', 'touchless', 'angle valve', 'stop cock', 'waste coupling',
+        'bottle trap', 'p-trap', 'drain', 'strainer', 'aerator', 'soap dispenser', 'soap dish',
+        'towel bar', 'towel ring', 'towel rack', 'robe hook', 'toilet paper holder',
+        'paper holder', 'tumbler', 'toothbrush', 'grab bar', 'accessories', 'accessory',
+        'o-ring', 'oring', 'washer', 'screw', 'nut', 'bolt', 'spring', 'clip', 'seal',
+        'gasket', 'fitting', 'connector', 'adapter', 'elbow', 'tee', 'reducer', 'coupling',
+        'nipple', 'flange', 'bracket', 'anchor', 'aspirator', 'strainer'
+      ],
+      wc: [
+        'toilet', 'wc', 'commode', 'closet', 'flush', 'seat', 'cistern', 'tank', 'bowl',
+        'bidet', 'health faucet', 'one piece', 'two piece', 'wall hung toilet', 'smart toilet',
+        'flush plate', 'concealed cistern', 'urinal spud', 'seat cover'
+      ],
+      urinal: [
+        'urinal', 'urinals', 'wall hung urinal', 'floor mounted urinal', 'sensor urinal',
+        'waterless', 'spreader', 'flush valve', 'partition'
+      ]
     };
-    
     return areaKeywords[areaId] || [];
   };
 

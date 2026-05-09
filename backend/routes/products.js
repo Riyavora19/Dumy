@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const Product = require('../models/Product');
 const Company = require('../models/Company');
+const { detectItemType } = require('../services/autoItemTypeService');
 
 // Helper: when a product links a company + category, add that category to the company's categories array
 const linkCompanyToCategory = async (companyId, categoryId) => {
@@ -411,6 +412,18 @@ router.post('/', upload.array('images', 10), async (req, res) => {
       popularity: popularity ? parseInt(popularity) : 0
     });
 
+    // Auto-assign itemType if not already set
+    if (!product.itemType) {
+      const autoItemTypeId = await detectItemType({
+        name, variant, itemTypeName, broadCategory, cat, subCat, description,
+        category: product.category
+      });
+      if (autoItemTypeId) {
+        product.itemType = autoItemTypeId;
+        console.log(`🏷️  Auto-assigned itemType ${autoItemTypeId} to "${name}"`);
+      }
+    }
+
     await product.save();
     await product.populate('category');
 
@@ -551,6 +564,24 @@ router.put('/:id', upload.array('images', 10), async (req, res) => {
     product.rating = rating !== undefined ? parseFloat(rating) : product.rating;
     product.reviewCount = reviewCount !== undefined ? parseInt(reviewCount) : product.reviewCount;
     product.popularity = popularity !== undefined ? parseInt(popularity) : product.popularity;
+
+    // Auto-assign itemType if not already set (or if name/variant changed)
+    if (!product.itemType || name || variant) {
+      const autoItemTypeId = await detectItemType({
+        name: product.name,
+        variant: product.variant,
+        itemTypeName: product.itemTypeName,
+        broadCategory: product.broadCategory,
+        cat: product.cat,
+        subCat: product.subCat,
+        description: product.description,
+        category: product.category
+      });
+      if (autoItemTypeId && !product.itemType) {
+        product.itemType = autoItemTypeId;
+        console.log(`🏷️  Auto-assigned itemType ${autoItemTypeId} to "${product.name}"`);
+      }
+    }
 
     await product.save();
     await product.populate('category');
@@ -833,6 +864,50 @@ router.put('/:id/company-pricing', async (req, res) => {
       message: 'Failed to update company pricing',
       error: error.message
     });
+  }
+});
+
+// Bulk auto-assign itemType to all products that don't have one
+// POST /api/products/auto-assign-item-types
+router.post('/auto-assign-item-types', async (req, res) => {
+  try {
+    const { force } = req.body; // if force=true, reassign even if already set
+    const query = force ? {} : { $or: [{ itemType: null }, { itemType: { $exists: false } }] };
+    const products = await Product.find(query).populate('category');
+
+    let assigned = 0;
+    let skipped = 0;
+
+    for (const product of products) {
+      const autoId = await detectItemType({
+        name: product.name,
+        variant: product.variant,
+        itemTypeName: product.itemTypeName,
+        broadCategory: product.broadCategory,
+        cat: product.cat,
+        subCat: product.subCat,
+        description: product.description,
+        category: product.category
+      });
+
+      if (autoId) {
+        product.itemType = autoId;
+        await product.save();
+        assigned++;
+      } else {
+        skipped++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Auto-assignment complete. Assigned: ${assigned}, No match found: ${skipped}`,
+      assigned,
+      skipped
+    });
+  } catch (error) {
+    console.error('Error in auto-assign:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
