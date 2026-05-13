@@ -73,6 +73,9 @@ const AdminProducts = () => {
   const [showProductEditPanel, setShowProductEditPanel] = useState(false);
   const [excelData, setExcelData] = useState(null);
   const [showExcelPreview, setShowExcelPreview] = useState(false);
+  const [showUpdateExcelModal, setShowUpdateExcelModal] = useState(false);
+  const [updateExcelData, setUpdateExcelData] = useState([]);
+  const [updateMatchResults, setUpdateMatchResults] = useState([]);
 
   useEffect(() => {
     fetchProducts();
@@ -1025,12 +1028,20 @@ const AdminProducts = () => {
             }
           }
 
+          // Check for duplicates in existing products
+          const isDuplicate = products.some(existingProduct => 
+            existingProduct.name.toLowerCase().trim() === p.name.toLowerCase().trim() ||
+            (p.sku && existingProduct.sku && existingProduct.sku.toLowerCase().trim() === p.sku.toLowerCase().trim())
+          );
+
           return {
             ...p,
             category: resolvedCategory,
             companyId: resolvedCompanyId,       // ObjectId if matched, empty if new
             company: resolvedCompanyName,        // always keep the name string
-            companyAutoMatched: !!resolvedCompanyId
+            companyAutoMatched: !!resolvedCompanyId,
+            isDuplicate: isDuplicate,
+            duplicateWarning: isDuplicate ? 'Product already exists in database' : null
           };
         });
 
@@ -1040,6 +1051,7 @@ const AdminProducts = () => {
         const autoMatched = resolvedProducts.filter(p => p.category).length;
         const companyMatched = resolvedProducts.filter(p => p.companyAutoMatched).length;
         const newCompanies = resolvedProducts.filter(p => p.company && !p.companyAutoMatched).length;
+        const duplicates = resolvedProducts.filter(p => p.isDuplicate).length;
 
         setExcelData({
           file: file.name,
@@ -1047,11 +1059,18 @@ const AdminProducts = () => {
           totalRows: jsonData.length
         });
         setShowExcelPreview(true);
-        showNotification(
-          `Excel loaded! ${jsonData.length} products. ` +
+        
+        let message = `Excel loaded! ${jsonData.length} products. ` +
           `${autoMatched}/${jsonData.length} categories matched. ` +
-          `${companyMatched} companies matched, ${newCompanies} will be auto-created.`,
-          autoMatched === jsonData.length ? 'success' : 'warning'
+          `${companyMatched} companies matched, ${newCompanies} will be auto-created.`;
+        
+        if (duplicates > 0) {
+          message += ` ⚠️ ${duplicates} duplicate(s) found - they will be skipped.`;
+        }
+        
+        showNotification(
+          message,
+          duplicates > 0 ? 'warning' : (autoMatched === jsonData.length ? 'success' : 'warning')
         );
       } catch (error) {
         console.error('Error parsing Excel file:', error);
@@ -1067,6 +1086,22 @@ const AdminProducts = () => {
       return;
     }
 
+    // Filter out duplicates before uploading
+    const productsToUpload = excelData.products.filter(p => !p.isDuplicate);
+    const skippedDuplicates = excelData.products.filter(p => p.isDuplicate);
+
+    if (productsToUpload.length === 0) {
+      showNotification('All products are duplicates. No products to upload.', 'warning');
+      return;
+    }
+
+    if (skippedDuplicates.length > 0) {
+      showNotification(
+        `Skipping ${skippedDuplicates.length} duplicate product(s). Uploading ${productsToUpload.length} new products...`,
+        'info'
+      );
+    }
+
     // All category/company resolution happens per-product during upload loop below
 
     let successCount = 0;
@@ -1076,7 +1111,7 @@ const AdminProducts = () => {
     // Build a category name → ID cache to avoid duplicate API calls
     const categoryCache = {};
     // Pre-populate with already-matched categories
-    for (const product of excelData.products) {
+    for (const product of productsToUpload) {
       if (product.categoryName && product.category) {
         categoryCache[product.categoryName.toLowerCase().trim()] = product.category;
       }
@@ -1085,13 +1120,13 @@ const AdminProducts = () => {
     // Build a company name → ID cache to avoid duplicate API calls
     const companyCache = {};
     // Pre-populate cache with already-matched companies
-    for (const product of excelData.products) {
+    for (const product of productsToUpload) {
       if (product.company && product.companyId) {
         companyCache[product.company.toLowerCase().trim()] = product.companyId;
       }
     }
 
-    for (const product of excelData.products) {
+    for (const product of productsToUpload) {
       try {
         // Resolve category: use existing ID, or find-or-create via API
         let resolvedCategoryId = product.category || '';
@@ -1438,6 +1473,151 @@ const AdminProducts = () => {
     }
   };
 
+  // Update from Excel functions
+  const handleUpdateExcelFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
+      showNotification('Please select a valid Excel file (.xlsx, .xls, or .csv)', 'error');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = event.target.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        if (jsonData.length === 0) {
+          showNotification('Excel file is empty', 'error');
+          return;
+        }
+
+        // Match products with existing products in database
+        matchProductsForUpdate(jsonData);
+      } catch (error) {
+        console.error('Error reading Excel file:', error);
+        showNotification('Error reading Excel file', 'error');
+      }
+    };
+
+    reader.readAsBinaryString(file);
+  };
+
+  const matchProductsForUpdate = (excelProducts) => {
+    const matchResults = excelProducts.map(excelProduct => {
+      // Try to match by name or SKU
+      const matchedProduct = products.find(p => 
+        (excelProduct['Product Name'] && p.name.toLowerCase() === excelProduct['Product Name'].toLowerCase()) ||
+        (excelProduct['SKU'] && p.sku && p.sku.toLowerCase() === excelProduct['SKU'].toLowerCase())
+      );
+
+      return {
+        excelData: excelProduct,
+        matchedProduct: matchedProduct || null,
+        status: matchedProduct ? 'matched' : 'not-found',
+        willUpdate: matchedProduct ? true : false
+      };
+    });
+
+    setUpdateMatchResults(matchResults);
+    setUpdateExcelData(excelProducts);
+    setShowUpdateExcelModal(true);
+  };
+
+  const handleUpdateFromExcel = async () => {
+    const productsToUpdate = updateMatchResults.filter(r => r.willUpdate && r.matchedProduct);
+
+    if (productsToUpdate.length === 0) {
+      showNotification('No products selected for update', 'error');
+      return;
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+    const errors = [];
+
+    for (const result of productsToUpdate) {
+      try {
+        const excelData = result.excelData;
+        const productId = result.matchedProduct._id;
+
+        // Build update object with only fields that exist in Excel
+        const updateData = {};
+
+        if (excelData['Product Name']) updateData.name = excelData['Product Name'];
+        if (excelData['Description']) updateData.description = excelData['Description'];
+        if (excelData['Price']) updateData.price = parseFloat(excelData['Price']);
+        if (excelData['MRP']) updateData.mrp = parseFloat(excelData['MRP']);
+        if (excelData['SKU']) updateData.sku = excelData['SKU'];
+        if (excelData['Stock']) updateData.stock = parseInt(excelData['Stock']);
+        if (excelData['Brand']) updateData.brand = excelData['Brand'];
+        if (excelData['Variant']) updateData.variant = excelData['Variant'];
+        if (excelData['Status']) updateData.isActive = excelData['Status'].toLowerCase() === 'active';
+        if (excelData['Flag']) updateData.flag = excelData['Flag'];
+        
+        // Specifications
+        const specifications = {};
+        if (excelData['Material']) specifications.material = excelData['Material'];
+        if (excelData['Size']) specifications.size = excelData['Size'];
+        if (excelData['Color']) specifications.color = excelData['Color'];
+        if (excelData['Warranty']) specifications.warranty = excelData['Warranty'];
+        if (Object.keys(specifications).length > 0) {
+          updateData.specifications = specifications;
+        }
+
+        // Pricing fields
+        if (excelData['NRP']) updateData.nrp = parseFloat(excelData['NRP']);
+        if (excelData['SDP']) updateData.sdp = parseFloat(excelData['SDP']);
+        if (excelData['NPP']) updateData.npp = parseFloat(excelData['NPP']);
+        if (excelData['CLP']) updateData.clp = parseFloat(excelData['CLP']);
+        if (excelData['HSN Code']) updateData.hsnCode = excelData['HSN Code'];
+        if (excelData['GST %']) updateData.gst = parseFloat(excelData['GST %']);
+
+        const response = await axios.put(
+          `http://localhost:5000/api/products/${productId}`,
+          updateData
+        );
+
+        if (response.data.success) {
+          successCount++;
+        } else {
+          failCount++;
+          errors.push(`${excelData['Product Name']}: ${response.data.message || 'Unknown error'}`);
+        }
+      } catch (error) {
+        console.error('Error updating product:', error);
+        failCount++;
+        errors.push(`${result.excelData['Product Name']}: ${error.response?.data?.message || error.message}`);
+      }
+    }
+
+    let message = `Update complete!\nSuccess: ${successCount}\nFailed: ${failCount}`;
+    if (errors.length > 0 && errors.length <= 5) {
+      message += `\n\nErrors:\n${errors.join('\n')}`;
+    }
+
+    showNotification(message, successCount > 0 ? 'success' : 'error');
+    fetchProducts();
+    closeUpdateExcelModal();
+  };
+
+  const closeUpdateExcelModal = () => {
+    setShowUpdateExcelModal(false);
+    setUpdateExcelData([]);
+    setUpdateMatchResults([]);
+  };
+
+  const toggleUpdateSelection = (index) => {
+    setUpdateMatchResults(prev => prev.map((r, i) => 
+      i === index ? { ...r, willUpdate: !r.willUpdate } : r
+    ));
+  };
+
   return (
     <div className="admin-products">
       <header className="admin-products__header">
@@ -1468,6 +1648,21 @@ const AdminProducts = () => {
             </svg>
             Bulk Upload (Images)
           </button>
+          <button className="admin-products__update-excel-btn" onClick={() => document.getElementById('update-excel-input').click()}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Update from Excel
+          </button>
+          <input
+            id="update-excel-input"
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            style={{ display: 'none' }}
+            onChange={handleUpdateExcelFileSelect}
+          />
           <button className="admin-products__add-btn" onClick={openModal}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="12" y1="5" x2="12" y2="19"/>
@@ -2741,6 +2936,13 @@ const AdminProducts = () => {
                     </span>
                   )}
                 </p>
+                {excelData.products.filter(p => p.isDuplicate).length > 0 && (
+                  <p style={{ marginTop: '6px' }}>
+                    <span style={{ color: '#dc2626', fontWeight: '600' }}>
+                      ⚠️ {excelData.products.filter(p => p.isDuplicate).length} duplicate product(s) found - these will be automatically skipped during upload.
+                    </span>
+                  </p>
+                )}
               </div>
 
               {/* Apply one category to ALL unmatched products */}
@@ -2773,6 +2975,7 @@ const AdminProducts = () => {
                 <table className="admin-products__excel-table">
                   <thead>
                     <tr>
+                      <th>Status</th>
                       <th>Product Name</th>
                       <th>Category</th>
                       <th>Price</th>
@@ -2787,7 +2990,21 @@ const AdminProducts = () => {
                   </thead>
                   <tbody>
                     {excelData.products.map((product, index) => (
-                      <tr key={index} style={{ background: product.category ? 'inherit' : '#fff7ed' }}>
+                      <tr key={index} style={{ 
+                        background: product.isDuplicate ? '#fee2e2' : (product.category ? 'inherit' : '#fff7ed'),
+                        opacity: product.isDuplicate ? 0.6 : 1
+                      }}>
+                        <td style={{ textAlign: 'center', minWidth: '80px' }}>
+                          {product.isDuplicate ? (
+                            <span style={{ color: '#dc2626', fontWeight: '600', fontSize: '12px' }}>
+                              ⚠️ Duplicate
+                            </span>
+                          ) : (
+                            <span style={{ color: '#16a34a', fontWeight: '600', fontSize: '12px' }}>
+                              ✓ New
+                            </span>
+                          )}
+                        </td>
                         <td>
                           <input
                             type="text"
@@ -2795,7 +3012,13 @@ const AdminProducts = () => {
                             onChange={(e) => updateExcelProduct(index, 'name', e.target.value)}
                             className="admin-products__excel-input"
                             placeholder="Product name"
+                            disabled={product.isDuplicate}
                           />
+                          {product.isDuplicate && (
+                            <div style={{ fontSize: '10px', color: '#dc2626', marginTop: '2px' }}>
+                              Already exists - will be skipped
+                            </div>
+                          )}
                         </td>
                         <td>
                           <select
@@ -3125,8 +3348,125 @@ const AdminProducts = () => {
           </div>
         </div>
       )}
+
+      {/* Update from Excel Modal */}
+      {showUpdateExcelModal && (
+        <div className="admin-products__modal-overlay" onClick={closeUpdateExcelModal}>
+          <div className="admin-products__bulk-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-products__modal-header">
+              <h2>📝 Update Products from Excel</h2>
+              <button onClick={closeUpdateExcelModal}>×</button>
+            </div>
+
+            <div className="admin-products__excel-preview">
+              <div className="admin-products__info-box">
+                <p>
+                  Found <strong>{updateMatchResults.length}</strong> products in Excel.&nbsp;
+                  <span style={{ color: '#16a34a' }}>
+                    ✅ {updateMatchResults.filter(r => r.status === 'matched').length} matched with existing products.
+                  </span>
+                  {updateMatchResults.filter(r => r.status === 'not-found').length > 0 && (
+                    <span style={{ color: '#dc2626' }}>
+                      &nbsp;⚠️ {updateMatchResults.filter(r => r.status === 'not-found').length} product(s) not found in database.
+                    </span>
+                  )}
+                </p>
+                <p style={{ marginTop: '6px', fontSize: '14px', color: '#666' }}>
+                  💡 Products are matched by Product Name or SKU. Only matched products can be updated.
+                </p>
+              </div>
+
+              <div className="admin-products__excel-table-wrapper">
+                <table className="admin-products__excel-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '50px' }}>Update</th>
+                      <th style={{ width: '80px' }}>Status</th>
+                      <th>Product Name (Excel)</th>
+                      <th>Matched Product</th>
+                      <th>Price</th>
+                      <th>Stock</th>
+                      <th>SKU</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {updateMatchResults.map((result, index) => (
+                      <tr key={index} style={{ 
+                        backgroundColor: result.status === 'matched' ? '#f0fdf4' : '#fef2f2'
+                      }}>
+                        <td style={{ textAlign: 'center' }}>
+                          {result.status === 'matched' ? (
+                            <input
+                              type="checkbox"
+                              checked={result.willUpdate}
+                              onChange={() => toggleUpdateSelection(index)}
+                            />
+                          ) : (
+                            <span style={{ color: '#999' }}>-</span>
+                          )}
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          {result.status === 'matched' ? (
+                            <span style={{ color: '#16a34a', fontWeight: '600' }}>✓ Found</span>
+                          ) : (
+                            <span style={{ color: '#dc2626', fontWeight: '600' }}>✗ Not Found</span>
+                          )}
+                        </td>
+                        <td>{result.excelData['Product Name'] || '-'}</td>
+                        <td>
+                          {result.matchedProduct ? (
+                            <span style={{ color: '#16a34a' }}>{result.matchedProduct.name}</span>
+                          ) : (
+                            <span style={{ color: '#999' }}>No match</span>
+                          )}
+                        </td>
+                        <td>
+                          {result.excelData['Price'] ? `₹${parseFloat(result.excelData['Price']).toLocaleString()}` : '-'}
+                          {result.matchedProduct && (
+                            <div style={{ fontSize: '12px', color: '#666' }}>
+                              Current: ₹{result.matchedProduct.price.toLocaleString()}
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          {result.excelData['Stock'] || '-'}
+                          {result.matchedProduct && (
+                            <div style={{ fontSize: '12px', color: '#666' }}>
+                              Current: {result.matchedProduct.stock}
+                            </div>
+                          )}
+                        </td>
+                        <td>{result.excelData['SKU'] || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="admin-products__modal-actions">
+                <button 
+                  type="button" 
+                  onClick={closeUpdateExcelModal} 
+                  className="admin-products__btn-cancel"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleUpdateFromExcel}
+                  className="admin-products__btn-submit"
+                  disabled={updateMatchResults.filter(r => r.willUpdate).length === 0}
+                >
+                  Update {updateMatchResults.filter(r => r.willUpdate).length} Product(s)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
 
 export default AdminProducts;

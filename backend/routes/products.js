@@ -350,6 +350,46 @@ router.post('/', upload.array('images', 10), async (req, res) => {
       });
     }
 
+    // Check for duplicate products by name and SKU
+    const duplicateQuery = { name: { $regex: new RegExp(`^${name.trim()}$`, 'i') } };
+    
+    // If SKU is provided, also check for SKU duplicates
+    if (sku && sku.trim()) {
+      const skuDuplicate = await Product.findOne({ 
+        sku: { $regex: new RegExp(`^${sku.trim()}$`, 'i') } 
+      });
+      
+      if (skuDuplicate) {
+        return res.status(400).json({
+          success: false,
+          message: `Product with SKU "${sku}" already exists: ${skuDuplicate.name}`,
+          duplicate: true,
+          existingProduct: {
+            id: skuDuplicate._id,
+            name: skuDuplicate.name,
+            sku: skuDuplicate.sku,
+            price: skuDuplicate.price
+          }
+        });
+      }
+    }
+
+    // Check for name duplicate
+    const nameDuplicate = await Product.findOne(duplicateQuery);
+    if (nameDuplicate) {
+      return res.status(400).json({
+        success: false,
+        message: `Product with name "${name}" already exists. Please use a different name or update the existing product.`,
+        duplicate: true,
+        existingProduct: {
+          id: nameDuplicate._id,
+          name: nameDuplicate.name,
+          sku: nameDuplicate.sku,
+          price: nameDuplicate.price
+        }
+      });
+    }
+
     // Get image URLs - either from uploaded files or existing images
     let images = [];
     if (req.files && req.files.length > 0) {
