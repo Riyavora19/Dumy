@@ -1368,3 +1368,34 @@
   border-color: #ef4444 !important;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
 }
+
+/* Quick Edit Button */
+.admin-products__quick-edit-btn {
+  background: #10b981 !important;
+  border-color: #10b981 !important;
+}
+
+.admin-products__quick-edit-btn:hover {
+  background: #059669 !important;
+  border-color: #059669 !important;
+  transform: translateY(-2px);
+}
+
+.admin-products__quick-edit-btn svg {
+  stroke: white;
+}
+
+/* Quick Edit Modal */
+.admin-products__quick-edit-modal {
+  max-width: 500px !important;
+}
+
+.admin-products__quick-edit-modal .admin-products__form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-products__quick-edit-modal .admin-products__field {
+  margin-bottom: 0;
+}

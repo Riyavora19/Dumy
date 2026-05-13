@@ -64,7 +64,8 @@ router.get('/', async (req, res) => {
       maxPrice, 
       company, 
       partnerOnly,
-      isActive
+      isActive,
+      flag
     } = req.query;
     
     const query = {};
@@ -94,6 +95,11 @@ router.get('/', async (req, res) => {
     // Filter by active status
     if (isActive !== undefined) {
       query.isActive = isActive === 'true';
+    }
+    
+    // Filter by flag (e.g., Featured)
+    if (flag) {
+      query.flag = flag;
     }
     
     // Build populate options for company

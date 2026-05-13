@@ -3,23 +3,86 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './Categories.css';
 
-// Smart icon fallback based on category name
+// Smart icon fallback based on category name - Returns SVG icons with light colors
 const getCategoryIcon = (category) => {
-  if (category.icon && category.icon !== '📦') return category.icon;
-
   const name = (category.name || '').toLowerCase();
-  if (name.includes('toilet') || name.includes('wc') || name.includes('commode') || name.includes('vitreous')) return '🚽';
+  
+  // Faucet - Luxury basin mixer (light/white)
+  if (name.includes('faucet') || name.includes('tap') || name.includes('mixer')) {
+    return (
+      <svg width="80" height="80" viewBox="0 0 64 64" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 35 L20 45 C20 48 22 50 25 50 L39 50 C42 50 44 48 44 45 L44 35" strokeWidth="2.5" opacity="0.9"/>
+        <ellipse cx="32" cy="35" rx="12" ry="3" fill="white" opacity="0.3"/>
+        <path d="M32 35 Q32 25, 42 20 L48 20" strokeWidth="2.5" opacity="0.9"/>
+        <circle cx="50" cy="20" r="3" fill="white" opacity="0.9"/>
+        <path d="M32 35 L32 15" strokeWidth="2" opacity="0.9"/>
+        <circle cx="32" cy="12" r="4" fill="white" opacity="0.9"/>
+        <path d="M28 12 L36 12" strokeWidth="2.5" stroke="rgba(0,0,0,0.2)"/>
+        <rect x="26" y="33" width="12" height="4" rx="1" fill="white" opacity="0.4"/>
+      </svg>
+    );
+  }
+  
+  // Accessories - Bathroom accessories set (light/white)
+  if (name.includes('accessory') || name.includes('accessories')) {
+    return (
+      <svg width="80" height="80" viewBox="0 0 64 64" fill="white">
+        <rect x="10" y="15" width="20" height="3" rx="1.5" opacity="0.8"/>
+        <circle cx="10" cy="16.5" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle cx="30" cy="16.5" r="2" fill="rgba(0,0,0,0.15)"/>
+        <rect x="38" y="12" width="8" height="12" rx="2" opacity="0.8"/>
+        <rect x="40" y="10" width="4" height="3" rx="1" opacity="0.8"/>
+        <circle cx="42" cy="18" r="1" fill="rgba(0,0,0,0.2)"/>
+        <rect x="52" y="14" width="6" height="8" rx="1" opacity="0.8"/>
+        <rect x="53.5" y="12" width="1" height="3" opacity="0.8"/>
+        <rect x="56.5" y="12" width="1" height="3" opacity="0.8"/>
+        <circle cx="20" cy="38" r="8" opacity="0.8" fill="none" stroke="white" strokeWidth="2"/>
+        <circle cx="20" cy="38" r="5" opacity="0.4"/>
+        <rect x="12" y="37" width="4" height="2" rx="1" opacity="0.8"/>
+        <circle cx="45" cy="38" r="4" opacity="0.8"/>
+        <path d="M45 38 L45 45" stroke="white" strokeWidth="2" opacity="0.8" fill="none"/>
+        <circle cx="45" cy="47" r="2" opacity="0.8"/>
+      </svg>
+    );
+  }
+  
+  // Tiles - Floor tile pattern (light/white)
+  if (name.includes('tile') || name.includes('floor') || name.includes('wall')) {
+    return (
+      <svg width="80" height="80" viewBox="0 0 64 64" fill="white">
+        <rect x="6" y="6" width="13" height="13" rx="1" opacity="0.8"/>
+        <rect x="22" y="6" width="13" height="13" rx="1" opacity="0.6"/>
+        <rect x="38" y="6" width="13" height="13" rx="1" opacity="0.8"/>
+        <rect x="6" y="22" width="13" height="13" rx="1" opacity="0.6"/>
+        <rect x="22" y="22" width="13" height="13" rx="1" opacity="0.8"/>
+        <rect x="38" y="22" width="13" height="13" rx="1" opacity="0.6"/>
+        <rect x="6" y="38" width="13" height="13" rx="1" opacity="0.8"/>
+        <rect x="22" y="38" width="13" height="13" rx="1" opacity="0.6"/>
+        <rect x="38" y="38" width="13" height="13" rx="1" opacity="0.8"/>
+        <circle cx="12.5" cy="12.5" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle cx="28.5" cy="12.5" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle cx="44.5" cy="12.5" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle cx="12.5" cy="28.5" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle cx="28.5" cy="28.5" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle cx="44.5" cy="28.5" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle cx="12.5" cy="44.5" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle cx="28.5" cy="44.5" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle cx="44.5" cy="44.5" r="2" fill="rgba(0,0,0,0.15)"/>
+        <line x1="19.5" y1="6" x2="19.5" y2="51" stroke="rgba(0,0,0,0.1)" strokeWidth="1"/>
+        <line x1="35.5" y1="6" x2="35.5" y2="51" stroke="rgba(0,0,0,0.1)" strokeWidth="1"/>
+        <line x1="6" y1="19.5" x2="51" y2="19.5" stroke="rgba(0,0,0,0.1)" strokeWidth="1"/>
+        <line x1="6" y1="35.5" x2="51" y2="35.5" stroke="rgba(0,0,0,0.1)" strokeWidth="1"/>
+      </svg>
+    );
+  }
+  
+  // Fallback emoji for other categories
+  if (category.icon && category.icon !== '📦') return category.icon;
+  if (name.includes('toilet') || name.includes('wc')) return '🚽';
   if (name.includes('shower') || name.includes('bath')) return '🚿';
-  if (name.includes('basin') || name.includes('sink') || name.includes('wash')) return '🪣';
-  if (name.includes('faucet') || name.includes('tap') || name.includes('mixer')) return '🚰';
-  if (name.includes('mirror') || name.includes('cabinet')) return '🪞';
-  if (name.includes('tile') || name.includes('floor') || name.includes('wall')) return '🔲';
+  if (name.includes('basin') || name.includes('sink')) return '🪣';
+  if (name.includes('mirror')) return '🪞';
   if (name.includes('kitchen')) return '🍳';
-  if (name.includes('urinal')) return '🚻';
-  if (name.includes('acrylic') || name.includes('tub')) return '🛁';
-  if (name.includes('accessory') || name.includes('accessories')) return '🔧';
-  if (name.includes('light') || name.includes('led')) return '💡';
-  if (name.includes('door') || name.includes('window')) return '🚪';
   return '📦';
 };
 

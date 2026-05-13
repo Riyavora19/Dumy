@@ -152,6 +152,67 @@
   transform: scale(1.05);
 }
 
+/* Icon Display Styles */
+.category-products__icon-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.category-products__icon-display::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { transform: translate(-25%, -25%); }
+  50% { transform: translate(25%, 25%); }
+}
+
+.category-products__icon-wrapper {
+  width: 140px;
+  height: 140px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  color: white;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+}
+
+.category-products__card:hover .category-products__icon-wrapper {
+  transform: scale(1.08) translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+.category-products__icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.category-products__icon-wrapper svg {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.08));
+  transition: all 0.4s ease;
+}
+
+.category-products__card:hover .category-products__icon-wrapper svg {
+  transform: scale(1.05);
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.12));
+}
+
 .category-products__image-count {
   position: absolute;
   top: 12px;

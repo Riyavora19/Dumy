@@ -2,9 +2,11 @@ import './Home.css';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useCart } from '../context/CartContext';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { addToCart, isInCart } = useCart();
   const [categories, setCategories] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -13,6 +15,8 @@ const Home = () => {
     categories: 0,
     customers: 0
   });
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Static company logos from public folder
   const companyLogos = [
@@ -56,11 +60,10 @@ const Home = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/products');
+      const response = await axios.get('http://localhost:5000/api/products?flag=Featured');
       if (response.data.success) {
-        // Get random 6 products
-        const shuffled = response.data.data.sort(() => 0.5 - Math.random());
-        setFeaturedProducts(shuffled.slice(0, 6));
+        // Get products marked as Featured, limit to 6
+        setFeaturedProducts(response.data.data.slice(0, 6));
       }
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -83,6 +86,16 @@ const Home = () => {
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
+  };
+
+  const openProductModal = (product) => {
+    setSelectedProduct(product);
+    setShowModal(true);
+  };
+
+  const closeProductModal = () => {
+    setShowModal(false);
+    setSelectedProduct(null);
   };
 
   return (
@@ -223,7 +236,11 @@ const Home = () => {
             <div className="home-featured__grid">
               {featuredProducts.map(product => (
                 <div key={product._id} className="home-featured__card">
-                  <div className="home-featured__image">
+                  <div 
+                    className="home-featured__image"
+                    onClick={() => openProductModal(product)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     {product.images && product.images.length > 0 ? (
                       <img 
                         src={`http://localhost:5000${product.images[0]}`} 
@@ -241,7 +258,12 @@ const Home = () => {
                     )}
                   </div>
                   <div className="home-featured__content">
-                    <h3>{product.name}</h3>
+                    <h3 
+                      onClick={() => openProductModal(product)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {product.name}
+                    </h3>
                     <p className="home-featured__company">
                       {typeof product.company === 'object' ? product.company?.name : product.company}
                     </p>
@@ -250,6 +272,50 @@ const Home = () => {
                       {product.mrp && product.mrp > product.price && (
                         <span className="price-old">₹{product.mrp.toLocaleString()}</span>
                       )}
+                    </div>
+                    <div className="home-featured__actions">
+                      <button 
+                        className="home-featured__details-btn"
+                        onClick={() => openProductModal(product)}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="11" cy="11" r="8"/>
+                          <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        View Details
+                      </button>
+                      <button 
+                        className={`home-featured__cart-btn ${isInCart(product._id) ? 'in-cart' : ''}`}
+                        onClick={() => addToCart(product)}
+                        disabled={product.stock === 0}
+                      >
+                        {product.stock === 0 ? (
+                          <>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10"/>
+                              <line x1="15" y1="9" x2="9" y2="15"/>
+                              <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            Out of Stock
+                          </>
+                        ) : isInCart(product._id) ? (
+                          <>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            In Cart
+                          </>
+                        ) : (
+                          <>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="9" cy="21" r="1"/>
+                              <circle cx="20" cy="21" r="1"/>
+                              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                            </svg>
+                            Add to Cart
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -452,6 +518,137 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Product Detail Modal */}
+      {showModal && selectedProduct && (
+        <div className="product-modal-overlay" onClick={closeProductModal}>
+          <div className="product-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="product-modal__close" onClick={closeProductModal}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+
+            <div className="product-modal__content">
+              <div className="product-modal__image-section">
+                {selectedProduct.images && selectedProduct.images.length > 0 ? (
+                  <img 
+                    src={`http://localhost:5000${selectedProduct.images[0]}`} 
+                    alt={selectedProduct.name}
+                  />
+                ) : (
+                  <div className="product-modal__placeholder">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              <div className="product-modal__info-section">
+                <div className="product-modal__header">
+                  <h2>{selectedProduct.name}</h2>
+                  <p className="product-modal__company">
+                    {typeof selectedProduct.company === 'object' ? selectedProduct.company?.name : selectedProduct.company}
+                  </p>
+                </div>
+
+                <div className="product-modal__price">
+                  <span className="product-modal__price-current">₹{selectedProduct.price.toLocaleString()}</span>
+                  {selectedProduct.mrp && selectedProduct.mrp > selectedProduct.price && (
+                    <>
+                      <span className="product-modal__price-old">₹{selectedProduct.mrp.toLocaleString()}</span>
+                      <span className="product-modal__discount">
+                        {Math.round(((selectedProduct.mrp - selectedProduct.price) / selectedProduct.mrp) * 100)}% OFF
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {selectedProduct.description && (
+                  <div className="product-modal__description">
+                    <h3>Description</h3>
+                    <p>{selectedProduct.description}</p>
+                  </div>
+                )}
+
+                {selectedProduct.specifications && Object.keys(selectedProduct.specifications).length > 0 && (
+                  <div className="product-modal__specifications">
+                    <h3>Specifications</h3>
+                    <div className="product-modal__specs-grid">
+                      {Object.entries(selectedProduct.specifications).map(([key, value]) => (
+                        <div key={key} className="product-modal__spec-item">
+                          <span className="product-modal__spec-label">{key}:</span>
+                          <span className="product-modal__spec-value">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="product-modal__stock">
+                  {selectedProduct.stock > 0 ? (
+                    <span className="product-modal__stock-badge product-modal__stock-badge--in">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      In Stock
+                    </span>
+                  ) : (
+                    <span className="product-modal__stock-badge product-modal__stock-badge--out">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                      </svg>
+                      Out of Stock
+                    </span>
+                  )}
+                </div>
+
+                <div className="product-modal__actions">
+                  <button 
+                    className={`product-modal__cart-btn ${isInCart(selectedProduct._id) ? 'in-cart' : ''}`}
+                    onClick={() => {
+                      addToCart(selectedProduct);
+                      closeProductModal();
+                    }}
+                    disabled={selectedProduct.stock === 0}
+                  >
+                    {selectedProduct.stock === 0 ? (
+                      <>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <line x1="15" y1="9" x2="9" y2="15"/>
+                          <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        Out of Stock
+                      </>
+                    ) : isInCart(selectedProduct._id) ? (
+                      <>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        In Cart
+                      </>
+                    ) : (
+                      <>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="9" cy="21" r="1"/>
+                          <circle cx="20" cy="21" r="1"/>
+                          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                        </svg>
+                        Add to Cart
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -15,6 +15,7 @@ const AdminProducts = () => {
   const [itemTypeCounts, setItemTypeCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showQuickEditModal, setShowQuickEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
@@ -427,6 +428,83 @@ const AdminProducts = () => {
     setExistingImages(product.images || []);
     setSelectedFiles([]);
     setShowModal(true);
+  };
+
+  const handleQuickEdit = (product) => {
+    console.log('Quick editing product:', product);
+    setEditingProduct(product);
+    setFormData({
+      name: product.name || '',
+      price: product.price || '',
+      stock: product.stock || 0,
+      company: (typeof product.company === 'object' ? product.company?._id : '') || '',
+      companyName: (typeof product.company === 'object' ? product.company?.name : product.companyName) || product.company || '',
+      isActive: product.isActive !== undefined ? product.isActive : true,
+      flag: product.flag || '',
+    });
+    setShowQuickEditModal(true);
+  };
+
+  const closeQuickEditModal = () => {
+    setShowQuickEditModal(false);
+    setEditingProduct(null);
+    setFormData({
+      name: '',
+      description: '',
+      category: '',
+      company: '',
+      companyName: '',
+      brand: '',
+      itemType: '',
+      itemTypeName: '',
+      variant: '',
+      price: '',
+      originalPrice: '',
+      sku: '',
+      stock: 0,
+      isActive: true,
+      tags: '',
+      rating: 0,
+      specifications: {
+        material: '',
+        size: '',
+        color: '',
+        warranty: '',
+        features: ''
+      }
+    });
+  };
+
+  const handleQuickEditSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const updateData = {
+        name: formData.name,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+        company: formData.company || undefined,
+        companyName: formData.companyName || undefined,
+        isActive: formData.isActive,
+        flag: formData.flag || ''
+      };
+
+      const response = await axios.put(
+        `http://localhost:5000/api/products/${editingProduct._id}`,
+        updateData
+      );
+
+      if (response.data.success) {
+        showNotification('Product updated successfully!', 'success');
+        fetchProducts();
+        closeQuickEditModal();
+      } else {
+        showNotification(response.data.message || 'Failed to update product', 'error');
+      }
+    } catch (error) {
+      console.error('Update error:', error);
+      showNotification(error.response?.data?.message || 'Failed to update product', 'error');
+    }
   };
 
   const handleDelete = async (id) => {
@@ -1516,6 +1594,12 @@ const AdminProducts = () => {
                   <td>{product.stock || 0}</td>
                   <td>
                     <div className="admin-products__actions">
+                      <button onClick={() => handleQuickEdit(product)} title="Quick Edit" className="admin-products__quick-edit-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12 20h9"/>
+                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                      </button>
                       <button onClick={() => handleEdit(product)} title="Edit">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -2941,6 +3025,106 @@ const AdminProducts = () => {
         </div>
       )}
 
+      {/* Quick Edit Modal */}
+      {showQuickEditModal && (
+        <div className="admin-products__modal-overlay" onClick={closeQuickEditModal}>
+          <div className="admin-products__modal admin-products__quick-edit-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-products__modal-header">
+              <h2>Quick Edit Product</h2>
+              <button onClick={closeQuickEditModal}>×</button>
+            </div>
+
+            <form onSubmit={handleQuickEditSubmit} className="admin-products__form">
+              <div className="admin-products__field">
+                <label>Product Name *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="admin-products__field">
+                <label>Company *</label>
+                <select
+                  value={formData.company}
+                  onChange={(e) => {
+                    const selectedCompany = companies.find(c => c._id === e.target.value);
+                    setFormData({
+                      ...formData,
+                      company: e.target.value,
+                      companyName: selectedCompany?.name || ''
+                    });
+                  }}
+                  required
+                >
+                  <option value="">Select Company</option>
+                  {companies.map(company => (
+                    <option key={company._id} value={company._id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="admin-products__field">
+                <label>Price (₹) *</label>
+                <input
+                  type="number"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  required
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+
+              <div className="admin-products__field">
+                <label>Stock Quantity *</label>
+                <input
+                  type="number"
+                  value={formData.stock}
+                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                  required
+                  min="0"
+                />
+              </div>
+
+              <div className="admin-products__field">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  />
+                  <span style={{ marginLeft: '8px' }}>Active</span>
+                </label>
+              </div>
+
+              <div className="admin-products__field">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={formData.flag === 'Featured'}
+                    onChange={(e) => setFormData({ ...formData, flag: e.target.checked ? 'Featured' : '' })}
+                  />
+                  <span style={{ marginLeft: '8px', fontWeight: '600', color: '#f59e0b' }}>⭐ Mark as Featured Product</span>
+                </label>
+              </div>
+
+              <div className="admin-products__modal-actions">
+                <button type="button" onClick={closeQuickEditModal} className="admin-products__btn-cancel">
+                  Cancel
+                </button>
+                <button type="submit" className="admin-products__btn-submit">
+                  Update Product
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

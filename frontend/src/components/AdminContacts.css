@@ -225,6 +225,7 @@
   align-items: center;
   z-index: 1000;
   padding: 20px;
+  overflow-y: auto;
 }
 
 .modal-content {
@@ -232,9 +233,10 @@
   border-radius: 8px;
   width: 100%;
   max-width: 800px;
-  max-height: 90vh;
+  max-height: 85vh;
   overflow-y: auto;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: auto;
 }
 
 .modal-header {
@@ -357,10 +359,17 @@
 /* View Modal Styles */
 .view-modal {
   max-width: 900px;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .contact-details {
   padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
 }
 
 .detail-section {
