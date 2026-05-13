@@ -15,6 +15,7 @@ const ProductVariants = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('price-asc');
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [selectedColor, setSelectedColor] = useState('all');
@@ -37,7 +38,7 @@ const ProductVariants = () => {
   // Apply filters and sorting whenever filter values change
   useEffect(() => {
     applyFilters();
-  }, [sortBy, priceRange, selectedColor, selectedCompany, selectedMaterial, selectedSize, selectedWarranty, showInStockOnly, allProducts]);
+  }, [sortBy, priceRange, selectedColor, selectedCompany, selectedMaterial, selectedSize, selectedWarranty, showInStockOnly, searchQuery, allProducts]);
 
   const fetchData = async () => {
     try {
@@ -120,6 +121,7 @@ const ProductVariants = () => {
     let filtered = [...allProducts];
 
     console.log('Applying filters:', {
+      searchQuery,
       selectedColor,
       selectedCompany,
       selectedMaterial,
@@ -128,6 +130,17 @@ const ProductVariants = () => {
       showInStockOnly,
       totalProducts: allProducts.length
     });
+
+    // Filter by search query
+    if (searchQuery && searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(query) ||
+        p.description?.toLowerCase().includes(query) ||
+        p.sku?.toLowerCase().includes(query) ||
+        p.variant?.toLowerCase().includes(query)
+      );
+    }
 
     // Filter by price range
     filtered = filtered.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
@@ -263,6 +276,33 @@ const ProductVariants = () => {
               </div>
             </div>
           )}
+          
+          {/* Search Bar */}
+          <div className="product-variants__header-search">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="product-variants__header-search-input"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="product-variants__header-search-clear"
+                title="Clear search"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            )}
+          </div>
         </header>
 
         <div className="product-variants__content">

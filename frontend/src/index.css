@@ -26,12 +26,17 @@ body {
   margin: 0;
   background: #f7f8fa;
   overflow-x: hidden;
+  position: relative;
 }
 
 /* Prevent horizontal scroll on mobile */
 html, body {
   max-width: 100%;
   overflow-x: hidden;
+}
+
+html {
+  overflow-y: scroll;
 }
 
 /* Better touch targets for mobile */

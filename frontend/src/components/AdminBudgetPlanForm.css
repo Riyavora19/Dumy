@@ -2711,9 +2711,10 @@
 
 .product-info-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .product-name {
@@ -2721,14 +2722,22 @@
   font-weight: 700;
   color: #1f2937;
   line-height: 1.2;
-  flex-shrink: 0;
+  flex: 1;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
 }
 
 .variant-text {
   font-size: 11px;
   color: #6b7280;
   line-height: 1.2;
-  flex-shrink: 0;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .company-badge {

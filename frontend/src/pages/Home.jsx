@@ -7,7 +7,6 @@ const Home = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [companies, setCompanies] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [stats, setStats] = useState({
     products: 0,
@@ -15,10 +14,26 @@ const Home = () => {
     customers: 0
   });
 
+  // Static company logos from public folder
+  const companyLogos = [
+    { name: 'Artize', logo: '/company-logos/Artize.png' },
+    { name: 'Duravit', logo: '/company-logos/Duravit.png' },
+    { name: 'Jaguar', logo: '/company-logos/Jaguar.png' },
+    { name: 'Johnson', logo: '/company-logos/Johnson.png' },
+    { name: 'Kajaria', logo: '/company-logos/Kajaria.png' },
+    { name: 'Kohler', logo: '/company-logos/Kohler.png' },
+    { name: 'Milagro', logo: '/company-logos/Milagro.png' },
+    { name: 'Parryware', logo: '/company-logos/Parryware.png' },
+    { name: 'Qutone', logo: '/company-logos/Qutone.png' },
+    { name: 'Simero', logo: '/company-logos/Simero.png' },
+    { name: 'Simpolo', logo: '/company-logos/Simpolo.png' },
+    { name: 'TrueBlock', logo: '/company-logos/TrueBlock.png' },
+    { name: 'Woven', logo: '/company-logos/Woven.png' }
+  ];
+
   useEffect(() => {
     fetchCategories();
     fetchFeaturedProducts();
-    fetchCompanies();
     checkLoginStatus();
     fetchStats();
   }, []);
@@ -49,17 +64,6 @@ const Home = () => {
       }
     } catch (error) {
       console.error('Error fetching products:', error);
-    }
-  };
-
-  const fetchCompanies = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/companies');
-      if (response.data.success) {
-        setCompanies(response.data.data.slice(0, 8));
-      }
-    } catch (error) {
-      console.error('Error fetching companies:', error);
     }
   };
 
@@ -255,32 +259,38 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Brands Section */}
-      {companies.length > 0 && (
-        <section className="home-brands">
-          <div className="home-brands__container">
-            <div className="home-brands__header">
-              <span className="section-badge">Trusted Partners</span>
-              <h2>Our Premium Brands</h2>
-              <p>We partner with the best brands in the industry</p>
-            </div>
-            <div className="home-brands__grid">
-              {companies.map(company => (
-                <div key={company._id} className="home-brands__card">
-                  {company.logo ? (
-                    <img 
-                      src={`http://localhost:5000${company.logo}`} 
-                      alt={company.name}
-                    />
-                  ) : (
-                    <span className="home-brands__name">{company.name}</span>
-                  )}
+      {/* Brands Section - Marquee */}
+      <section className="home-brands">
+        <div className="home-brands__container">
+          <div className="home-brands__header">
+            <span className="section-badge">Trusted Partners</span>
+            <h2>Our Premium Brands</h2>
+            <p>We partner with the best brands in the industry</p>
+          </div>
+          <div className="home-brands__marquee">
+            <div className="home-brands__marquee-content">
+              {/* First set of logos */}
+              {companyLogos.map((company, index) => (
+                <div key={index} className="home-brands__card">
+                  <img 
+                    src={company.logo} 
+                    alt={company.name}
+                  />
+                </div>
+              ))}
+              {/* Duplicate set for seamless loop */}
+              {companyLogos.map((company, index) => (
+                <div key={`duplicate-${index}`} className="home-brands__card">
+                  <img 
+                    src={company.logo} 
+                    alt={company.name}
+                  />
                 </div>
               ))}
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* Testimonials Section */}
       <section className="home-testimonials">

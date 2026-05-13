@@ -109,7 +109,7 @@ const AdminProducts = () => {
       
       if (response.data.success) {
         let filteredProducts = response.data.data.filter(p => 
-          p && p._id && p.name && p.price
+          p && p._id && p.name && (p.price !== undefined && p.price !== null)
           // Removed the image requirement - show products even without images
         );
         
@@ -641,24 +641,121 @@ const AdminProducts = () => {
       return;
     }
 
-    if (!bulkImageCategory) {
-      showNotification('Please select a category for the products', 'error');
-      return;
-    }
-
     let successCount = 0;
     let failCount = 0;
     const errors = [];
+    const createdCategories = new Set();
+
+    // Helper function to intelligently categorize product based on name
+    const extractCategoryFromProductName = (productName) => {
+      const nameLower = productName.toLowerCase();
+      
+      // Define keywords for each category
+      const categoryKeywords = {
+        'Faucet': [
+          'faucet', 'tap', 'mixer', 'spout', 'shower', 'basin', 'sink', 
+          'diverter', 'valve', 'cock', 'bib', 'pillar', 'wall mixer',
+          'overhead', 'hand shower', 'telephonic', 'concealed', 'exposed'
+        ],
+        'Accessories': [
+          'accessories', 'accessory', 'soap', 'dispenser', 'holder', 'rack',
+          'towel', 'robe', 'hook', 'shelf', 'grab bar', 'rail', 'ring',
+          'tumbler', 'brush', 'paper holder', 'napkin', 'mirror', 'glass',
+          'bottle', 'tray', 'basket', 'corner', 'stand'
+        ],
+        'Tiles': [
+          'tile', 'tiles', 'ceramic', 'porcelain', 'vitrified', 'mosaic',
+          'wall tile', 'floor tile', 'slab', 'marble', 'granite'
+        ]
+      };
+      
+      // Check which category matches best
+      for (const [category, keywords] of Object.entries(categoryKeywords)) {
+        for (const keyword of keywords) {
+          if (nameLower.includes(keyword)) {
+            return category;
+          }
+        }
+      }
+      
+      // Default to Accessories if no match found
+      return 'Accessories';
+    };
+
+    // Helper function to resolve category (find existing or create new)
+    const resolveCategory = async (categoryName) => {
+      if (!categoryName || categoryName.trim() === '') {
+        categoryName = 'Accessories'; // Default category
+      }
+
+      const trimmedName = categoryName.trim();
+
+      // Check if category exists by name (case-insensitive)
+      const existingCategory = categories.find(cat => 
+        cat.name.toLowerCase().trim() === trimmedName.toLowerCase()
+      );
+
+      if (existingCategory) {
+        return existingCategory._id;
+      }
+
+      // Only create category if it's one of the 3 main categories
+      const allowedCategories = ['faucet', 'accessories', 'tiles'];
+      if (!allowedCategories.includes(trimmedName.toLowerCase())) {
+        // If not an allowed category, default to Accessories
+        const accessoriesCategory = categories.find(cat => 
+          cat.name.toLowerCase() === 'accessories'
+        );
+        if (accessoriesCategory) {
+          return accessoriesCategory._id;
+        }
+      }
+
+      // Create new category (only if it's one of the 3 allowed)
+      try {
+        const catRes = await axios.post('http://localhost:5000/api/categories/find-or-create', {
+          name: trimmedName
+        });
+        if (catRes.data.success) {
+          if (catRes.data.created) {
+            createdCategories.add(trimmedName);
+          }
+          return catRes.data.data._id;
+        }
+      } catch (error) {
+        console.error(`Error creating category "${trimmedName}":`, error);
+      }
+      return null;
+    };
 
     for (const imageFile of bulkImages) {
       try {
         // Extract product name from filename (remove extension)
         const productName = imageFile.name.replace(/\.[^/.]+$/, '');
 
+        // Determine category: use manual selection or auto-extract from product name
+        let categoryName;
+        if (bulkImageCategory && bulkImageCategory.trim() !== '') {
+          // User provided a category - use it for all products
+          categoryName = bulkImageCategory.trim();
+        } else {
+          // Auto-extract category from product name
+          categoryName = extractCategoryFromProductName(productName);
+        }
+
+        // Resolve category ID (find or create)
+        const resolvedCategoryId = await resolveCategory(categoryName);
+
+        if (!resolvedCategoryId) {
+          failCount++;
+          errors.push(`${productName}: Failed to resolve category`);
+          continue;
+        }
+
         const data = new FormData();
         data.append('name', productName);
         data.append('description', '');
-        data.append('category', bulkImageCategory);
+        data.append('category', resolvedCategoryId);
         data.append('company', '');
         data.append('price', 0);
         data.append('variant', 'Standard');
@@ -686,7 +783,15 @@ const AdminProducts = () => {
       }
     }
 
+    // Refresh categories list if new ones were created
+    if (createdCategories.size > 0) {
+      await fetchCategories();
+    }
+
     let message = `Image upload complete!\nSuccess: ${successCount}\nFailed: ${failCount}`;
+    if (createdCategories.size > 0) {
+      message += `\n✅ Auto-created ${createdCategories.size} new categories: ${Array.from(createdCategories).join(', ')}`;
+    }
     if (errors.length > 0 && errors.length <= 3) {
       message += `\n\nErrors:\n${errors.join('\n')}`;
     }
@@ -2431,25 +2536,30 @@ const AdminProducts = () => {
                 <ul>
                   <li>Select multiple product images at once</li>
                   <li>Image filename (without extension) becomes the product name</li>
-                  <li>Products are created with "Draft" status</li>
+                  <li>Products are automatically categorized into: <strong>Faucet, Accessories, or Tiles</strong></li>
+                  <li>Smart detection based on product name keywords (mixer, shower → Faucet; holder, rack → Accessories; etc.)</li>
+                  <li>Or specify one category to apply to all products</li>
+                  <li>Products are created with "Draft" status (price = 0)</li>
                   <li>You can edit price, category, and other details after upload</li>
                   <li>Supports up to 200+ images at once</li>
                 </ul>
               </div>
 
               <div className="admin-products__field">
-                <label>Category *</label>
-                <select
+                <label>Category (Optional)</label>
+                <input
+                  type="text"
+                  list="bulk-category-list"
                   value={bulkImageCategory}
                   onChange={(e) => setBulkImageCategory(e.target.value)}
-                  required
-                >
-                  <option value="">-- Select a category --</option>
+                  placeholder="Leave empty to auto-create from product names"
+                />
+                <datalist id="bulk-category-list">
                   {categories.map(cat => (
-                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    <option key={cat._id} value={cat.name} />
                   ))}
-                </select>
-                <small>Select a category for all products</small>
+                </datalist>
+                <small>💡 Leave empty to auto-create categories from product names, or select/type a category for all products</small>
               </div>
 
               <div className="admin-products__image-upload-area">
@@ -2497,9 +2607,19 @@ const AdminProducts = () => {
                 onClick={handleBulkImageUpload} 
                 className="admin-products__btn-submit"
                 disabled={bulkImages.length === 0}
+                title={
+                  bulkImages.length === 0 
+                    ? "Please select at least one image" 
+                    : "Upload images as products"
+                }
               >
                 Upload {bulkImages.length} Image{bulkImages.length !== 1 ? 's' : ''} as Products
               </button>
+              {bulkImages.length === 0 && (
+                <small style={{ color: '#ef4444', marginTop: '8px', display: 'block' }}>
+                  ⚠️ Please select at least one image
+                </small>
+              )}
             </div>
           </div>
         </div>

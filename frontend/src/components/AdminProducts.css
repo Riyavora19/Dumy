@@ -1358,3 +1358,13 @@
   word-break: break-all;
   max-width: 80px;
 }
+/* Required field styling */
+.admin-products__field-required {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.admin-products__field-required:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
