@@ -68,6 +68,7 @@ const AdminProducts = () => {
   const [showBulkImageModal, setShowBulkImageModal] = useState(false);
   const [bulkImages, setBulkImages] = useState([]);
   const [bulkImageCategory, setBulkImageCategory] = useState('');
+  const [bulkImageCompany, setBulkImageCompany] = useState('');
   const [uploadedProducts, setUploadedProducts] = useState([]);
   const [selectedProductForEdit, setSelectedProductForEdit] = useState(null);
   const [showProductEditPanel, setShowProductEditPanel] = useState(false);
@@ -709,6 +710,7 @@ const AdminProducts = () => {
     setShowBulkImageModal(false);
     setBulkImages([]);
     setBulkImageCategory('');
+    setBulkImageCompany('');
   };
 
   const handleBulkImageSelect = (e) => {
@@ -837,7 +839,7 @@ const AdminProducts = () => {
         data.append('name', productName);
         data.append('description', '');
         data.append('category', resolvedCategoryId);
-        data.append('company', '');
+        data.append('company', bulkImageCompany || ''); // Use selected company
         data.append('price', 0);
         data.append('variant', 'Standard');
         data.append('sku', `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
@@ -2839,6 +2841,29 @@ const AdminProducts = () => {
                   ))}
                 </datalist>
                 <small>💡 Leave empty to auto-create categories from product names, or select/type a category for all products</small>
+              </div>
+
+              <div className="admin-products__field">
+                <label>Company (Optional)</label>
+                <select
+                  value={bulkImageCompany}
+                  onChange={(e) => setBulkImageCompany(e.target.value)}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '14px',
+                    width: '100%'
+                  }}
+                >
+                  <option value="">-- Select Company (Optional) --</option>
+                  {companies.map(company => (
+                    <option key={company._id} value={company._id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+                <small>💡 Select a company to assign to all uploaded products</small>
               </div>
 
               <div className="admin-products__image-upload-area">
