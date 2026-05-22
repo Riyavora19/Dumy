@@ -77,6 +77,9 @@ const AdminProducts = () => {
   const [showUpdateExcelModal, setShowUpdateExcelModal] = useState(false);
   const [updateExcelData, setUpdateExcelData] = useState([]);
   const [updateMatchResults, setUpdateMatchResults] = useState([]);
+  const [showImageChangeModal, setShowImageChangeModal] = useState(false);
+  const [imageChangeProduct, setImageChangeProduct] = useState(null);
+  const [newProductImages, setNewProductImages] = useState([]);
 
   useEffect(() => {
     fetchProducts();
@@ -173,13 +176,13 @@ const AdminProducts = () => {
     try {
       const response = await axios.get('http://localhost:5000/api/companies');
       if (response.data.success) {
-        // Filter to show only partner companies
-        const partnerCompanies = response.data.data.filter(c => c.isPartner);
-        setCompanies(partnerCompanies);
+        // Show all companies (removed partner filter)
+        const allCompanies = response.data.data;
+        setCompanies(allCompanies);
         
         // Fetch product count for each company
         const counts = {};
-        for (const comp of partnerCompanies) {
+        for (const comp of allCompanies) {
           try {
             const countResponse = await axios.get('http://localhost:5000/api/products', {
               params: { company: comp._id }
@@ -445,6 +448,13 @@ const AdminProducts = () => {
       companyName: (typeof product.company === 'object' ? product.company?.name : product.companyName) || product.company || '',
       isActive: product.isActive !== undefined ? product.isActive : true,
       flag: product.flag || '',
+      specifications: {
+        material: product.specifications?.material || '',
+        size: product.specifications?.size || '',
+        color: product.specifications?.color || '',
+        warranty: product.specifications?.warranty || '',
+        features: product.specifications?.features || ''
+      }
     });
     setShowQuickEditModal(true);
   };
@@ -490,7 +500,14 @@ const AdminProducts = () => {
         company: formData.company || undefined,
         companyName: formData.companyName || undefined,
         isActive: formData.isActive,
-        flag: formData.flag || ''
+        flag: formData.flag || '',
+        specifications: {
+          material: formData.specifications?.material || '',
+          size: formData.specifications?.size || '',
+          color: formData.specifications?.color || '',
+          warranty: formData.specifications?.warranty || '',
+          features: formData.specifications?.features || ''
+        }
       };
 
       const response = await axios.put(
@@ -525,6 +542,54 @@ const AdminProducts = () => {
     } catch (error) {
       console.error('Delete error:', error);
       showNotification(error.response?.data?.message || 'Failed to delete product', 'error');
+    }
+  };
+
+  const openImageChangeModal = (product) => {
+    setImageChangeProduct(product);
+    setNewProductImages([]);
+    setShowImageChangeModal(true);
+  };
+
+  const closeImageChangeModal = () => {
+    setShowImageChangeModal(false);
+    setImageChangeProduct(null);
+    setNewProductImages([]);
+  };
+
+  const handleImageChangeFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setNewProductImages(files.slice(0, 5)); // Max 5 images
+  };
+
+  const handleImageChangeSubmit = async () => {
+    if (newProductImages.length === 0) {
+      showNotification('Please select at least one image', 'error');
+      return;
+    }
+
+    try {
+      const data = new FormData();
+      newProductImages.forEach(file => {
+        data.append('images', file);
+      });
+
+      const response = await axios.put(
+        `http://localhost:5000/api/products/${imageChangeProduct._id}`,
+        data,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+
+      if (response.data.success) {
+        showNotification('Product images updated successfully!', 'success');
+        fetchProducts();
+        closeImageChangeModal();
+      } else {
+        showNotification(response.data.message || 'Failed to update images', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating images:', error);
+      showNotification(error.response?.data?.message || 'Failed to update images', 'error');
     }
   };
 
@@ -835,23 +900,53 @@ const AdminProducts = () => {
           continue;
         }
 
+        // Generate random price between 500 and 100000 (1 lakh)
+        const randomPrice = Math.floor(Math.random() * (100000 - 500 + 1)) + 500;
+
         const data = new FormData();
         data.append('name', productName);
         data.append('description', '');
         data.append('category', resolvedCategoryId);
         data.append('company', bulkImageCompany || ''); // Use selected company
-        data.append('price', 0);
+        data.append('price', randomPrice);
         data.append('variant', 'Standard');
         data.append('sku', `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
         data.append('stock', 0);
         data.append('isActive', true);
         data.append('images', imageFile);
 
-        const response = await axios.post(
-          'http://localhost:5000/api/products',
-          data,
-          { headers: { 'Content-Type': 'multipart/form-data' } }
+        // First, try to find existing product by name
+        const searchResponse = await axios.get(
+          `http://localhost:5000/api/products/search/${encodeURIComponent(productName)}`
         );
+
+        let productId = null;
+        if (searchResponse.data.success && searchResponse.data.data.length > 0) {
+          // Find exact match (case-insensitive)
+          const exactMatch = searchResponse.data.data.find(
+            p => p.name.toLowerCase().trim() === productName.toLowerCase().trim()
+          );
+          if (exactMatch) {
+            productId = exactMatch._id;
+          }
+        }
+
+        let response;
+        if (productId) {
+          // UPDATE existing product
+          response = await axios.put(
+            `http://localhost:5000/api/products/${productId}`,
+            data,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+          );
+        } else {
+          // CREATE new product
+          response = await axios.post(
+            'http://localhost:5000/api/products',
+            data,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+          );
+        }
 
         if (response.data.success) {
           successCount++;
@@ -860,7 +955,7 @@ const AdminProducts = () => {
           errors.push(`${productName}: ${response.data.message || 'Unknown error'}`);
         }
       } catch (error) {
-        console.error('Error creating product from image:', error);
+        console.error('Error uploading product image:', error);
         failCount++;
         errors.push(`${imageFile.name}: ${error.response?.data?.message || error.message}`);
       }
@@ -1763,7 +1858,9 @@ const AdminProducts = () => {
                         alt={product.name}
                         className="admin-products__thumb"
                         onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/100x100/667eea/ffffff?text=No+Image';
+                          e.target.onerror = null; // Prevent infinite loop
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = '<div class="admin-products__thumb" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999; width: 60px; height: 60px;">No Image</div>';
                         }}
                       />
                     ) : (
@@ -1773,7 +1870,9 @@ const AdminProducts = () => {
                         alignItems: 'center', 
                         justifyContent: 'center',
                         fontSize: '10px',
-                        color: '#999'
+                        color: '#999',
+                        width: '60px',
+                        height: '60px'
                       }}>
                         No Image
                       </div>
@@ -1786,11 +1885,42 @@ const AdminProducts = () => {
                       ? (product.company?.name || '-')
                       : (product.company || '-')
                     }
+                    {typeof product.company === 'object' && product.company?.defaultDiscountPercentage > 0 && (
+                      <span style={{ marginLeft: '5px', fontSize: '11px', color: '#16a34a', fontWeight: 'bold' }}>
+                        ({product.company.defaultDiscountPercentage}% OFF)
+                      </span>
+                    )}
                   </td>
-                  <td>₹{product.price?.toLocaleString('en-IN')}</td>
+                  <td>
+                    {(() => {
+                      const companyDiscount = typeof product.company === 'object' ? (product.company?.defaultDiscountPercentage || 0) : 0;
+                      const hasDiscount = companyDiscount > 0;
+                      const discountedPrice = hasDiscount ? product.price * (1 - companyDiscount / 100) : product.price;
+                      
+                      return hasDiscount ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ textDecoration: 'line-through', fontSize: '12px', color: '#999' }}>
+                            ₹{product.price?.toLocaleString('en-IN')}
+                          </span>
+                          <span style={{ fontWeight: 'bold', color: '#16a34a' }}>
+                            ₹{Math.round(discountedPrice).toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      ) : (
+                        <span>₹{product.price?.toLocaleString('en-IN')}</span>
+                      );
+                    })()}
+                  </td>
                   <td>{product.stock || 0}</td>
                   <td>
                     <div className="admin-products__actions">
+                      <button onClick={() => openImageChangeModal(product)} title="Change Image" className="admin-products__image-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                          <circle cx="8.5" cy="8.5" r="1.5"/>
+                          <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                      </button>
                       <button onClick={() => handleQuickEdit(product)} title="Quick Edit" className="admin-products__quick-edit-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M12 20h9"/>
@@ -3339,6 +3469,81 @@ const AdminProducts = () => {
                 />
               </div>
 
+              {/* Specifications Section */}
+              <div className="admin-products__field" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '2px solid #e5e7eb' }}>
+                <label style={{ fontSize: '15px', fontWeight: '700', color: '#1f2937', marginBottom: '12px', display: 'block' }}>
+                  Product Specifications
+                </label>
+              </div>
+
+              <div className="admin-products__row">
+                <div className="admin-products__field">
+                  <label>Color</label>
+                  <input
+                    type="text"
+                    value={formData.specifications?.color || ''}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      specifications: { 
+                        ...formData.specifications, 
+                        color: e.target.value 
+                      } 
+                    })}
+                    placeholder="e.g., White, Chrome, Black"
+                  />
+                </div>
+
+                <div className="admin-products__field">
+                  <label>Size</label>
+                  <input
+                    type="text"
+                    value={formData.specifications?.size || ''}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      specifications: { 
+                        ...formData.specifications, 
+                        size: e.target.value 
+                      } 
+                    })}
+                    placeholder="e.g., 24x18 inches, 66 cm"
+                  />
+                </div>
+              </div>
+
+              <div className="admin-products__row">
+                <div className="admin-products__field">
+                  <label>Material</label>
+                  <input
+                    type="text"
+                    value={formData.specifications?.material || ''}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      specifications: { 
+                        ...formData.specifications, 
+                        material: e.target.value 
+                      } 
+                    })}
+                    placeholder="e.g., Ceramic, Stainless Steel"
+                  />
+                </div>
+
+                <div className="admin-products__field">
+                  <label>Warranty</label>
+                  <input
+                    type="text"
+                    value={formData.specifications?.warranty || ''}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      specifications: { 
+                        ...formData.specifications, 
+                        warranty: e.target.value 
+                      } 
+                    })}
+                    placeholder="e.g., 1 Year, 5 Years"
+                  />
+                </div>
+              </div>
+
               <div className="admin-products__field">
                 <label>
                   <input
@@ -3485,6 +3690,151 @@ const AdminProducts = () => {
                   Update {updateMatchResults.filter(r => r.willUpdate).length} Product(s)
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Change Modal */}
+      {showImageChangeModal && imageChangeProduct && (
+        <div className="admin-products__modal-overlay" onClick={closeImageChangeModal}>
+          <div className="admin-products__image-change-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-products__image-change-header">
+              <div className="admin-products__image-change-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <div>
+                  <h2>Change Product Images</h2>
+                  <p>{imageChangeProduct.name}</p>
+                </div>
+              </div>
+              <button onClick={closeImageChangeModal} className="admin-products__image-change-close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="admin-products__image-change-body">
+              {/* Current Images Section */}
+              <div className="admin-products__current-images-section">
+                <h3>Current Images</h3>
+                {imageChangeProduct.images && imageChangeProduct.images.length > 0 ? (
+                  <div className="admin-products__current-images-grid">
+                    {imageChangeProduct.images.map((img, idx) => (
+                      <div key={idx} className="admin-products__current-image-item">
+                        <img 
+                          src={`http://localhost:5000${img}`}
+                          alt={`Current ${idx + 1}`}
+                        />
+                        <span>Image {idx + 1}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="admin-products__no-images">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    <p>No images available</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload New Images Section */}
+              <div className="admin-products__upload-new-section">
+                <h3>Upload New Images</h3>
+                <label className="admin-products__image-upload-box">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageChangeFileSelect}
+                    style={{ display: 'none' }}
+                  />
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  <div className="admin-products__upload-text">
+                    <strong>Click to upload images</strong>
+                    <span>or drag and drop</span>
+                  </div>
+                  <small>PNG, JPG, WEBP up to 10MB (Max 5 images)</small>
+                </label>
+
+                {newProductImages.length > 0 && (
+                  <div className="admin-products__new-images-preview">
+                    <div className="admin-products__new-images-header">
+                      <span>{newProductImages.length} image(s) selected</span>
+                      <button 
+                        type="button"
+                        onClick={() => setNewProductImages([])}
+                        className="admin-products__clear-selection"
+                      >
+                        Clear all
+                      </button>
+                    </div>
+                    <div className="admin-products__new-images-grid">
+                      {newProductImages.map((file, idx) => (
+                        <div key={idx} className="admin-products__new-image-item">
+                          <img 
+                            src={URL.createObjectURL(file)}
+                            alt={`New ${idx + 1}`}
+                          />
+                          <div className="admin-products__new-image-info">
+                            <span className="admin-products__new-image-name">{file.name}</span>
+                            <span className="admin-products__new-image-size">
+                              {(file.size / 1024).toFixed(1)} KB
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Warning Box */}
+              <div className="admin-products__image-warning">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <div>
+                  <strong>Important:</strong>
+                  <span>Uploading new images will replace all existing product images.</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-products__image-change-footer">
+              <button 
+                type="button" 
+                onClick={closeImageChangeModal} 
+                className="admin-products__btn-cancel-new"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                onClick={handleImageChangeSubmit}
+                className="admin-products__btn-update-new"
+                disabled={newProductImages.length === 0}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Update Images
+              </button>
             </div>
           </div>
         </div>

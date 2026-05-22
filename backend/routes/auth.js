@@ -19,6 +19,7 @@ router.post('/login', async (req, res) => {
 
     // Find admin by email
     const admin = await Admin.findOne({ email });
+    
     if (!admin) {
       return res.status(401).json({
         success: false,
@@ -36,12 +37,14 @@ router.post('/login', async (req, res) => {
 
     // Compare password
     const isMatch = await admin.comparePassword(password);
+    
     if (!isMatch) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
+
 
     // Update last login
     admin.lastLogin = new Date();

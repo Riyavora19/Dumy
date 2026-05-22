@@ -507,7 +507,8 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     let serialNumber = 1;
 
     for (const [areaName, products] of Object.entries(productsByArea)) {
-      products.forEach((item, index) => {
+      for (let index = 0; index < products.length; index++) {
+        const item = products[index];
         const baseRate = parseFloat(item.rate ?? item.unitPrice ?? 0); // MRP
         const discountedRate = calcDiscountedRate(item); // Your Price
         const quantity = parseInt(item.quantity ?? 1);
@@ -516,35 +517,70 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         const itemName = item.productName || item.description || '';
         const variant = item.variant || '';
         const company = item.companyName || '';
-        const itemText = [itemName, variant, company].filter(Boolean).join('\n');
+        
+        // Combine variant and company on same line with separator
+        const variantCompanyLine = [variant, company].filter(Boolean).join(' | ');
+        const itemText = [itemName, variantCompanyLine].filter(Boolean).join('\n');
+
+        // Load product image
+        let imageData = null;
+        if (item.image || item.images) {
+          const imagePath = item.image || (Array.isArray(item.images) && item.images[0]);
+          if (imagePath) {
+            const imageUrl = imagePath.startsWith('http') 
+              ? imagePath 
+              : `http://localhost:5000${imagePath}`;
+            imageData = await loadImageAsBase64(imageUrl);
+          }
+        }
+
+        // Format prices with metadata for custom rendering
+        const mrpFormatted = {
+          content: `Rs. ${baseRate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          styles: { halign: 'left' }
+        };
+        const yourPriceFormatted = {
+          content: `Rs. ${discountedRate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          styles: { halign: 'left' }
+        };
+        const totalFormatted = {
+          content: `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          styles: { halign: 'left' }
+        };
 
         // For the first product in an area, add the area name with rowSpan
-        // For subsequent products, the area cell will be automatically merged
         if (index === 0) {
           tableData.push([
             serialNumber.toString(),
             { content: areaName.toUpperCase(), rowSpan: products.length, styles: { valign: 'middle', halign: 'center' } },
-            '', // Image placeholder
+            imageData ? { content: '', styles: { cellPadding: 0 } } : '', // Image will be added in didDrawCell with no padding
             itemText,
             quantity.toString(),
-            `Rs. ${baseRate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, // MRP
-            `Rs. ${discountedRate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, // Your Price
-            `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, // Total
+            mrpFormatted,
+            yourPriceFormatted,
+            totalFormatted,
           ]);
         } else {
           tableData.push([
             serialNumber.toString(),
-            // Area cell is merged from first row, so we don't add it here
-            '', // Image placeholder
+            imageData ? { content: '', styles: { cellPadding: 0 } } : '', // Image will be added in didDrawCell with no padding
             itemText,
             quantity.toString(),
-            `Rs. ${baseRate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, // MRP
-            `Rs. ${discountedRate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, // Your Price
-            `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, // Total
+            mrpFormatted,
+            yourPriceFormatted,
+            totalFormatted,
           ]);
         }
+        
+        // Store image data for later use in didDrawCell
+        if (imageData) {
+          if (!tableData[tableData.length - 1]._imageData) {
+            tableData[tableData.length - 1]._imageData = imageData;
+          }
+        }
+        
         serialNumber++;
-      });
+      }
     }
 
     // Add subtotal row
@@ -580,12 +616,111 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
       columnStyles: {
         0: { cellWidth: availableWidth * 0.05, halign: 'center' },
         1: { cellWidth: availableWidth * 0.10, halign: 'center', valign: 'middle' },
-        2: { cellWidth: availableWidth * 0.12, halign: 'center' },
-        3: { cellWidth: availableWidth * 0.28, halign: 'left' },
+        2: { cellWidth: availableWidth * 0.12, halign: 'center', cellPadding: 0 }, // Back to 0.12
+        3: { cellWidth: availableWidth * 0.28, halign: 'left' }, // Back to 0.28
         4: { cellWidth: availableWidth * 0.07, halign: 'center' },
-        5: { cellWidth: availableWidth * 0.12, halign: 'center' },
-        6: { cellWidth: availableWidth * 0.13, halign: 'center' },
+        5: { cellWidth: availableWidth * 0.12, halign: 'left' }, // MRP - left aligned
+        6: { cellWidth: availableWidth * 0.13, halign: 'left' }, // YOUR PRICE - left aligned
         7: { cellWidth: availableWidth * 0.13, halign: 'right' },
+      },
+      willDrawCell: function(data) {
+        // Custom rendering for price columns - prevent default text rendering
+        if ((data.column.index === 5 || data.column.index === 6 || data.column.index === 7) && data.section === 'body') {
+          const cell = data.cell;
+          const text = typeof cell.raw === 'object' ? cell.raw.content : (cell.text && cell.text[0]);
+          
+          if (text && !text.includes('SUBTOTAL')) {
+            const parts = text.split(' ');
+            if (parts.length >= 2 && parts[0] === 'Rs.') {
+              // Clear text to prevent default rendering
+              cell.text = [];
+            }
+          }
+        }
+      },
+      didDrawCell: function(data) {
+        // Draw product images in the IMAGE column (column index 2)
+        if (data.column.index === 2 && data.section === 'body') {
+          const rowData = tableData[data.row.index];
+          // Check if this row has image data stored and is not a subtotal row
+          if (rowData && rowData._imageData && !rowData[0]?.content?.includes('SUBTOTAL')) {
+            try {
+              const cell = data.cell;
+              const imageData = rowData._imageData;
+              
+              // Get image properties from jsPDF
+              const imgProps = doc.getImageProperties(imageData);
+              const imgWidth = imgProps.width;
+              const imgHeight = imgProps.height;
+              const imgAspectRatio = imgWidth / imgHeight;
+              
+              // Minimal padding
+              const padding = 0.5;
+              const availableWidth = cell.width - (padding * 2);
+              const availableHeight = cell.height - (padding * 2);
+              const cellAspectRatio = availableWidth / availableHeight;
+              
+              let finalWidth, finalHeight, imageX, imageY;
+              
+              // Compare aspect ratios to determine how to fit the image
+              if (imgAspectRatio > cellAspectRatio) {
+                // Image is wider relative to cell - fit to width
+                finalWidth = availableWidth;
+                finalHeight = availableWidth / imgAspectRatio;
+                imageX = cell.x + padding;
+                imageY = cell.y + (cell.height - finalHeight) / 2;
+              } else {
+                // Image is taller relative to cell - fit to height
+                finalHeight = availableHeight;
+                finalWidth = availableHeight * imgAspectRatio;
+                imageX = cell.x + (cell.width - finalWidth) / 2;
+                imageY = cell.y + padding;
+              }
+              
+              // Draw the image with proper aspect ratio
+              doc.addImage(imageData, 'JPEG', imageX, imageY, finalWidth, finalHeight);
+            } catch (err) {
+              console.warn('Failed to draw product image in PDF:', err);
+              // Fallback: try to draw with basic sizing
+              try {
+                const padding = 2;
+                const size = Math.min(cell.width, cell.height) - (padding * 2);
+                const x = cell.x + (cell.width - size) / 2;
+                const y = cell.y + (cell.height - size) / 2;
+                doc.addImage(imageData, 'JPEG', x, y, size, size);
+              } catch (fallbackErr) {
+                console.warn('Fallback image drawing also failed:', fallbackErr);
+              }
+            }
+          }
+        }
+        
+        // Custom rendering for price columns (MRP, YOUR PRICE, TOTAL) - columns 5, 6, 7
+        if ((data.column.index === 5 || data.column.index === 6 || data.column.index === 7) && data.section === 'body') {
+          const cell = data.cell;
+          const text = typeof cell.raw === 'object' ? cell.raw.content : (cell.text && cell.text[0]);
+          
+          if (!text || text.includes('SUBTOTAL')) return;
+          
+          const parts = text.split(' ');
+          if (parts.length >= 2 && parts[0] === 'Rs.') {
+            // Set font
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(0, 0, 0);
+            
+            // Align with QTY column - position from top of cell
+            const textY = cell.y + 3.5; // Adjusted to align with QTY text
+            
+            // Draw "Rs." on the left
+            doc.text('Rs.', cell.x + 2, textY);
+            
+            // Draw number on the right
+            const number = parts.slice(1).join(' ');
+            const numberWidth = doc.getTextWidth(number);
+            doc.text(number, cell.x + cell.width - numberWidth - 2, textY);
+          }
+        }
       },
       didDrawPage: function(data) {
         // Draw header on pages after the first
@@ -708,12 +843,25 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     drawFooter(doc, pageWidth, pageHeight);
   }
 
+  // Store the starting Y position for both sections
+  const termsStartY = yPos;
+  
+  // Left side - TERMS & CONDITIONS
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0);
-  doc.text('TERMS & CONDITIONS', marginLeft, yPos);
+  doc.text('TERMS & CONDITIONS', marginLeft, termsStartY);
   
-  yPos += 5;
+  // Right side - ATTENDED BY (aligned with TERMS & CONDITIONS header)
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('ATTENDED BY:', pageWidth - marginRight - 40, termsStartY);
+  
+  // Now start content for both sides at the same Y position
+  let contentYPos = termsStartY + 5;
+  
+  // Left side - Terms content
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   
@@ -724,26 +872,47 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     '4. DELIVERY WITHIN A WEEK',
   ];
   
+  let termsYPos = contentYPos;
   terms.forEach((term) => {
-    doc.text(term, marginLeft + 5, yPos);
-    yPos += 4;
+    doc.text(term, marginLeft + 5, termsYPos);
+    termsYPos += 4;
   });
 
-  // Creator info (right side)
-  const creatorY = yPos - 16;
+  // Right side - Attended by content (starts at same Y as first term)
+  let attendedYPos = contentYPos;
   doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text('ATTENDED BY:', pageWidth - marginRight - 40, creatorY);
   doc.setFont('helvetica', 'bold');
   if (attendedByStaffId) {
-    doc.text(`${attendedByStaffId} - ${attendedByName}`, pageWidth - marginRight - 40, creatorY + 4);
+    doc.text(`${attendedByStaffId} - ${attendedByName}`, pageWidth - marginRight - 40, attendedYPos);
   } else {
-    doc.text(attendedByName, pageWidth - marginRight - 40, creatorY + 4);
+    doc.text(attendedByName, pageWidth - marginRight - 40, attendedYPos);
   }
+  attendedYPos += 4;
+  
+  // Three staff members (aligned with terms 2, 3, 4)
   doc.setFont('helvetica', 'normal');
-  if (adminPhone) {
-    doc.text(adminPhone, pageWidth - marginRight - 40, creatorY + 8);
-  }
+  doc.setTextColor(255, 0, 0); // Red color for names
+  doc.text('Paras Shah : ', pageWidth - marginRight - 40, attendedYPos);
+  doc.setTextColor(0, 0, 0); // Black color for phone numbers
+  doc.text('92272 06063', pageWidth - marginRight - 40 + doc.getTextWidth('Paras Shah : '), attendedYPos);
+  attendedYPos += 4;
+  
+  doc.setTextColor(255, 0, 0); // Red color for names
+  doc.text('Hemang Shah : ', pageWidth - marginRight - 40, attendedYPos);
+  doc.setTextColor(0, 0, 0); // Black color for phone numbers
+  doc.text('98250 24763', pageWidth - marginRight - 40 + doc.getTextWidth('Hemang Shah : '), attendedYPos);
+  attendedYPos += 4;
+  
+  doc.setTextColor(255, 0, 0); // Red color for names
+  doc.text('Harshal Shah : ', pageWidth - marginRight - 40, attendedYPos);
+  doc.setTextColor(0, 0, 0); // Black color for phone numbers
+  doc.text('99792 31820', pageWidth - marginRight - 40 + doc.getTextWidth('Harshal Shah : '), attendedYPos);
+  
+  // Reset text color to black
+  doc.setTextColor(0, 0, 0);
+  
+  // Update yPos to the maximum of both sections
+  yPos = Math.max(termsYPos, attendedYPos);
 
   // Footer is now drawn by didDrawPage callback on all pages
 

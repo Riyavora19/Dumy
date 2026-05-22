@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
 const Review = require('../models/Review');
 const Product = require('../models/Product');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Configure multer for review image uploads
+// Configure multer for image uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = 'uploads/reviews';
@@ -26,69 +25,75 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const allowedTypes = /jpeg|jpg|png|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
+    
     if (extname && mimetype) {
-      cb(null, true);
+      return cb(null, true);
     } else {
       cb(new Error('Only image files are allowed!'));
     }
   }
 });
 
-// Get all reviews for a product
+// Get reviews for a product
 router.get('/product/:productId', async (req, res) => {
   try {
     const { productId } = req.params;
     const { sort = '-createdAt', rating } = req.query;
 
-    const query = { 
-      product: productId,
-      status: 'approved'
-    };
-
+    // Build query
+    const query = { product: productId, status: 'approved' };
     if (rating) {
       query.rating = parseInt(rating);
     }
 
+    // Fetch reviews
     const reviews = await Review.find(query)
       .sort(sort)
-      .populate('user', 'name avatar');
+      .populate('user', 'name email')
+      .lean();
 
-    // Calculate rating statistics
-    const stats = await Review.aggregate([
-      { $match: { product: mongoose.Types.ObjectId(productId), status: 'approved' } },
-      {
-        $group: {
-          _id: null,
-          averageRating: { $avg: '$rating' },
-          totalReviews: { $sum: 1 },
-          fiveStars: { $sum: { $cond: [{ $eq: ['$rating', 5] }, 1, 0] } },
-          fourStars: { $sum: { $cond: [{ $eq: ['$rating', 4] }, 1, 0] } },
-          threeStars: { $sum: { $cond: [{ $eq: ['$rating', 3] }, 1, 0] } },
-          twoStars: { $sum: { $cond: [{ $eq: ['$rating', 2] }, 1, 0] } },
-          oneStar: { $sum: { $cond: [{ $eq: ['$rating', 1] }, 1, 0] } }
+    // Calculate statistics
+    const allReviews = await Review.find({ product: productId, status: 'approved' });
+    const stats = {
+      totalReviews: allReviews.length,
+      averageRating: 0,
+      fiveStars: 0,
+      fourStars: 0,
+      threeStars: 0,
+      twoStars: 0,
+      oneStar: 0
+    };
+
+    if (allReviews.length > 0) {
+      const ratingSum = allReviews.reduce((sum, review) => sum + review.rating, 0);
+      stats.averageRating = ratingSum / allReviews.length;
+
+      allReviews.forEach(review => {
+        switch (review.rating) {
+          case 5: stats.fiveStars++; break;
+          case 4: stats.fourStars++; break;
+          case 3: stats.threeStars++; break;
+          case 2: stats.twoStars++; break;
+          case 1: stats.oneStar++; break;
         }
-      }
-    ]);
+      });
+    }
 
     res.json({
       success: true,
       data: reviews,
-      stats: stats[0] || {
-        averageRating: 0,
-        totalReviews: 0,
-        fiveStars: 0,
-        fourStars: 0,
-        threeStars: 0,
-        twoStars: 0,
-        oneStar: 0
-      }
+      stats: stats
     });
   } catch (error) {
     console.error('Error fetching reviews:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch reviews' });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch reviews',
+      error: error.message
+    });
   }
 });
 
@@ -97,18 +102,27 @@ router.post('/', upload.array('images', 5), async (req, res) => {
   try {
     const { product, user, userName, userEmail, rating, title, comment } = req.body;
 
+    // Validate required fields
+    if (!product || !user || !userName || !userEmail || !rating || !title || !comment) {
+      return res.status(400).json({
+        success: false,
+        message: 'All required fields must be provided'
+      });
+    }
+
     // Check if user already reviewed this product
     const existingReview = await Review.findOne({ product, user });
     if (existingReview) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'You have already reviewed this product' 
+      return res.status(400).json({
+        success: false,
+        message: 'You have already reviewed this product'
       });
     }
 
     // Process uploaded images
-    const images = req.files ? req.files.map(file => `/uploads/reviews/${file.filename}`) : [];
+    const imagePaths = req.files ? req.files.map(file => `/uploads/reviews/${file.filename}`) : [];
 
+    // Create review
     const review = new Review({
       product,
       user,
@@ -117,114 +131,53 @@ router.post('/', upload.array('images', 5), async (req, res) => {
       rating: parseInt(rating),
       title,
       comment,
-      images,
-      isVerifiedPurchase: false // TODO: Check if user actually purchased this product
+      images: imagePaths,
+      status: 'approved' // Auto-approve for now
     });
 
     await review.save();
 
-    // Update product rating
+    // Update product rating and review count
     await updateProductRating(product);
 
     res.status(201).json({
       success: true,
-      message: 'Review submitted successfully!',
+      message: 'Review submitted successfully',
       data: review
     });
   } catch (error) {
     console.error('Error creating review:', error);
-    res.status(500).json({ success: false, message: error.message || 'Failed to create review' });
-  }
-});
-
-// Update a review
-router.put('/:id', upload.array('images', 5), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { rating, title, comment, existingImages } = req.body;
-
-    const review = await Review.findById(id);
-    if (!review) {
-      return res.status(404).json({ success: false, message: 'Review not found' });
-    }
-
-    // Update fields
-    review.rating = parseInt(rating);
-    review.title = title;
-    review.comment = comment;
-
-    // Handle images
-    const newImages = req.files ? req.files.map(file => `/uploads/reviews/${file.filename}`) : [];
-    const keepImages = existingImages ? JSON.parse(existingImages) : [];
-    review.images = [...keepImages, ...newImages];
-
-    await review.save();
-
-    // Update product rating
-    await updateProductRating(review.product);
-
-    res.json({
-      success: true,
-      message: 'Review updated successfully!',
-      data: review
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create review',
+      error: error.message
     });
-  } catch (error) {
-    console.error('Error updating review:', error);
-    res.status(500).json({ success: false, message: 'Failed to update review' });
-  }
-});
-
-// Delete a review
-router.delete('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const review = await Review.findByIdAndDelete(id);
-
-    if (!review) {
-      return res.status(404).json({ success: false, message: 'Review not found' });
-    }
-
-    // Delete review images
-    review.images.forEach(imagePath => {
-      const fullPath = path.join(__dirname, '..', imagePath);
-      if (fs.existsSync(fullPath)) {
-        fs.unlinkSync(fullPath);
-      }
-    });
-
-    // Update product rating
-    await updateProductRating(review.product);
-
-    res.json({
-      success: true,
-      message: 'Review deleted successfully'
-    });
-  } catch (error) {
-    console.error('Error deleting review:', error);
-    res.status(500).json({ success: false, message: 'Failed to delete review' });
   }
 });
 
 // Mark review as helpful
-router.post('/:id/helpful', async (req, res) => {
+router.post('/:reviewId/helpful', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { reviewId } = req.params;
     const { userId } = req.body;
 
-    const review = await Review.findById(id);
+    const review = await Review.findById(reviewId);
     if (!review) {
-      return res.status(404).json({ success: false, message: 'Review not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Review not found'
+      });
     }
 
     // Check if user already marked as helpful
-    const alreadyHelpful = review.helpfulBy.includes(userId);
+    const alreadyMarked = review.helpfulBy.includes(userId);
     
-    if (alreadyHelpful) {
-      // Remove helpful vote
+    if (alreadyMarked) {
+      // Remove helpful mark
       review.helpfulBy = review.helpfulBy.filter(id => id.toString() !== userId);
       review.helpful = Math.max(0, review.helpful - 1);
     } else {
-      // Add helpful vote
+      // Add helpful mark
       review.helpfulBy.push(userId);
       review.helpful += 1;
     }
@@ -233,17 +186,21 @@ router.post('/:id/helpful', async (req, res) => {
 
     res.json({
       success: true,
-      message: alreadyHelpful ? 'Removed helpful vote' : 'Marked as helpful',
-      data: { helpful: review.helpful, isHelpful: !alreadyHelpful }
+      message: alreadyMarked ? 'Removed helpful mark' : 'Marked as helpful',
+      data: review
     });
   } catch (error) {
     console.error('Error marking review as helpful:', error);
-    res.status(500).json({ success: false, message: 'Failed to update review' });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark review as helpful',
+      error: error.message
+    });
   }
 });
 
-// Admin: Get all reviews (with filters)
-router.get('/admin/all', async (req, res) => {
+// Get all reviews (Admin)
+router.get('/', async (req, res) => {
   try {
     const { status, rating, sort = '-createdAt' } = req.query;
 
@@ -253,8 +210,9 @@ router.get('/admin/all', async (req, res) => {
 
     const reviews = await Review.find(query)
       .sort(sort)
-      .populate('product', 'name images')
-      .populate('user', 'name email');
+      .populate('product', 'name')
+      .populate('user', 'name email')
+      .lean();
 
     res.json({
       success: true,
@@ -262,27 +220,41 @@ router.get('/admin/all', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching all reviews:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch reviews' });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch reviews',
+      error: error.message
+    });
   }
 });
 
-// Admin: Update review status
-router.patch('/:id/status', async (req, res) => {
+// Update review status (Admin)
+router.put('/:reviewId/status', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { reviewId } = req.params;
     const { status } = req.body;
 
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status'
+      });
+    }
+
     const review = await Review.findByIdAndUpdate(
-      id,
+      reviewId,
       { status },
       { new: true }
     );
 
     if (!review) {
-      return res.status(404).json({ success: false, message: 'Review not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Review not found'
+      });
     }
 
-    // Update product rating
+    // Update product rating if status changed to approved or rejected
     await updateProductRating(review.product);
 
     res.json({
@@ -292,18 +264,22 @@ router.patch('/:id/status', async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating review status:', error);
-    res.status(500).json({ success: false, message: 'Failed to update review status' });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update review status',
+      error: error.message
+    });
   }
 });
 
-// Admin: Add response to review
-router.post('/:id/response', async (req, res) => {
+// Add admin response to review
+router.post('/:reviewId/response', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { reviewId } = req.params;
     const { text, adminId } = req.body;
 
     const review = await Review.findByIdAndUpdate(
-      id,
+      reviewId,
       {
         adminResponse: {
           text,
@@ -315,7 +291,10 @@ router.post('/:id/response', async (req, res) => {
     );
 
     if (!review) {
-      return res.status(404).json({ success: false, message: 'Review not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Review not found'
+      });
     }
 
     res.json({
@@ -324,36 +303,77 @@ router.post('/:id/response', async (req, res) => {
       data: review
     });
   } catch (error) {
-    console.error('Error adding response:', error);
-    res.status(500).json({ success: false, message: 'Failed to add response' });
+    console.error('Error adding admin response:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add response',
+      error: error.message
+    });
+  }
+});
+
+// Delete review (Admin)
+router.delete('/:reviewId', async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      return res.status(404).json({
+        success: false,
+        message: 'Review not found'
+      });
+    }
+
+    // Delete review images
+    if (review.images && review.images.length > 0) {
+      review.images.forEach(imagePath => {
+        const fullPath = path.join(__dirname, '..', imagePath);
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath);
+        }
+      });
+    }
+
+    await Review.findByIdAndDelete(reviewId);
+
+    // Update product rating
+    await updateProductRating(review.product);
+
+    res.json({
+      success: true,
+      message: 'Review deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting review:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete review',
+      error: error.message
+    });
   }
 });
 
 // Helper function to update product rating
 async function updateProductRating(productId) {
   try {
-    const stats = await Review.aggregate([
-      { $match: { product: mongoose.Types.ObjectId(productId), status: 'approved' } },
-      {
-        $group: {
-          _id: null,
-          averageRating: { $avg: '$rating' },
-          totalReviews: { $sum: 1 }
-        }
-      }
-    ]);
-
-    if (stats.length > 0) {
-      await Product.findByIdAndUpdate(productId, {
-        rating: Math.round(stats[0].averageRating * 10) / 10, // Round to 1 decimal
-        reviewCount: stats[0].totalReviews
-      });
-    } else {
+    const reviews = await Review.find({ product: productId, status: 'approved' });
+    
+    if (reviews.length === 0) {
       await Product.findByIdAndUpdate(productId, {
         rating: 0,
         reviewCount: 0
       });
+      return;
     }
+
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / reviews.length;
+
+    await Product.findByIdAndUpdate(productId, {
+      rating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
+      reviewCount: reviews.length
+    });
   } catch (error) {
     console.error('Error updating product rating:', error);
   }

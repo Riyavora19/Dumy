@@ -268,10 +268,23 @@ const Home = () => {
                       {typeof product.company === 'object' ? product.company?.name : product.company}
                     </p>
                     <div className="home-featured__price">
-                      <span className="price-current">₹{product.price.toLocaleString()}</span>
-                      {product.mrp && product.mrp > product.price && (
-                        <span className="price-old">₹{product.mrp.toLocaleString()}</span>
-                      )}
+                      {(() => {
+                        const companyDiscount = typeof product.company === 'object' ? (product.company?.defaultDiscountPercentage || 0) : 0;
+                        const hasDiscount = companyDiscount > 0;
+                        const discountedPrice = hasDiscount ? product.price * (1 - companyDiscount / 100) : product.price;
+                        
+                        return (
+                          <>
+                            {hasDiscount && (
+                              <span className="price-old">₹{product.price.toLocaleString()}</span>
+                            )}
+                            <span className="price-current">₹{Math.round(discountedPrice).toLocaleString()}</span>
+                            {hasDiscount && (
+                              <span className="discount-badge">{companyDiscount}% OFF</span>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                     <div className="home-featured__actions">
                       <button 
@@ -555,15 +568,23 @@ const Home = () => {
                 </div>
 
                 <div className="product-modal__price">
-                  <span className="product-modal__price-current">₹{selectedProduct.price.toLocaleString()}</span>
-                  {selectedProduct.mrp && selectedProduct.mrp > selectedProduct.price && (
-                    <>
-                      <span className="product-modal__price-old">₹{selectedProduct.mrp.toLocaleString()}</span>
-                      <span className="product-modal__discount">
-                        {Math.round(((selectedProduct.mrp - selectedProduct.price) / selectedProduct.mrp) * 100)}% OFF
-                      </span>
-                    </>
-                  )}
+                  {(() => {
+                    const companyDiscount = typeof selectedProduct.company === 'object' ? (selectedProduct.company?.defaultDiscountPercentage || 0) : 0;
+                    const hasDiscount = companyDiscount > 0;
+                    const discountedPrice = hasDiscount ? selectedProduct.price * (1 - companyDiscount / 100) : selectedProduct.price;
+                    
+                    return (
+                      <>
+                        {hasDiscount && (
+                          <span className="product-modal__price-old">₹{selectedProduct.price.toLocaleString()}</span>
+                        )}
+                        <span className="product-modal__price-current">₹{Math.round(discountedPrice).toLocaleString()}</span>
+                        {hasDiscount && (
+                          <span className="product-modal__discount">{companyDiscount}% OFF</span>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {selectedProduct.description && (

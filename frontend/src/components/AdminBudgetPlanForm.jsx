@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './AdminBudgetPlanForm.css';
+import './QuotationPreviewPDF.css';
 import QuotationPDFGenerator from './QuotationPDFGenerator';
 
 // Define room templates with preset areas and default essential products (outside component)
@@ -557,7 +558,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         images: product.images || [],
         price: product.price || 0,
         variant: product.variant || '',
-        company: product.company || { name: 'Unknown' }
+        company: product.company || { name: 'Unknown' },
+        discountPercentage: product.company?.defaultDiscountPercentage || 0
       }));
       
       console.log('Processed products:', products.length);
@@ -845,7 +847,10 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                 if (productsForThisArea.length > 0) {
                   const newProducts = productsForThisArea.map(p => {
                     const unitPrice = p.product.price || 0;
-                    const discountPercent = p.product.discountPercentage || 0;
+                    // Use company's default discount if available, otherwise use product's discount
+                    const companyDiscount = p.product.company?.defaultDiscountPercentage || 0;
+                    const productDiscount = p.product.discountPercentage || 0;
+                    const discountPercent = companyDiscount > 0 ? companyDiscount : productDiscount;
                     const discountedPrice = unitPrice * (1 - discountPercent / 100);
                     const totalPrice = discountedPrice * p.quantity;
                     
@@ -1015,6 +1020,13 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   };
 
   const addProductToCart = (product) => {
+    console.log('Adding product to cart:', {
+      name: product.name,
+      company: product.company,
+      discountPercentage: product.discountPercentage,
+      companyDiscount: product.company?.defaultDiscountPercentage
+    });
+    
     // If rooms exist, add to current room's viewing area
     if (formData.rooms.length > 0) {
       if (!formData.currentRoomId) {
@@ -1115,12 +1127,20 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         // Product already exists, increase quantity
         const updated = [...formData.selectedProducts];
         updated[existingIndex].quantity += 1;
-        updated[existingIndex].totalPrice = updated[existingIndex].unitPrice * updated[existingIndex].quantity;
+        // Recalculate with discount
+        const discountAmount = (updated[existingIndex].unitPrice * updated[existingIndex].discountPercent) / 100;
+        const discountedPrice = updated[existingIndex].unitPrice - discountAmount;
+        updated[existingIndex].totalPrice = discountedPrice * updated[existingIndex].quantity;
         setFormData(prev => ({ ...prev, selectedProducts: updated }));
         return;
       }
 
       // Add new product
+      const unitPrice = product.mrp || product.price;
+      const discountPercent = product.discountPercentage || 0;
+      const discountAmount = (unitPrice * discountPercent) / 100;
+      const discountedPrice = unitPrice - discountAmount;
+      
       const newProduct = {
         product: product._id,
         productName: product.name,
@@ -1134,10 +1154,10 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         itemName: product.itemTypeName || product.name,
         itemTypeName: product.itemTypeName || '',
         quantity: 1,
-        unitPrice: product.mrp || product.price,
-        discount: 0,
-        discountPercent: product.discountPercentage || 0,
-        totalPrice: product.price,
+        unitPrice: unitPrice,
+        discount: discountAmount,
+        discountPercent: discountPercent,
+        totalPrice: discountedPrice,
         image: product.images?.[0] || ''
       };
 
@@ -1148,80 +1168,50 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     }
   };
 
-  const updateProductQuantity = (index, quantity) => {
-    if (formData.rooms.length > 0 && viewingRoomId) {
+  const updateProductQuantity = (displayIndex, quantity) => {
+    // Get the product from the display list to find its actual location
+    const viewingRoom = formData.rooms.find(r => r.id === viewingRoomId);
+    let currentProducts = [];
+    
+    if (formData.rooms.length > 0 && viewingRoom) {
       if (viewingAreaId === 'all') {
-        // When viewing all areas, find which area the product is in
-        setFormData(prev => ({
-          ...prev,
-          rooms: prev.rooms.map(room => {
-            if (room.id === viewingRoomId) {
-              let productCount = 0;
-              return {
-                ...room,
-                areas: room.areas.map(area => {
-                  const productsInArea = area.products.length;
-                  const isInThisArea = index >= productCount && index < productCount + productsInArea;
-                  
-                  if (isInThisArea) {
-                    const localIndex = index - productCount;
-                    const updated = [...area.products];
-                    updated[localIndex].quantity = parseInt(quantity) || 1;
-                    // Calculate with discount
-                    const discountAmount = (updated[localIndex].unitPrice * updated[localIndex].discountPercent) / 100;
-                    const discountedPrice = updated[localIndex].unitPrice - discountAmount;
-                    updated[localIndex].totalPrice = discountedPrice * updated[localIndex].quantity;
-                    return { ...area, products: updated };
-                  }
-                  
-                  productCount += productsInArea;
-                  return area;
-                })
-              };
-            }
-            return room;
-          })
-        }));
+        viewingRoom.areas.forEach(area => {
+          area.products.forEach((product, productIndex) => {
+            currentProducts.push({
+              ...product,
+              _areaId: area.id,
+              _productIndex: productIndex
+            });
+          });
+        });
       } else {
-        // Update product in specific area
-        setFormData(prev => ({
-          ...prev,
-          rooms: prev.rooms.map(room => {
-            if (room.id === viewingRoomId) {
-              return {
-                ...room,
-                areas: room.areas.map(area => {
-                  if (area.id === viewingAreaId) {
-                    const updated = [...area.products];
-                    updated[index].quantity = parseInt(quantity) || 1;
-                    // Calculate with discount
-                    const discountAmount = (updated[index].unitPrice * updated[index].discountPercent) / 100;
-                    const discountedPrice = updated[index].unitPrice - discountAmount;
-                    updated[index].totalPrice = discountedPrice * updated[index].quantity;
-                    return { ...area, products: updated };
-                  }
-                  return area;
-                })
-              };
-            }
-            return room;
-          })
-        }));
+        const viewingArea = viewingRoom.areas.find(a => a.id === viewingAreaId);
+        if (viewingArea) {
+          currentProducts = viewingArea.products.map((product, productIndex) => ({
+            ...product,
+            _areaId: viewingArea.id,
+            _productIndex: productIndex
+          }));
+        }
       }
     } else {
-      // Update product in general list
-      const updated = [...formData.selectedProducts];
-      updated[index].quantity = parseInt(quantity) || 1;
-      // Calculate with discount
-      const discountAmount = (updated[index].unitPrice * updated[index].discountPercent) / 100;
-      const discountedPrice = updated[index].unitPrice - discountAmount;
-      updated[index].totalPrice = discountedPrice * updated[index].quantity;
-      setFormData(prev => ({ ...prev, selectedProducts: updated }));
+      currentProducts = formData.selectedProducts.map((product, productIndex) => ({
+        ...product,
+        _productIndex: productIndex
+      }));
     }
-  };
-
-  const updateProductDiscount = (index, discountPercent) => {
-    if (formData.rooms.length > 0 && viewingRoomId && viewingAreaId !== 'all') {
+    
+    const productToUpdate = currentProducts[displayIndex];
+    if (!productToUpdate) {
+      console.error('Product not found at index:', displayIndex);
+      return;
+    }
+    
+    const actualAreaId = productToUpdate._areaId;
+    const actualIndex = productToUpdate._productIndex;
+    const qty = parseInt(quantity) || 1;
+    
+    if (formData.rooms.length > 0 && viewingRoomId) {
       // Update product in specific area
       setFormData(prev => ({
         ...prev,
@@ -1230,15 +1220,15 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
             return {
               ...room,
               areas: room.areas.map(area => {
-                if (area.id === viewingAreaId) {
+                if (area.id === actualAreaId) {
                   const updated = [...area.products];
-                  const percent = parseFloat(discountPercent) || 0;
-                  updated[index].discountPercent = percent;
-                  // Calculate discount amount from percentage
-                  const discountAmount = (updated[index].unitPrice * percent) / 100;
-                  updated[index].discount = discountAmount;
-                  const discountedPrice = updated[index].unitPrice - discountAmount;
-                  updated[index].totalPrice = discountedPrice * updated[index].quantity;
+                  const product = updated[actualIndex];
+                  if (product) {
+                    product.quantity = qty;
+                    const discountAmount = (product.unitPrice * product.discountPercent) / 100;
+                    const discountedPrice = product.unitPrice - discountAmount;
+                    product.totalPrice = discountedPrice * product.quantity;
+                  }
                   return { ...area, products: updated };
                 }
                 return area;
@@ -1251,54 +1241,91 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     } else {
       // Update product in general list
       const updated = [...formData.selectedProducts];
-      const percent = parseFloat(discountPercent) || 0;
-      updated[index].discountPercent = percent;
-      // Calculate discount amount from percentage
-      const discountAmount = (updated[index].unitPrice * percent) / 100;
-      updated[index].discount = discountAmount;
-      const discountedPrice = updated[index].unitPrice - discountAmount;
-      updated[index].totalPrice = discountedPrice * updated[index].quantity;
+      const product = updated[actualIndex];
+      if (product) {
+        product.quantity = qty;
+        const discountAmount = (product.unitPrice * product.discountPercent) / 100;
+        const discountedPrice = product.unitPrice - discountAmount;
+        product.totalPrice = discountedPrice * product.quantity;
+      }
       setFormData(prev => ({ ...prev, selectedProducts: updated }));
     }
   };
 
-  const removeProduct = (index) => {
-    if (formData.rooms.length > 0 && viewingRoomId) {
-      // When viewing all areas, we need to find which area the product is in
+  const updateProductDiscount = (displayIndex, discountPercent) => {
+    const percent = parseFloat(discountPercent) || 0;
+    
+    // Get the product from the display list to find its actual location
+    const viewingRoom = formData.rooms.find(r => r.id === viewingRoomId);
+    let currentProducts = [];
+    
+    if (formData.rooms.length > 0 && viewingRoom) {
       if (viewingAreaId === 'all') {
-        // Find the product across all areas in the viewing room
-        setFormData(prev => ({
-          ...prev,
-          rooms: prev.rooms.map(room => {
-            if (room.id === viewingRoomId) {
-              let productCount = 0;
-              return {
-                ...room,
-                areas: room.areas.map(area => {
-                  const productsBeforeFilter = area.products.length;
-                  const filteredProducts = area.products.filter((_, i) => {
-                    const globalIndex = productCount + i;
-                    return globalIndex !== index;
-                  });
-                  productCount += productsBeforeFilter;
-                  return { ...area, products: filteredProducts };
-                })
-              };
-            }
-            return room;
-          })
-        }));
+        viewingRoom.areas.forEach(area => {
+          area.products.forEach((product, productIndex) => {
+            currentProducts.push({
+              ...product,
+              _areaId: area.id,
+              _productIndex: productIndex
+            });
+          });
+        });
       } else {
-        // Remove product from specific area
-        setFormData(prev => ({
+        const viewingArea = viewingRoom.areas.find(a => a.id === viewingAreaId);
+        if (viewingArea) {
+          currentProducts = viewingArea.products.map((product, productIndex) => ({
+            ...product,
+            _areaId: viewingArea.id,
+            _productIndex: productIndex
+          }));
+        }
+      }
+    } else {
+      currentProducts = formData.selectedProducts.map((product, productIndex) => ({
+        ...product,
+        _productIndex: productIndex
+      }));
+    }
+    
+    const productToUpdate = currentProducts[displayIndex];
+    if (!productToUpdate) {
+      console.error('Product not found at index:', displayIndex);
+      return;
+    }
+    
+    const actualAreaId = productToUpdate._areaId;
+    const actualIndex = productToUpdate._productIndex;
+    
+    console.log('Updating discount:', { displayIndex, actualIndex, actualAreaId, percent });
+    
+    if (formData.rooms.length > 0 && viewingRoomId) {
+      // Update product in specific area
+      setFormData(prev => {
+        const newState = {
           ...prev,
           rooms: prev.rooms.map(room => {
             if (room.id === viewingRoomId) {
               return {
                 ...room,
                 areas: room.areas.map(area => {
-                  if (area.id === viewingAreaId) {
-                    return { ...area, products: area.products.filter((_, i) => i !== index) };
+                  if (area.id === actualAreaId) {
+                    const updated = [...area.products];
+                    const product = updated[actualIndex];
+                    if (product) {
+                      product.discountPercent = percent;
+                      const discountAmount = (product.unitPrice * percent) / 100;
+                      product.discount = discountAmount;
+                      const discountedPrice = product.unitPrice - discountAmount;
+                      product.totalPrice = discountedPrice * product.quantity;
+                      console.log('Updated product:', { 
+                        name: product.productName, 
+                        unitPrice: product.unitPrice, 
+                        percent, 
+                        discountedPrice, 
+                        totalPrice: product.totalPrice 
+                      });
+                    }
+                    return { ...area, products: updated };
                   }
                   return area;
                 })
@@ -1306,13 +1333,98 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
             }
             return room;
           })
-        }));
+        };
+        return newState;
+      });
+    } else {
+      // Update product in general list
+      setFormData(prev => {
+        const updated = [...prev.selectedProducts];
+        const product = updated[actualIndex];
+        if (product) {
+          product.discountPercent = percent;
+          const discountAmount = (product.unitPrice * percent) / 100;
+          product.discount = discountAmount;
+          const discountedPrice = product.unitPrice - discountAmount;
+          product.totalPrice = discountedPrice * product.quantity;
+          console.log('Updated product (general):', { 
+            name: product.productName, 
+            unitPrice: product.unitPrice, 
+            percent, 
+            totalPrice: product.totalPrice 
+          });
+        }
+        return { ...prev, selectedProducts: updated };
+      });
+    }
+  };
+
+  const removeProduct = (displayIndex) => {
+    // Get the product from the display list to find its actual location
+    const viewingRoom = formData.rooms.find(r => r.id === viewingRoomId);
+    let currentProducts = [];
+    
+    if (formData.rooms.length > 0 && viewingRoom) {
+      if (viewingAreaId === 'all') {
+        viewingRoom.areas.forEach(area => {
+          area.products.forEach((product, productIndex) => {
+            currentProducts.push({
+              ...product,
+              _areaId: area.id,
+              _productIndex: productIndex
+            });
+          });
+        });
+      } else {
+        const viewingArea = viewingRoom.areas.find(a => a.id === viewingAreaId);
+        if (viewingArea) {
+          currentProducts = viewingArea.products.map((product, productIndex) => ({
+            ...product,
+            _areaId: viewingArea.id,
+            _productIndex: productIndex
+          }));
+        }
       }
+    } else {
+      currentProducts = formData.selectedProducts.map((product, productIndex) => ({
+        ...product,
+        _productIndex: productIndex
+      }));
+    }
+    
+    const productToRemove = currentProducts[displayIndex];
+    if (!productToRemove) {
+      console.error('Product not found at index:', displayIndex);
+      return;
+    }
+    
+    const actualAreaId = productToRemove._areaId;
+    const actualIndex = productToRemove._productIndex;
+    
+    if (formData.rooms.length > 0 && viewingRoomId) {
+      // Remove product from specific area
+      setFormData(prev => ({
+        ...prev,
+        rooms: prev.rooms.map(room => {
+          if (room.id === viewingRoomId) {
+            return {
+              ...room,
+              areas: room.areas.map(area => {
+                if (area.id === actualAreaId) {
+                  return { ...area, products: area.products.filter((_, i) => i !== actualIndex) };
+                }
+                return area;
+              })
+            };
+          }
+          return room;
+        })
+      }));
     } else {
       // Remove product from general list
       setFormData(prev => ({
         ...prev,
-        selectedProducts: prev.selectedProducts.filter((_, i) => i !== index)
+        selectedProducts: prev.selectedProducts.filter((_, i) => i !== actualIndex)
       }));
     }
   };
@@ -1953,24 +2065,39 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       const viewingRoom = formData.rooms.find(r => r.id === displayRoomId);
       
       // Get products based on viewing area
+      // Store products with metadata about their location for proper updating
       let currentProducts = [];
       if (formData.rooms.length > 0 && viewingRoom) {
         if (viewingAreaId === 'all') {
           // Show all products from all areas in this room
+          // Add metadata to track which area each product belongs to
           viewingRoom.areas.forEach(area => {
-            currentProducts = [...currentProducts, ...area.products];
+            area.products.forEach((product, productIndex) => {
+              currentProducts.push({
+                ...product,
+                _areaId: area.id,
+                _productIndex: productIndex
+              });
+            });
           });
         } else {
           // Show products from specific area ONLY
           const viewingArea = viewingRoom.areas.find(a => a.id === viewingAreaId);
           if (viewingArea) {
-            currentProducts = viewingArea.products;
+            currentProducts = viewingArea.products.map((product, productIndex) => ({
+              ...product,
+              _areaId: viewingArea.id,
+              _productIndex: productIndex
+            }));
           } else {
             currentProducts = [];
           }
         }
       } else {
-        currentProducts = formData.selectedProducts;
+        currentProducts = formData.selectedProducts.map((product, productIndex) => ({
+          ...product,
+          _productIndex: productIndex
+        }));
       }
 
     return (
@@ -2156,17 +2283,21 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                         <strong>{product.name} {product.company?.name && `(${product.company.name})`}</strong>
                         <span className="variant">{product.variant}</span>
                         <div className="price-container">
-                          {product.mrp && product.mrp > product.price ? (
-                            <>
-                              <span className="price-mrp">₹{product.mrp.toLocaleString()}</span>
+                          {(() => {
+                            const companyDiscount = typeof product.company === 'object' ? (product.company?.defaultDiscountPercentage || 0) : 0;
+                            const hasDiscount = companyDiscount > 0;
+                            const discountedPrice = hasDiscount ? product.price * (1 - companyDiscount / 100) : product.price;
+                            
+                            return hasDiscount ? (
+                              <>
+                                <span className="price-mrp">₹{product.price.toLocaleString()}</span>
+                                <span className="price">₹{Math.round(discountedPrice).toLocaleString()}</span>
+                                <span className="discount-badge-mini">{companyDiscount}% OFF</span>
+                              </>
+                            ) : (
                               <span className="price">₹{product.price.toLocaleString()}</span>
-                              {product.discountPercentage > 0 && (
-                                <span className="discount-badge-mini">{product.discountPercentage}% OFF</span>
-                              )}
-                            </>
-                          ) : (
-                            <span className="price">₹{product.price.toLocaleString()}</span>
-                          )}
+                            );
+                          })()}
                         </div>
                       </div>
                       <button 
@@ -2370,8 +2501,9 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                               type="number"
                               min="0"
                               max="100"
+                              step="0.1"
                               value={item.discountPercent || 0}
-                              onChange={(e) => updateProductDiscount(index, e.target.value)}
+                              onChange={(e) => updateProductDiscount(index, parseFloat(e.target.value) || 0)}
                               placeholder="0"
                             />
                           </div>
@@ -2868,30 +3000,58 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
           </div>
           
           <div className="preview-content preview-quotation-content">
-            {/* Simple Header */}
-            <div className="preview-header-simple">
-              <div className="preview-header-left">
-                <h3>Customer: {formData.customerName}</h3>
-                <p>Date: {new Date().toLocaleDateString('en-GB')}</p>
+            {/* PDF-Style Header */}
+            <div className="preview-pdf-header">
+              <div className="preview-pdf-header-left">
+                <h1>TILES | CP FITTING | SANITARY | BATHTUB</h1>
+                <p>104-105-106, Iscon Plaza, Opp. Star India Bazar,</p>
+                <p>Satellite Road, Ahmedabad - 380 015</p>
+                <p>Phone: 92272 06063 | Email: gtts47@gmail.com</p>
+                <p className="helpline">Helpline: 079-2692 0609 / 4006 6063</p>
               </div>
-              <div className="preview-header-right">
-                <p>Phone: {formData.customerPhone}</p>
-                <p>Email: {formData.customerEmail}</p>
+              <div className="preview-pdf-header-right">
+                <img src="/gtss-logo.png" alt="GTSS Logo" className="preview-pdf-logo" />
+                <h2>Gujarat Tube & Sanitary Stores</h2>
               </div>
             </div>
 
-            {/* Products Summary */}
+            {/* Quotation Title */}
+            <div className="preview-quotation-title">
+              <h3>QUOTATION</h3>
+            </div>
+
+            {/* Client Information Box */}
+            <div className="preview-client-box">
+              <div className="preview-client-left">
+                <h4>TO: {formData.customerName}</h4>
+                <p>Address: {formData.customerAddress || '-'}</p>
+                <p>Email: {formData.customerEmail || '-'}</p>
+                <p>Phone Number: {formData.customerPhone || '-'}</p>
+                <p>GST Number: {formData.customerGST || '-'}</p>
+              </div>
+              <div className="preview-client-right">
+                <p><strong>Date:</strong> {new Date().toLocaleDateString('en-GB')}</p>
+                <p><strong>Rf No.:</strong> QT-{Date.now()}</p>
+                <p><strong>Atten:</strong> {formData.attention || '-'}</p>
+              </div>
+            </div>
+
+            {/* Products Summary - Table Format like PDF */}
             {formData.rooms.length > 0 ? (
               <div className="preview-rooms-summary">
                 {formData.rooms.map(room => {
-                  // Flatten products from all areas
+                  // Flatten products from all areas with serial numbers
                   let allRoomProducts = [];
+                  let serialNumber = 1;
+                  
                   room.areas.forEach(area => {
                     area.products.forEach(product => {
                       allRoomProducts.push({
                         ...product,
                         areaId: area.id,
-                        roomId: room.id
+                        areaName: area.name,
+                        roomId: room.id,
+                        serialNumber: serialNumber++
                       });
                     });
                   });
@@ -2902,84 +3062,178 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                   }, 0);
                   
                   return (
-                    <div key={room.id} className="preview-room-card">
-                      <div className="preview-room-header">
-                        <h4>{room.name}</h4>
-                        <span className="preview-room-total">₹{roomTotal.toLocaleString()}</span>
+                    <div key={room.id} className="preview-room-section">
+                      <div className="preview-room-title-bar">
+                        <h4>{room.name.toUpperCase()}</h4>
+                        <span className="preview-room-total-badge">₹{roomTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                       
-                      <div className="preview-products-list">
-                        {allRoomProducts.map((product, idx) => {
-                          const productKey = `${product.roomId}-${product.areaId}-${product.productName}-${product.variant}`;
-                          const currentPrice = getProductPrice(productKey, product.totalPrice);
-                          
-                          return (
-                            <div key={idx} className="preview-product-item">
-                              <div className="preview-product-info">
-                                <span className="preview-product-name">{product.productName}</span>
-                                {product.variant && <span className="preview-product-variant">{product.variant}</span>}
-                              </div>
-                              <div className="preview-product-qty">
-                                <span>Qty: {product.quantity}</span>
-                              </div>
-                              <div className="preview-product-price">
-                                {isEditMode ? (
-                                  <input
-                                    type="number"
-                                    value={currentPrice}
-                                    onChange={(e) => handlePriceEdit(productKey, e.target.value)}
-                                    className="price-edit-input"
-                                    min="0"
-                                    step="0.01"
-                                  />
-                                ) : (
-                                  <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
-                                    ₹{currentPrice.toLocaleString()}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      {/* PDF-Style Table */}
+                      <table className="preview-products-table">
+                        <thead>
+                          <tr>
+                            <th style={{ width: '5%' }}>SR</th>
+                            <th style={{ width: '10%' }}>AREA</th>
+                            <th style={{ width: '12%' }}>IMAGE</th>
+                            <th style={{ width: '28%' }}>ITEM</th>
+                            <th style={{ width: '7%' }}>QTY</th>
+                            <th style={{ width: '12%' }}>MRP</th>
+                            <th style={{ width: '13%' }}>YOUR PRICE</th>
+                            <th style={{ width: '13%' }}>TOTAL</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allRoomProducts.map((product, idx) => {
+                            const productKey = `${product.roomId}-${product.areaId}-${product.productName}-${product.variant}`;
+                            const currentPrice = getProductPrice(productKey, product.totalPrice);
+                            const unitPrice = product.unitPrice || 0;
+                            const discountedUnitPrice = unitPrice * (1 - (product.discountPercent || 0) / 100);
+                            
+                            return (
+                              <tr key={idx}>
+                                <td className="text-center">{product.serialNumber}</td>
+                                <td className="text-center">{product.areaName}</td>
+                                <td className="text-center">
+                                  {(() => {
+                                    // Get the first image from images array
+                                    const productImage = product.images && product.images.length > 0 ? product.images[0] : product.image;
+                                    
+                                    // Skip placeholder images entirely
+                                    const isPlaceholder = !productImage || 
+                                                        productImage.includes('placeholder.com') || 
+                                                        productImage.includes('via.placeholder') ||
+                                                        productImage.trim() === '';
+                                    
+                                    if (isPlaceholder) {
+                                      return <div className="preview-no-image">No Image</div>;
+                                    }
+                                    
+                                    const imageUrl = productImage.startsWith('http') 
+                                      ? productImage 
+                                      : `http://localhost:5000${productImage}`;
+                                    
+                                    return (
+                                      <>
+                                        <img 
+                                          src={imageUrl}
+                                          alt={product.productName}
+                                          className="preview-product-image"
+                                          onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            const noImageDiv = e.target.nextElementSibling;
+                                            if (noImageDiv) noImageDiv.style.display = 'flex';
+                                          }}
+                                        />
+                                        <div className="preview-no-image" style={{ display: 'none' }}>No Image</div>
+                                      </>
+                                    );
+                                  })()}
+                                </td>
+                                <td className="text-left">
+                                  <div className="preview-item-name">{product.productName}</div>
+                                  {product.variant && <div className="preview-item-variant">{product.variant}</div>}
+                                </td>
+                                <td className="text-center">{product.quantity}</td>
+                                <td className="text-center">Rs. {unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                <td className="text-center">Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                <td className="text-right">
+                                  {isEditMode ? (
+                                    <input
+                                      type="number"
+                                      value={currentPrice}
+                                      onChange={(e) => handlePriceEdit(productKey, e.target.value)}
+                                      className="price-edit-input-table"
+                                      min="0"
+                                      step="0.01"
+                                    />
+                                  ) : (
+                                    <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
+                                      Rs. {currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {/* Subtotal Row */}
+                          <tr className="subtotal-row">
+                            <td colSpan="7" className="text-right"><strong>SUBTOTAL:</strong></td>
+                            <td className="text-right"><strong>Rs. {roomTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <div className="preview-products-list">
-                {formData.selectedProducts.map((product, idx) => {
-                  const productKey = `general-${product.productName}-${product.variant}`;
-                  const currentPrice = getProductPrice(productKey, product.totalPrice);
-                  
-                  return (
-                    <div key={idx} className="preview-product-item">
-                      <div className="preview-product-info">
-                        <span className="preview-product-name">{product.productName}</span>
-                        {product.variant && <span className="preview-product-variant">{product.variant}</span>}
-                      </div>
-                      <div className="preview-product-qty">
-                        <span>Qty: {product.quantity}</span>
-                      </div>
-                      <div className="preview-product-price">
-                        {isEditMode ? (
-                          <input
-                            type="number"
-                            value={currentPrice}
-                            onChange={(e) => handlePriceEdit(productKey, e.target.value)}
-                            className="price-edit-input"
-                            min="0"
-                            step="0.01"
-                          />
-                        ) : (
-                          <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
-                            ₹{currentPrice.toLocaleString()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="preview-room-section">
+                <table className="preview-products-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '5%' }}>SR</th>
+                      <th style={{ width: '12%' }}>IMAGE</th>
+                      <th style={{ width: '35%' }}>ITEM</th>
+                      <th style={{ width: '8%' }}>QTY</th>
+                      <th style={{ width: '13%' }}>MRP</th>
+                      <th style={{ width: '13%' }}>YOUR PRICE</th>
+                      <th style={{ width: '14%' }}>TOTAL</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {formData.selectedProducts.map((product, idx) => {
+                      const productKey = `general-${product.productName}-${product.variant}`;
+                      const currentPrice = getProductPrice(productKey, product.totalPrice);
+                      const unitPrice = product.unitPrice || 0;
+                      const discountedUnitPrice = unitPrice * (1 - (product.discountPercent || 0) / 100);
+                      
+                      return (
+                        <tr key={idx}>
+                          <td className="text-center">{idx + 1}</td>
+                          <td className="text-center">
+                            {product.image ? (
+                              <img 
+                                src={product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`}
+                                alt={product.productName}
+                                className="preview-product-image"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
+                              />
+                            ) : null}
+                            {!product.image && (
+                              <div className="preview-no-image">No Image</div>
+                            )}
+                          </td>
+                          <td className="text-left">
+                            <div className="preview-item-name">{product.productName}</div>
+                            {product.variant && <div className="preview-item-variant">{product.variant}</div>}
+                          </td>
+                          <td className="text-center">{product.quantity}</td>
+                          <td className="text-center">Rs. {unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td className="text-center">Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td className="text-right">
+                            {isEditMode ? (
+                              <input
+                                type="number"
+                                value={currentPrice}
+                                onChange={(e) => handlePriceEdit(productKey, e.target.value)}
+                                className="price-edit-input-table"
+                                min="0"
+                                step="0.01"
+                              />
+                            ) : (
+                              <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
+                                Rs. {currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
 
@@ -3007,7 +3261,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                   const staffName = localStorage.getItem('staffName') || '';
                   const staffPhone = localStorage.getItem('staffPhone') || '';
                   
-                  // Apply edited prices to rooms data
+                  // Apply edited prices to rooms data or selected products
                   const roomsWithEditedPrices = formData.rooms.map(room => ({
                     ...room,
                     areas: room.areas.map(area => ({
@@ -3022,6 +3276,19 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       })
                     }))
                   }));
+                  
+                  // Apply edited prices to general products (no rooms)
+                  const selectedProductsWithEditedPrices = formData.selectedProducts.map(product => {
+                    const productKey = `general-${product.productName}-${product.variant}`;
+                    const editedPrice = editedPrices[productKey];
+                    return {
+                      ...product,
+                      totalPrice: editedPrice !== undefined ? editedPrice : product.totalPrice,
+                      rate: product.unitPrice,
+                      quantity: product.quantity,
+                      discountPercent: product.discountPercent || 0
+                    };
+                  });
                   
                   // Prepare quotation data for PDF
                   const quotationData = {
@@ -3038,6 +3305,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       attention: formData.attention
                     },
                     rooms: roomsWithEditedPrices,
+                    items: selectedProductsWithEditedPrices, // Add items for no-room scenario
                     total: calculateTotals().totalCost,
                     attendedByStaffId: staffId,
                     attendedByName: staffName,
@@ -3045,7 +3313,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                   };
                   
                   await QuotationPDFGenerator(quotationData, { separateByRoom: false });
-                  alert('PDF generated successfully!');
+                  // PDF generated successfully - no alert needed
                 } catch (error) {
                   console.error('Error generating PDF:', error);
                   alert('Failed to generate PDF');
@@ -3084,6 +3352,19 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       }))
                     }));
                     
+                    // Apply edited prices to general products (no rooms)
+                    const selectedProductsWithEditedPrices = formData.selectedProducts.map(product => {
+                      const productKey = `general-${product.productName}-${product.variant}`;
+                      const editedPrice = editedPrices[productKey];
+                      return {
+                        ...product,
+                        totalPrice: editedPrice !== undefined ? editedPrice : product.totalPrice,
+                        rate: product.unitPrice,
+                        quantity: product.quantity,
+                        discountPercent: product.discountPercent || 0
+                      };
+                    });
+                    
                     // Prepare quotation data for PDF
                     const quotationData = {
                       quotationNumber: `QT-${Date.now()}`,
@@ -3099,6 +3380,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                         attention: formData.attention
                       },
                       rooms: roomsWithEditedPrices,
+                      items: selectedProductsWithEditedPrices, // Add items for no-room scenario
                       total: calculateTotals().totalCost,
                       attendedByStaffId: staffId,
                       attendedByName: staffName,
@@ -3106,7 +3388,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                     };
                     
                     await QuotationPDFGenerator(quotationData, { separateByRoom: true });
-                    alert(`${formData.rooms.length} separate PDFs generated successfully!`);
+                    // PDFs generated successfully - no alert needed
                   } catch (error) {
                     console.error('Error generating PDFs:', error);
                     alert('Failed to generate PDFs');

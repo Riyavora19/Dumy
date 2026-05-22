@@ -174,13 +174,21 @@ const ProductReviews = ({ productId }) => {
 
           <div className="reviews-summary-right">
             <div className="rating-breakdown">
-              {[5, 4, 3, 2, 1].map(star => (
-                <div key={star} className="rating-row" onClick={() => setFilterRating(filterRating === star ? '' : star)}>
-                  <span className="rating-label">{star} ★</span>
-                  {renderRatingBar(stats[`${['', '', '', 'one', 'two', 'three', 'four', 'five'][star]}Star${star === 1 ? '' : 's'}`] || 0, stats.totalReviews)}
-                  <span className="rating-count">{stats[`${['', '', '', 'one', 'two', 'three', 'four', 'five'][star]}Star${star === 1 ? '' : 's'}`] || 0}</span>
-                </div>
-              ))}
+              {[5, 4, 3, 2, 1].map(star => {
+                const starKey = star === 5 ? 'fiveStars' : 
+                               star === 4 ? 'fourStars' : 
+                               star === 3 ? 'threeStars' : 
+                               star === 2 ? 'twoStars' : 'oneStar';
+                const count = stats[starKey] || 0;
+                
+                return (
+                  <div key={star} className="rating-row" onClick={() => setFilterRating(filterRating === star ? '' : star)}>
+                    <span className="rating-label">{star} ★</span>
+                    {renderRatingBar(count, stats.totalReviews)}
+                    <span className="rating-count">{count}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

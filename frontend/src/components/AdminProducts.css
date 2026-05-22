@@ -1404,9 +1404,25 @@
   stroke: white;
 }
 
+/* Image Change Button */
+.admin-products__image-btn {
+  background: #f59e0b !important;
+  border-color: #f59e0b !important;
+}
+
+.admin-products__image-btn:hover {
+  background: #d97706 !important;
+  border-color: #d97706 !important;
+  transform: translateY(-2px);
+}
+
+.admin-products__image-btn svg {
+  stroke: white;
+}
+
 /* Quick Edit Modal */
 .admin-products__quick-edit-modal {
-  max-width: 500px !important;
+  max-width: 600px !important;
 }
 
 .admin-products__quick-edit-modal .admin-products__form {
@@ -1417,4 +1433,475 @@
 
 .admin-products__quick-edit-modal .admin-products__field {
   margin-bottom: 0;
+}
+
+.admin-products__quick-edit-modal .admin-products__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.admin-products__quick-edit-modal .admin-products__row .admin-products__field {
+  margin-bottom: 0;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   IMAGE CHANGE MODAL - Modern Design
+   ═══════════════════════════════════════════════════════════════════ */
+
+.admin-products__image-change-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header */
+.admin-products__image-change-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.admin-products__image-change-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.admin-products__image-change-title > svg {
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.admin-products__image-change-title h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.admin-products__image-change-title p {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.admin-products__image-change-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.admin-products__image-change-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.admin-products__image-change-close svg {
+  color: #fff;
+}
+
+/* Body */
+.admin-products__image-change-body {
+  padding: 28px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Current Images Section */
+.admin-products__current-images-section {
+  margin-bottom: 28px;
+}
+
+.admin-products__current-images-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-products__current-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.admin-products__current-image-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.admin-products__current-image-item:hover {
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.admin-products__current-image-item img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.admin-products__current-image-item span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.admin-products__no-images {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  gap: 12px;
+}
+
+.admin-products__no-images svg {
+  color: #9ca3af;
+}
+
+.admin-products__no-images p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+/* Upload New Section */
+.admin-products__upload-new-section {
+  margin-bottom: 24px;
+}
+
+.admin-products__upload-new-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-products__image-upload-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 24px;
+  border: 3px dashed #c7d2fe;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f0f4ff 0%, #f9f5ff 100%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.admin-products__image-upload-box:hover {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+}
+
+.admin-products__image-upload-box svg {
+  color: #667eea;
+}
+
+.admin-products__upload-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-products__upload-text strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.admin-products__upload-text span {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.admin-products__image-upload-box small {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* New Images Preview */
+.admin-products__new-images-preview {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f0fdf4;
+  border: 2px solid #86efac;
+  border-radius: 12px;
+}
+
+.admin-products__new-images-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #bbf7d0;
+}
+
+.admin-products__new-images-header span {
+  font-size: 14px;
+  font-weight: 700;
+  color: #166534;
+}
+
+.admin-products__clear-selection {
+  padding: 6px 14px;
+  background: #fff;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-products__clear-selection:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+
+.admin-products__new-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.admin-products__new-image-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #fff;
+  border: 2px solid #86efac;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.admin-products__new-image-item:hover {
+  border-color: #22c55e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+}
+
+.admin-products__new-image-item img {
+  width: 100%;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.admin-products__new-image-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-products__new-image-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #166534;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-products__new-image-size {
+  font-size: 10px;
+  color: #16a34a;
+  font-weight: 500;
+}
+
+/* Warning Box */
+.admin-products__image-warning {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #fef3c7;
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+  align-items: flex-start;
+}
+
+.admin-products__image-warning svg {
+  color: #f59e0b;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.admin-products__image-warning div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-products__image-warning strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.admin-products__image-warning span {
+  font-size: 13px;
+  color: #78350f;
+  line-height: 1.5;
+}
+
+/* Footer */
+.admin-products__image-change-footer {
+  display: flex;
+  gap: 12px;
+  padding: 20px 28px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.admin-products__btn-cancel-new,
+.admin-products__btn-update-new {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.admin-products__btn-cancel-new {
+  background: #fff;
+  color: #6b7280;
+  border: 2px solid #d1d5db;
+}
+
+.admin-products__btn-cancel-new:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.admin-products__btn-update-new {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.admin-products__btn-update-new:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.admin-products__btn-update-new:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.admin-products__btn-update-new svg {
+  flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-products__image-change-modal {
+    max-width: 95%;
+    max-height: 95vh;
+  }
+
+  .admin-products__image-change-header {
+    padding: 20px;
+  }
+
+  .admin-products__image-change-title {
+    gap: 12px;
+  }
+
+  .admin-products__image-change-title h2 {
+    font-size: 18px;
+  }
+
+  .admin-products__image-change-body {
+    padding: 20px;
+  }
+
+  .admin-products__current-images-grid,
+  .admin-products__new-images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+
+  .admin-products__image-change-footer {
+    padding: 16px 20px;
+    flex-direction: column;
+  }
+
+  .admin-products__btn-cancel-new,
+  .admin-products__btn-update-new {
+    width: 100%;
+  }
 }
