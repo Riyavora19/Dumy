@@ -56,8 +56,6 @@ const AdminUsers = () => {
   };
 
   const handleToggleStatus = async (userId) => {
-    if (!window.confirm('Are you sure you want to change this user\'s status?')) return;
-
     try {
       const response = await axios.patch(`http://localhost:5000/api/users/${userId}/toggle-status`);
       if (response.data.success) {
@@ -70,8 +68,6 @@ const AdminUsers = () => {
   };
 
   const handleDelete = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
-
     try {
       const response = await axios.delete(`http://localhost:5000/api/users/${userId}`);
       if (response.data.success) {

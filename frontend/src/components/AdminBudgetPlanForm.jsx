@@ -2,296 +2,7 @@ import { useState, useEffect } from 'react';
 import './AdminBudgetPlanForm.css';
 import './QuotationPreviewPDF.css';
 import QuotationPDFGenerator from './QuotationPDFGenerator';
-
-// Define room templates with preset areas and default essential products (outside component)
-const roomTemplatePresets = {
-  'Master Bathroom': {
-    areas: [
-      {
-        id: 'shower',
-        name: 'Shower Area',
-        icon: '🚿',
-        suggestedProducts: ['Rain Shower', 'Hand Shower', 'Shower Mixer', 'Diverter', 'Body Jets'],
-        defaultProducts: [
-          { keyword: 'Rain Shower', quantity: 1, essential: true },
-          { keyword: 'Hand Shower', quantity: 1, essential: true },
-          { keyword: 'Shower Mixer', quantity: 1, essential: true },
-          { keyword: 'Diverter', quantity: 1, essential: true },
-          { keyword: 'Shower Arm', quantity: 1, essential: true },
-          { keyword: 'Sliding Rail', quantity: 1, essential: true },
-          { keyword: 'Drain', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 2, essential: true }
-        ]
-      },
-
-      {
-        id: 'basin',
-        name: 'Basin Area',
-        icon: '🪣',
-        suggestedProducts: ['Table Top Basin', 'Basin Mixer', 'LED Mirror', 'Vanity Unit'],
-        defaultProducts: [
-          { keyword: 'Table Top Basin', quantity: 1, essential: true },
-          { keyword: 'Basin Mixer', quantity: 1, essential: true },
-          { keyword: 'Mirror', quantity: 1, essential: true },
-          { keyword: 'Towel', quantity: 2, essential: true },
-          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
-          { keyword: 'Waste Coupling', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 2, essential: true },
-          { keyword: 'Bottle Trap', quantity: 1, essential: true }
-        ]
-      },
-      {
-        id: 'wc',
-        name: 'WC Area',
-        icon: '🚽',
-        suggestedProducts: ['One Piece WC', 'Flush Plate', 'Health Faucet'],
-        defaultProducts: [
-          { keyword: 'One Piece', quantity: 1, essential: true },
-          { keyword: 'Health Faucet', quantity: 1, essential: true },
-          { keyword: 'Seat Cover', quantity: 1, essential: true },
-          { keyword: 'Flush', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 1, essential: true },
-          { keyword: 'Toilet Paper', quantity: 1, essential: true }
-        ]
-      },
-      {
-        id: 'bathtub',
-        name: 'Bathtub Area',
-        icon: '🛁',
-        suggestedProducts: ['Bathtub', 'Bath Spout', 'Bath Mixer'],
-        defaultProducts: [
-          { keyword: 'Bathtub', quantity: 1, essential: false },
-          { keyword: 'Bath Spout', quantity: 1, essential: false },
-          { keyword: 'Bath Mixer', quantity: 1, essential: false },
-          { keyword: 'Drain', quantity: 1, essential: false }
-        ]
-      }
-    ]
-  },
-  'Children Bathroom': {
-    areas: [
-      {
-        id: 'shower',
-        name: 'Shower Area',
-        icon: '🚿',
-        suggestedProducts: ['Hand Shower', 'Shower Mixer', 'Sliding Rail'],
-        defaultProducts: [
-          { keyword: 'Hand Shower', quantity: 1, essential: true },
-          { keyword: 'Shower Mixer', quantity: 1, essential: true },
-          { keyword: 'Sliding Rail', quantity: 1, essential: true },
-          { keyword: 'Shower Arm', quantity: 1, essential: true },
-          { keyword: 'Drain', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 2, essential: true }
-        ]
-      },
-      {
-        id: 'basin',
-        name: 'Basin Area',
-        icon: '🪣',
-        suggestedProducts: ['Wall Hung Basin', 'Basin Mixer', 'Mirror'],
-        defaultProducts: [
-          { keyword: 'Basin', quantity: 1, essential: true },
-          { keyword: 'Basin Mixer', quantity: 1, essential: true },
-          { keyword: 'Mirror', quantity: 1, essential: true },
-          { keyword: 'Towel', quantity: 2, essential: true },
-          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
-          { keyword: 'Waste Coupling', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 2, essential: true },
-          { keyword: 'Bottle Trap', quantity: 1, essential: true }
-        ]
-      },
-      {
-        id: 'wc',
-        name: 'WC Area',
-        icon: '🚽',
-        suggestedProducts: ['Two Piece WC', 'Flush Tank', 'Health Faucet'],
-        defaultProducts: [
-          { keyword: 'WC', quantity: 1, essential: true },
-          { keyword: 'Health Faucet', quantity: 1, essential: true },
-          { keyword: 'Seat Cover', quantity: 1, essential: true },
-          { keyword: 'Flush Tank', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 1, essential: true },
-          { keyword: 'Toilet Paper', quantity: 1, essential: true }
-        ]
-      }
-    ]
-  },
-  'Parents Bathroom': {
-    areas: [
-      {
-        id: 'shower',
-        name: 'Shower Area',
-        icon: '🚿',
-        suggestedProducts: ['Rain Shower', 'Hand Shower', 'Shower Mixer', 'Diverter'],
-        defaultProducts: [
-          { keyword: 'Rain Shower', quantity: 1, essential: true },
-          { keyword: 'Hand Shower', quantity: 1, essential: true },
-          { keyword: 'Shower Mixer', quantity: 1, essential: true },
-          { keyword: 'Diverter', quantity: 1, essential: true },
-          { keyword: 'Shower Arm', quantity: 1, essential: true },
-          { keyword: 'Drain', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 2, essential: true }
-        ]
-      },
-      {
-        id: 'basin',
-        name: 'Basin Area',
-        icon: '🪣',
-        suggestedProducts: ['Table Top Basin', 'Basin Mixer', 'LED Mirror', 'Vanity Unit'],
-        defaultProducts: [
-          { keyword: 'Basin', quantity: 1, essential: true },
-          { keyword: 'Basin Mixer', quantity: 1, essential: true },
-          { keyword: 'Mirror', quantity: 1, essential: true },
-          { keyword: 'Towel', quantity: 2, essential: true },
-          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
-          { keyword: 'Waste Coupling', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 2, essential: true },
-          { keyword: 'Bottle Trap', quantity: 1, essential: true }
-        ]
-      },
-      {
-        id: 'wc',
-        name: 'WC Area',
-        icon: '🚽',
-        suggestedProducts: ['One Piece WC', 'Flush Plate', 'Health Faucet'],
-        defaultProducts: [
-          { keyword: 'One Piece', quantity: 1, essential: true },
-          { keyword: 'Health Faucet', quantity: 1, essential: true },
-          { keyword: 'Seat Cover', quantity: 1, essential: true },
-          { keyword: 'Flush', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 1, essential: true },
-          { keyword: 'Toilet Paper', quantity: 1, essential: true }
-        ]
-      }
-    ]
-  },
-  'Powder Bathroom': {
-    areas: [
-      {
-        id: 'basin',
-        name: 'Basin Area',
-        icon: '🪣',
-        suggestedProducts: ['Wall Hung Basin', 'Basin Mixer', 'Mirror', 'Towel Rack'],
-        defaultProducts: [
-          { keyword: 'Basin', quantity: 1, essential: true },
-          { keyword: 'Basin Mixer', quantity: 1, essential: true },
-          { keyword: 'Mirror', quantity: 1, essential: true },
-          { keyword: 'Towel', quantity: 1, essential: true },
-          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
-          { keyword: 'Waste Coupling', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 2, essential: true },
-          { keyword: 'Bottle Trap', quantity: 1, essential: true }
-        ]
-      },
-      {
-        id: 'wc',
-        name: 'WC Area',
-        icon: '🚽',
-        suggestedProducts: ['Wall Hung WC', 'Concealed Cistern', 'Flush Plate', 'Health Faucet'],
-        defaultProducts: [
-          { keyword: 'WC', quantity: 1, essential: true },
-          { keyword: 'Flush Plate', quantity: 1, essential: true },
-          { keyword: 'Health Faucet', quantity: 1, essential: true },
-          { keyword: 'Seat Cover', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 1, essential: true },
-          { keyword: 'Toilet Paper', quantity: 1, essential: true }
-        ]
-      }
-    ]
-  },
-  'Powder Toilet': {
-    areas: [
-      {
-        id: 'basin',
-        name: 'Basin Area',
-        icon: '🪣',
-        suggestedProducts: ['Wall Hung Basin', 'Pillar Cock', 'Mirror'],
-        defaultProducts: [
-          { keyword: 'Basin', quantity: 1, essential: true },
-          { keyword: 'Pillar', quantity: 1, essential: true },
-          { keyword: 'Mirror', quantity: 1, essential: true },
-          { keyword: 'Towel', quantity: 1, essential: true },
-          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
-          { keyword: 'Waste Coupling', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 2, essential: true },
-          { keyword: 'Bottle Trap', quantity: 1, essential: true }
-        ]
-      },
-      {
-        id: 'wc',
-        name: 'WC Area',
-        icon: '🚽',
-        suggestedProducts: ['Wall Hung WC', 'Concealed Cistern', 'Flush Plate'],
-        defaultProducts: [
-          { keyword: 'WC', quantity: 1, essential: true },
-          { keyword: 'Flush', quantity: 1, essential: true },
-          { keyword: 'Seat Cover', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 1, essential: true },
-          { keyword: 'Toilet Paper', quantity: 1, essential: true }
-        ]
-      }
-    ]
-  },
-  'Children Toilet': {
-    areas: [
-      {
-        id: 'basin',
-        name: 'Basin Area',
-        icon: '🪣',
-        suggestedProducts: ['Wall Hung Basin', 'Basin Mixer', 'Mirror'],
-        defaultProducts: [
-          { keyword: 'Basin', quantity: 1, essential: true },
-          { keyword: 'Mixer', quantity: 1, essential: true },
-          { keyword: 'Mirror', quantity: 1, essential: true },
-          { keyword: 'Towel', quantity: 1, essential: true },
-          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
-          { keyword: 'Waste Coupling', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 2, essential: true },
-          { keyword: 'Bottle Trap', quantity: 1, essential: true }
-        ]
-      },
-      {
-        id: 'wc',
-        name: 'WC Area',
-        icon: '🚽',
-        suggestedProducts: ['Two Piece WC', 'Flush Tank', 'Health Faucet'],
-        defaultProducts: [
-          { keyword: 'WC', quantity: 1, essential: true },
-          { keyword: 'Health Faucet', quantity: 1, essential: true },
-          { keyword: 'Seat Cover', quantity: 1, essential: true },
-          { keyword: 'Flush Tank', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 1, essential: true },
-          { keyword: 'Toilet Paper', quantity: 1, essential: true }
-        ]
-      }
-    ]
-  },
-  'Kitchen': {
-    areas: [
-      {
-        id: 'sink',
-        name: 'Sink Area',
-        icon: '🚰',
-        suggestedProducts: ['Kitchen Sink', 'Sink Mixer', 'Soap Dispenser'],
-        defaultProducts: [
-          { keyword: 'Kitchen Sink', quantity: 1, essential: true },
-          { keyword: 'Sink Mixer', quantity: 1, essential: true },
-          { keyword: 'Soap Dispenser', quantity: 1, essential: true },
-          { keyword: 'Drain', quantity: 1, essential: true },
-          { keyword: 'Angle Valve', quantity: 2, essential: true },
-          { keyword: 'Waste Coupling', quantity: 1, essential: true }
-        ]
-      },
-      {
-        id: 'countertop',
-        name: 'Countertop Area',
-        icon: '🔲',
-        suggestedProducts: ['Countertop', 'Backsplash Tiles'],
-        defaultProducts: []
-      }
-    ]
-  }
-};
+import { roomTemplatePresets } from './RoomTemplatePresets';
 
 const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -448,6 +159,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   const [generating, setGenerating] = useState(false);
   const [savingAs, setSavingAs] = useState(null); // 'plan' or 'order'
   const [showPreview, setShowPreview] = useState(false); // For preview modal
+  const [columnFormat, setColumnFormat] = useState('format2'); // Column format: format1 (MRP+YOUR PRICE), format2 (MRP+DISCOUNT)
   const [isEditMode, setIsEditMode] = useState(false); // For editable preview
   const [editedPrices, setEditedPrices] = useState({}); // Store edited prices by product ID
   const [showRoomModal, setShowRoomModal] = useState(false);
@@ -567,7 +279,6 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       setFilteredProducts(products);
     } catch (error) {
       console.error('Error fetching products:', error);
-      alert('Failed to load products. Please check console for details.');
       setAllProducts([]);
       setFilteredProducts([]);
     }
@@ -1030,7 +741,6 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     // If rooms exist, add to current room's viewing area
     if (formData.rooms.length > 0) {
       if (!formData.currentRoomId) {
-        alert('Please select a room first');
         return;
       }
 
@@ -1046,7 +756,6 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       const currentArea = currentRoom.areas.find(a => a.id === targetAreaId);
       
       if (!currentArea) {
-        alert('Selected area not found. Please select a specific area from the filters.');
         return;
       }
 
@@ -1514,7 +1223,6 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   const handleNext = async () => {
     if (currentStep === 1) {
       if (!formData.customerName) {
-        alert('Please provide customer name');
         return;
       }
       
@@ -1555,7 +1263,6 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       }
       
       if (!hasProducts) {
-        alert('Please add at least one product');
         return;
       }
     }
@@ -1661,16 +1368,13 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         const message = saveOption === 'quotation' 
           ? 'Quotation saved successfully!' 
           : 'Budget plan saved successfully!';
-        alert(message);
         onSuccess && onSuccess(result);
         onClose && onClose();
       } else {
         console.error('Server error:', result);
-        alert(`Error: ${result.message || 'Failed to save budget plan'}`);
       }
     } catch (error) {
       console.error('Error saving budget plan:', error);
-      alert(`Error saving budget plan: ${error.message}`);
     } finally {
       setSavingAs(null);
     }
@@ -1810,7 +1514,6 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       const orderResult = await orderResponse.json();
 
       if (orderResponse.ok) {
-        alert(`✅ Order created successfully!\n\nOrder Number: ${orderResult.orderNumber}\nQuotation also saved and linked to this order.`);
         onSuccess && onSuccess(orderResult);
         onClose && onClose();
       } else {
@@ -1818,7 +1521,6 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       }
     } catch (error) {
       console.error('Error saving as order:', error);
-      alert(`Error: ${error.message}`);
     } finally {
       setSavingAs(null);
     }
@@ -1828,7 +1530,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     // This functionality has been removed
     // Budget plans should be converted to orders from the Budget Plans list
     // which opens the full order form with proper address collection
-    alert('Please save this as a Budget Plan first, then convert it to an order from the Budget Plans list.');
+    console.log('Please save this as a Budget Plan first, then convert it to an order from the Budget Plans list.');
   };
 
   const renderStep1 = () => {
@@ -2999,6 +2701,68 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
             </div>
           </div>
           
+          {/* Column Format Selector */}
+          <div style={{ 
+            padding: '15px 20px', 
+            background: '#f8f9fa', 
+            borderBottom: '2px solid #e0e0e0',
+            display: 'flex',
+            gap: '10px',
+            flexWrap: 'wrap',
+            alignItems: 'center'
+          }}>
+            <strong style={{ marginRight: '10px', color: '#333' }}>Select Column Format:</strong>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              padding: '8px 15px',
+              background: columnFormat === 'format1' ? '#2563eb' : 'white',
+              color: columnFormat === 'format1' ? 'white' : '#333',
+              border: '2px solid #2563eb',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '500',
+              transition: 'all 0.2s'
+            }}>
+              <input 
+                type="radio" 
+                name="columnFormat" 
+                value="format1"
+                checked={columnFormat === 'format1'}
+                onChange={(e) => setColumnFormat(e.target.value)}
+                style={{ cursor: 'pointer' }}
+              />
+              <span>SR | AREA | IMAGE | QTY | MRP | YOUR PRICE | TOTAL</span>
+            </label>
+            
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              padding: '8px 15px',
+              background: columnFormat === 'format2' ? '#2563eb' : 'white',
+              color: columnFormat === 'format2' ? 'white' : '#333',
+              border: '2px solid #2563eb',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '500',
+              transition: 'all 0.2s'
+            }}>
+              <input 
+                type="radio" 
+                name="columnFormat" 
+                value="format2"
+                checked={columnFormat === 'format2'}
+                onChange={(e) => setColumnFormat(e.target.value)}
+                style={{ cursor: 'pointer' }}
+              />
+              <span>SR | AREA | IMAGE | QTY | MRP | DISCOUNT | TOTAL</span>
+            </label>
+          </div>
+          
           <div className="preview-content preview-quotation-content">
             {/* PDF-Style Header */}
             <div className="preview-pdf-header">
@@ -3072,13 +2836,14 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       <table className="preview-products-table">
                         <thead>
                           <tr>
-                            <th style={{ width: '5%' }}>SR</th>
-                            <th style={{ width: '10%' }}>AREA</th>
-                            <th style={{ width: '12%' }}>IMAGE</th>
-                            <th style={{ width: '28%' }}>ITEM</th>
-                            <th style={{ width: '7%' }}>QTY</th>
-                            <th style={{ width: '12%' }}>MRP</th>
-                            <th style={{ width: '13%' }}>YOUR PRICE</th>
+                            <th style={{ width: '4%' }}>SR</th>
+                            <th style={{ width: '12%' }}>AREA</th>
+                            <th style={{ width: '10%' }}>IMAGE</th>
+                            <th style={{ width: '32%' }}>ITEM</th>
+                            <th style={{ width: '6%' }}>QTY</th>
+                            <th style={{ width: '13%' }}>MRP</th>
+                            {columnFormat === 'format1' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
+                            {columnFormat === 'format2' && <th style={{ width: '10%' }}>DISCOUNT</th>}
                             <th style={{ width: '13%' }}>TOTAL</th>
                           </tr>
                         </thead>
@@ -3087,12 +2852,27 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                             const productKey = `${product.roomId}-${product.areaId}-${product.productName}-${product.variant}`;
                             const currentPrice = getProductPrice(productKey, product.totalPrice);
                             const unitPrice = product.unitPrice || 0;
-                            const discountedUnitPrice = unitPrice * (1 - (product.discountPercent || 0) / 100);
+                            const discountPercent = product.discountPercent || 0;
+                            const discountedUnitPrice = unitPrice * (1 - discountPercent / 100);
+                            const finalTotal = discountedUnitPrice * product.quantity;
+                            
+                            // Check if this is the first product in this area
+                            const isFirstInArea = idx === 0 || allRoomProducts[idx - 1].areaId !== product.areaId;
+                            
+                            // Count how many products are in this area
+                            let areaProductCount = 0;
+                            if (isFirstInArea) {
+                              areaProductCount = allRoomProducts.filter(p => p.areaId === product.areaId).length;
+                            }
                             
                             return (
                               <tr key={idx}>
                                 <td className="text-center">{product.serialNumber}</td>
-                                <td className="text-center">{product.areaName}</td>
+                                {isFirstInArea && (
+                                  <td className="text-center" rowSpan={areaProductCount} style={{ verticalAlign: 'middle' }}>
+                                    {product.areaName}
+                                  </td>
+                                )}
                                 <td className="text-center">
                                   {(() => {
                                     // Get the first image from images array
@@ -3131,33 +2911,158 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                                 </td>
                                 <td className="text-left">
                                   <div className="preview-item-name">{product.productName}</div>
-                                  {product.variant && <div className="preview-item-variant">{product.variant}</div>}
+                                  {product.companyName && (
+                                    <div className="preview-item-variant" style={{ color: '#2563eb' }}>
+                                      <span>{product.companyName}</span>
+                                    </div>
+                                  )}
                                 </td>
                                 <td className="text-center">{product.quantity}</td>
-                                <td className="text-center">Rs. {unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                <td className="text-center">Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                <td className="text-left">Rs. {unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                {columnFormat === 'format1' && (
+                                  <td className="text-left">
+                                    {isEditMode ? (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <span>Rs.</span>
+                                        <input
+                                          type="number"
+                                          value={discountedUnitPrice.toFixed(2)}
+                                          onChange={(e) => {
+                                            const newPrice = parseFloat(e.target.value) || 0;
+                                            const newDiscount = ((unitPrice - newPrice) / unitPrice) * 100;
+                                            
+                                            // Update the product discount in formData
+                                            setFormData(prev => ({
+                                              ...prev,
+                                              rooms: prev.rooms.map(room => {
+                                                if (room.id === product.roomId) {
+                                                  return {
+                                                    ...room,
+                                                    areas: room.areas.map(area => {
+                                                      if (area.id === product.areaId) {
+                                                        return {
+                                                          ...area,
+                                                          products: area.products.map(p => {
+                                                            if (p.productName === product.productName && p.variant === product.variant) {
+                                                              return {
+                                                                ...p,
+                                                                discountPercent: newDiscount,
+                                                                totalPrice: newPrice * p.quantity
+                                                              };
+                                                            }
+                                                            return p;
+                                                          })
+                                                        };
+                                                      }
+                                                      return area;
+                                                    })
+                                                  };
+                                                }
+                                                return room;
+                                              })
+                                            }));
+                                          }}
+                                          className="price-edit-input-table"
+                                          min="0"
+                                          step="0.01"
+                                          style={{ 
+                                            width: '100px', 
+                                            textAlign: 'right',
+                                            border: '2px solid #3b82f6',
+                                            backgroundColor: '#fff'
+                                          }}
+                                        />
+                                      </div>
+                                    ) : (
+                                      <span>Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    )}
+                                  </td>
+                                )}
+                                {columnFormat === 'format2' && (
+                                  <td className="text-center">
+                                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                                      <input
+                                        type="number"
+                                        value={discountPercent}
+                                        disabled={!isEditMode}
+                                        onChange={(e) => {
+                                          const newDiscount = parseFloat(e.target.value) || 0;
+                                          
+                                          // Update the product discount in formData
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            rooms: prev.rooms.map(room => {
+                                              if (room.id === product.roomId) {
+                                                return {
+                                                  ...room,
+                                                  areas: room.areas.map(area => {
+                                                    if (area.id === product.areaId) {
+                                                      return {
+                                                        ...area,
+                                                        products: area.products.map(p => {
+                                                          if (p.productName === product.productName && p.variant === product.variant) {
+                                                            const unitPrice = p.unitPrice || 0;
+                                                            const discountedPrice = unitPrice * (1 - newDiscount / 100);
+                                                            return {
+                                                              ...p,
+                                                              discountPercent: newDiscount,
+                                                              totalPrice: discountedPrice * p.quantity
+                                                            };
+                                                          }
+                                                          return p;
+                                                        })
+                                                      };
+                                                    }
+                                                    return area;
+                                                  })
+                                                };
+                                              }
+                                              return room;
+                                            })
+                                          }));
+                                        }}
+                                        className="price-edit-input-table"
+                                        min="0"
+                                        max="100"
+                                        step="0.1"
+                                        style={{ 
+                                          width: '70px', 
+                                          textAlign: 'center', 
+                                          paddingRight: '20px',
+                                          backgroundColor: isEditMode ? '#fff !important' : '#f3f4f6 !important',
+                                          cursor: isEditMode ? 'text !important' : 'not-allowed !important',
+                                          opacity: isEditMode ? '1' : '0.6',
+                                          border: isEditMode ? '2px solid #3b82f6' : '1px solid #d1d5db'
+                                        }}
+                                      />
+                                      <span style={{ 
+                                        position: 'absolute', 
+                                        right: '8px', 
+                                        top: '50%', 
+                                        transform: 'translateY(-50%)',
+                                        fontSize: '12px',
+                                        pointerEvents: 'none',
+                                        color: '#666'
+                                      }}>%</span>
+                                    </div>
+                                  </td>
+                                )}
                                 <td className="text-right">
-                                  {isEditMode ? (
-                                    <input
-                                      type="number"
-                                      value={currentPrice}
-                                      onChange={(e) => handlePriceEdit(productKey, e.target.value)}
-                                      className="price-edit-input-table"
-                                      min="0"
-                                      step="0.01"
-                                    />
-                                  ) : (
-                                    <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
-                                      Rs. {currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </span>
-                                  )}
+                                  <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
+                                    Rs. {finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
                                 </td>
                               </tr>
                             );
                           })}
                           {/* Subtotal Row */}
                           <tr className="subtotal-row">
-                            <td colSpan="7" className="text-right"><strong>SUBTOTAL:</strong></td>
+                            <td colSpan={
+                              columnFormat === 'format1' ? 6 : 
+                              columnFormat === 'format2' ? 6 : 
+                              6
+                            } className="text-right"></td>
+                            <td className="text-right"><strong>SUBTOTAL:</strong></td>
                             <td className="text-right"><strong>Rs. {roomTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
                           </tr>
                         </tbody>
@@ -3171,13 +3076,14 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                 <table className="preview-products-table">
                   <thead>
                     <tr>
-                      <th style={{ width: '5%' }}>SR</th>
-                      <th style={{ width: '12%' }}>IMAGE</th>
-                      <th style={{ width: '35%' }}>ITEM</th>
-                      <th style={{ width: '8%' }}>QTY</th>
+                      <th style={{ width: '4%' }}>SR</th>
+                      <th style={{ width: '10%' }}>IMAGE</th>
+                      <th style={{ width: columnFormat === 'format1' ? '44%' : '44%' }}>ITEM</th>
+                      <th style={{ width: '6%' }}>QTY</th>
                       <th style={{ width: '13%' }}>MRP</th>
-                      <th style={{ width: '13%' }}>YOUR PRICE</th>
-                      <th style={{ width: '14%' }}>TOTAL</th>
+                      {columnFormat === 'format1' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
+                      {columnFormat === 'format2' && <th style={{ width: '10%' }}>DISCOUNT</th>}
+                      <th style={{ width: '13%' }}>TOTAL</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -3185,49 +3091,159 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       const productKey = `general-${product.productName}-${product.variant}`;
                       const currentPrice = getProductPrice(productKey, product.totalPrice);
                       const unitPrice = product.unitPrice || 0;
-                      const discountedUnitPrice = unitPrice * (1 - (product.discountPercent || 0) / 100);
+                      const discountPercent = product.discountPercent || 0;
+                      const discountedUnitPrice = unitPrice * (1 - discountPercent / 100);
+                      const finalTotal = discountedUnitPrice * product.quantity;
                       
                       return (
                         <tr key={idx}>
                           <td className="text-center">{idx + 1}</td>
                           <td className="text-center">
-                            {product.image ? (
-                              <img 
-                                src={product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`}
-                                alt={product.productName}
-                                className="preview-product-image"
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                  e.target.nextSibling.style.display = 'flex';
-                                }}
-                              />
-                            ) : null}
-                            {!product.image && (
-                              <div className="preview-no-image">No Image</div>
-                            )}
+                            {(() => {
+                              // Get the first image from images array
+                              const productImage = product.images && product.images.length > 0 ? product.images[0] : product.image;
+                              
+                              // Skip placeholder images entirely
+                              const isPlaceholder = !productImage || 
+                                                  productImage.includes('placeholder.com') || 
+                                                  productImage.includes('via.placeholder') ||
+                                                  productImage.trim() === '';
+                              
+                              if (isPlaceholder) {
+                                return <div className="preview-no-image">No Image</div>;
+                              }
+                              
+                              const imageUrl = productImage.startsWith('http') 
+                                ? productImage 
+                                : `http://localhost:5000${productImage}`;
+                              
+                              return (
+                                <>
+                                  <img 
+                                    src={imageUrl}
+                                    alt={product.productName}
+                                    className="preview-product-image"
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      const noImageDiv = e.target.nextElementSibling;
+                                      if (noImageDiv) noImageDiv.style.display = 'flex';
+                                    }}
+                                  />
+                                  <div className="preview-no-image" style={{ display: 'none' }}>No Image</div>
+                                </>
+                              );
+                            })()}
                           </td>
                           <td className="text-left">
                             <div className="preview-item-name">{product.productName}</div>
-                            {product.variant && <div className="preview-item-variant">{product.variant}</div>}
+                            {product.companyName && (
+                              <div className="preview-item-variant" style={{ color: '#2563eb' }}>
+                                <span>{product.companyName}</span>
+                              </div>
+                            )}
                           </td>
                           <td className="text-center">{product.quantity}</td>
-                          <td className="text-center">Rs. {unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                          <td className="text-center">Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td className="text-left">Rs. {unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          {columnFormat === 'format1' && (
+                            <td className="text-left">
+                              {isEditMode ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                  <span>Rs.</span>
+                                  <input
+                                    type="number"
+                                    value={discountedUnitPrice.toFixed(2)}
+                                    onChange={(e) => {
+                                      const newPrice = parseFloat(e.target.value) || 0;
+                                      const newDiscount = ((unitPrice - newPrice) / unitPrice) * 100;
+                                      
+                                      // Update the product discount in formData
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        selectedProducts: prev.selectedProducts.map((p, i) => {
+                                          if (i === idx) {
+                                            return {
+                                              ...p,
+                                              discountPercent: newDiscount,
+                                              totalPrice: newPrice * p.quantity
+                                            };
+                                          }
+                                          return p;
+                                        })
+                                      }));
+                                    }}
+                                    className="price-edit-input-table"
+                                    min="0"
+                                    step="0.01"
+                                    style={{ 
+                                      width: '100px', 
+                                      textAlign: 'right',
+                                      border: '2px solid #3b82f6',
+                                      backgroundColor: '#fff'
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <span>Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                              )}
+                            </td>
+                          )}
+                          {columnFormat === 'format2' && (
+                            <td className="text-center">
+                              <div style={{ position: 'relative', display: 'inline-block' }}>
+                                <input
+                                  type="number"
+                                  value={discountPercent}
+                                  disabled={!isEditMode}
+                                  onChange={(e) => {
+                                    const newDiscount = parseFloat(e.target.value) || 0;
+                                    
+                                    // Update the product discount in formData
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      selectedProducts: prev.selectedProducts.map((p, i) => {
+                                        if (i === idx) {
+                                          const unitPrice = p.unitPrice || 0;
+                                          const discountedPrice = unitPrice * (1 - newDiscount / 100);
+                                          return {
+                                            ...p,
+                                            discountPercent: newDiscount,
+                                            totalPrice: discountedPrice * p.quantity
+                                          };
+                                        }
+                                        return p;
+                                      })
+                                    }));
+                                  }}
+                                  className="price-edit-input-table"
+                                  min="0"
+                                  max="100"
+                                  step="0.1"
+                                  style={{ 
+                                    width: '70px', 
+                                    textAlign: 'center', 
+                                    paddingRight: '20px',
+                                    backgroundColor: isEditMode ? '#fff !important' : '#f3f4f6 !important',
+                                    cursor: isEditMode ? 'text !important' : 'not-allowed !important',
+                                    opacity: isEditMode ? '1' : '0.6',
+                                    border: isEditMode ? '2px solid #3b82f6' : '1px solid #d1d5db'
+                                  }}
+                                />
+                                <span style={{ 
+                                  position: 'absolute', 
+                                  right: '8px', 
+                                  top: '50%', 
+                                  transform: 'translateY(-50%)',
+                                  fontSize: '12px',
+                                  pointerEvents: 'none',
+                                  color: '#666'
+                                }}>%</span>
+                              </div>
+                            </td>
+                          )}
                           <td className="text-right">
-                            {isEditMode ? (
-                              <input
-                                type="number"
-                                value={currentPrice}
-                                onChange={(e) => handlePriceEdit(productKey, e.target.value)}
-                                className="price-edit-input-table"
-                                min="0"
-                                step="0.01"
-                              />
-                            ) : (
-                              <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
-                                Rs. {currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </span>
-                            )}
+                            <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
+                              Rs. {finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
                           </td>
                         </tr>
                       );
@@ -3293,7 +3309,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                   // Prepare quotation data for PDF
                   const quotationData = {
                     quotationNumber: `QT-${Date.now()}`,
-                    quotationDate: new Date().toLocaleDateString('en-GB'),
+                    quotationDate: new Date().toISOString(),
                     clientData: {
                       clientName: formData.customerName,
                       companyName: formData.customerName,
@@ -3309,14 +3325,14 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                     total: calculateTotals().totalCost,
                     attendedByStaffId: staffId,
                     attendedByName: staffName,
-                    attendedByPhone: staffPhone
+                    attendedByPhone: staffPhone,
+                    columnFormat: columnFormat // Pass column format to PDF generator
                   };
                   
                   await QuotationPDFGenerator(quotationData, { separateByRoom: false });
                   // PDF generated successfully - no alert needed
                 } catch (error) {
                   console.error('Error generating PDF:', error);
-                  alert('Failed to generate PDF');
                 } finally {
                   setGenerating(false);
                 }
@@ -3368,7 +3384,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                     // Prepare quotation data for PDF
                     const quotationData = {
                       quotationNumber: `QT-${Date.now()}`,
-                      quotationDate: new Date().toLocaleDateString('en-GB'),
+                      quotationDate: new Date().toISOString(),
                       clientData: {
                         clientName: formData.customerName,
                         companyName: formData.customerName,
@@ -3384,14 +3400,14 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       total: calculateTotals().totalCost,
                       attendedByStaffId: staffId,
                       attendedByName: staffName,
-                      attendedByPhone: staffPhone
+                      attendedByPhone: staffPhone,
+                      columnFormat: columnFormat // Pass column format to PDF generator
                     };
                     
                     await QuotationPDFGenerator(quotationData, { separateByRoom: true });
                     // PDFs generated successfully - no alert needed
                   } catch (error) {
                     console.error('Error generating PDFs:', error);
-                    alert('Failed to generate PDFs');
                   } finally {
                     setGenerating(false);
                   }
@@ -3403,6 +3419,60 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                 {generating ? 'Generating...' : '📥 Download Separate PDFs'}
               </button>
             )}
+            <button 
+              onClick={async () => {
+                setGenerating(true);
+                try {
+                  // Prepare data for images PDF
+                  let pdfData = {
+                    quotationNumber: `QT-${Date.now()}`,
+                    customerName: formData.customerName
+                  };
+                  
+                  if (formData.rooms.length > 0) {
+                    // Pass rooms structure for organized PDF (by bathroom and area)
+                    pdfData.rooms = formData.rooms.map(room => ({
+                      name: room.name,
+                      areas: room.areas.map(area => ({
+                        name: area.name,
+                        products: area.products.map(product => ({
+                          productName: product.productName,
+                          name: product.productName,
+                          variant: product.variant,
+                          companyName: product.companyName,
+                          company: product.companyName,
+                          images: product.images,
+                          image: product.images && product.images.length > 0 ? product.images[0] : null
+                        }))
+                      })).filter(area => area.products.length > 0) // Only include areas with products
+                    })).filter(room => room.areas.length > 0); // Only include rooms with products
+                  } else {
+                    // Fallback: flat products array
+                    pdfData.products = formData.selectedProducts.map(product => ({
+                      name: product.productName,
+                      variant: product.variant,
+                      company: product.companyName,
+                      images: product.images,
+                      image: product.images && product.images.length > 0 ? product.images[0] : product.image
+                    }));
+                  }
+                  
+                  // Generate images PDF
+                  const { default: generateImagesPDF } = await import('./ImagesPDFGenerator');
+                  await generateImagesPDF(pdfData);
+                  
+                } catch (error) {
+                  console.error('Error generating images PDF:', error);
+                } finally {
+                  setGenerating(false);
+                }
+              }}
+              className="btn-primary"
+              disabled={generating}
+              style={{ marginLeft: '10px', background: '#8b5cf6' }}
+            >
+              {generating ? 'Generating...' : '🖼️ Download Images PDF'}
+            </button>
           </div>
         </div>
       </div>

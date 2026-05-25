@@ -119,8 +119,6 @@ function AdminItemTypes() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this item type?')) return;
-
     try {
       const response = await fetch(`${API_URL}/item-types/${id}`, {
         method: 'DELETE'

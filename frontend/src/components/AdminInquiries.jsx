@@ -45,8 +45,6 @@ const AdminInquiries = () => {
   };
 
   const deleteInquiry = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this inquiry?')) return;
-
     try {
       const response = await axios.delete(`http://localhost:5000/api/inquiries/${id}`);
       if (response.data.success) {
@@ -64,8 +62,6 @@ const AdminInquiries = () => {
   };
 
   const convertToLiveRequest = async (id) => {
-    if (!window.confirm('Convert this inquiry to a live request? This will create a new live request and close the inquiry.')) return;
-
     try {
       const response = await axios.post(`http://localhost:5000/api/inquiries/${id}/convert-to-live-request`);
       if (response.data.success) {

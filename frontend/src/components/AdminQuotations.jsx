@@ -62,9 +62,8 @@ function AdminQuotations() {
   };
 
   const handleDeleteQuotation = (id) => {
-    if (window.confirm('Are you sure you want to delete this quotation?')) {
-      const updatedQuotations = quotations.filter(q => q.id !== id);
-      setQuotations(updatedQuotations);
+    const updatedQuotations = quotations.filter(q => q.id !== id);
+    setQuotations(updatedQuotations);
       localStorage.setItem('quotations', JSON.stringify(updatedQuotations));
       showNotification('Quotation deleted successfully!', 'success');
     }

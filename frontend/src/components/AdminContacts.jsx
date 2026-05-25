@@ -89,17 +89,15 @@ const AdminContacts = () => {
       });
 
       if (response.ok) {
-        alert(selectedContact ? 'Contact updated successfully!' : 'Contact created successfully!');
         setShowModal(false);
         resetForm();
         fetchContacts();
       } else {
         const error = await response.json();
-        alert(`Error: ${error.message}`);
+        console.error('Error:', error.message);
       }
     } catch (error) {
       console.error('Error saving contact:', error);
-      alert('Error saving contact');
     }
   };
 
@@ -128,20 +126,16 @@ const AdminContacts = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to deactivate this contact?')) return;
-
     try {
       const response = await fetch(`http://localhost:5000/api/contacts/${id}`, {
         method: 'DELETE'
       });
 
       if (response.ok) {
-        alert('Contact deactivated successfully!');
         fetchContacts();
       }
     } catch (error) {
       console.error('Error deleting contact:', error);
-      alert('Error deleting contact');
     }
   };
 

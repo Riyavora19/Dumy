@@ -171,7 +171,6 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
     const existingProduct = formData.selectedProducts.find(p => p.product === product._id);
     
     if (existingProduct) {
-      alert('Product already added');
       return;
     }
 
@@ -232,7 +231,6 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
     // Validation for each step
     if (currentStep === 1) {
       if (!formData.customerName || !formData.customerPhone) {
-        alert('Please provide customer name and phone');
         return;
       }
       
@@ -262,7 +260,6 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
     }
     if (currentStep === 2 && formData.hasReferrer) {
       if (!formData.referrerName || !formData.relationshipType) {
-        alert('Please enter referrer name and select relationship type');
         return;
       }
       
@@ -303,7 +300,6 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
           }
         } catch (error) {
           console.error('Error creating referrer:', error);
-          alert('Error creating referrer contact');
           return;
         }
       } else if (formData.referrer) {
@@ -331,13 +327,11 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
     }
     
     if (!budgetPlan && currentStep === 3 && formData.selectedProducts.length === 0) {
-      alert('Please add at least one product');
       return;
     }
     
     if (currentStep === (budgetPlan ? 3 : 4)) {
       if (!formData.shippingAddress.street || !formData.shippingAddress.city) {
-        alert('Please provide complete shipping address');
         return;
       }
     }
@@ -417,21 +411,13 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
           }
         }
         
-        alert(`Order created successfully! Order Number: ${result.orderNumber}`);
         onSuccess && onSuccess(result);
         onClose && onClose();
       } else {
         console.error('Order creation failed:', result);
-        // Show detailed error message
-        let errorMsg = result.message || 'Unknown error';
-        if (result.details && Array.isArray(result.details)) {
-          errorMsg += '\n\nDetails:\n' + result.details.map(d => `- ${d.field}: ${d.message}`).join('\n');
-        }
-        alert(`Error creating order:\n${errorMsg}`);
       }
     } catch (error) {
       console.error('Error creating order:', error);
-      alert(`Error creating order: ${error.message}`);
     }
   };
 

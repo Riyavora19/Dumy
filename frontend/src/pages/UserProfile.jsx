@@ -169,11 +169,9 @@ const UserProfile = () => {
   };
 
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      localStorage.removeItem('userToken');
-      localStorage.removeItem('userInfo');
-      navigate('/');
-    }
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userInfo');
+    navigate('/');
   };
 
   if (loading) {

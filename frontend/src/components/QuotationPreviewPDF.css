@@ -243,7 +243,7 @@
 
 .preview-item-variant {
   font-size: 7pt;
-  color: #666666;
+  color: #2563eb; /* Blue color to match PDF */
   line-height: 1.2;
   font-style: italic;
 }

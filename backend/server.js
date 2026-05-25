@@ -69,6 +69,9 @@ app.use('/api/company-settings', require('./routes/companySettings'));
 const { router: staffRouter } = require('./routes/staff');
 app.use('/api/staff', staffRouter);
 
+// Quotation Settings routes
+app.use('/api/quotation-settings', require('./routes/quotationSettings'));
+
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/mernapp';

@@ -72,8 +72,6 @@ function AdminBudgetPlans() {
   };
 
   const handleDelete = async (planId) => {
-    if (!confirm('Are you sure you want to delete this budget plan?')) return;
-
     try {
       const response = await fetch(`${API_URL}/budget-plans/${planId}`, {
         method: 'DELETE'

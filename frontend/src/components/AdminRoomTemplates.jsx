@@ -187,19 +187,17 @@ function AdminRoomTemplates() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this template?')) return;
-
     try {
       const response = await fetch(`${API_URL}/room-templates/${id}`, {
         method: 'DELETE'
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to delete template');
+      if (response.ok) {
+        showNotification('Template deleted successfully', 'success');
+        fetchTemplates();
+      } else {
+        showNotification('Failed to delete template', 'error');
       }
-
-      showNotification('Template deleted successfully!', 'success');
-      fetchTemplates();
     } catch (error) {
       console.error('Error deleting template:', error);
       showNotification('Failed to delete template', 'error');

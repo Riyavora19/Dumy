@@ -124,8 +124,6 @@ const AdminCategories = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this category?')) return;
-
     try {
       const response = await axios.delete(`http://localhost:5000/api/categories/${id}`);
       if (response.data.success) {

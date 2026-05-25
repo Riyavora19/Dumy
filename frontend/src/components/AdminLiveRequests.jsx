@@ -242,8 +242,6 @@ const AdminLiveRequests = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this request?')) return;
-
     try {
       const response = await axios.delete(`http://localhost:5000/api/live-requests/${id}`);
       if (response.data.success) {

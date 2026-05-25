@@ -55,18 +55,14 @@ const AdminOrders = () => {
       });
 
       if (response.ok) {
-        alert('Order status updated successfully!');
         fetchOrders();
       }
     } catch (error) {
       console.error('Error updating order status:', error);
-      alert('Error updating order status');
     }
   };
 
   const handleApproveCommission = async (orderId) => {
-    if (!confirm('Approve commission for this order?')) return;
-
     try {
       const response = await fetch(`http://localhost:5000/api/orders/${orderId}/commission/approve`, {
         method: 'PUT',
@@ -75,18 +71,16 @@ const AdminOrders = () => {
       });
 
       if (response.ok) {
-        alert('Commission approved successfully!');
         fetchOrders();
       }
     } catch (error) {
       console.error('Error approving commission:', error);
-      alert('Error approving commission');
     }
   };
 
   const handlePayCommission = async (orderId) => {
-    const paymentMethod = prompt('Enter payment method (cash/bank-transfer/upi):');
-    if (!paymentMethod) return;
+    // Default payment method to 'cash' since we removed prompt
+    const paymentMethod = 'cash';
 
     try {
       const response = await fetch(`http://localhost:5000/api/orders/${orderId}/commission/pay`, {
@@ -96,12 +90,10 @@ const AdminOrders = () => {
       });
 
       if (response.ok) {
-        alert('Commission marked as paid!');
         fetchOrders();
       }
     } catch (error) {
       console.error('Error marking commission as paid:', error);
-      alert('Error marking commission as paid');
     }
   };
 

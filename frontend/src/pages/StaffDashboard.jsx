@@ -102,11 +102,9 @@ function StaffDashboard() {
   };
 
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      localStorage.removeItem('staffToken');
-      localStorage.removeItem('staffInfo');
-      navigate('/staff/login', { replace: true });
-    }
+    localStorage.removeItem('staffToken');
+    localStorage.removeItem('staffInfo');
+    navigate('/staff/login', { replace: true });
   };
 
   const canAccess = (permission) => {

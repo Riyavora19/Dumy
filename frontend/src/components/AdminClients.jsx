@@ -198,8 +198,6 @@ const AdminClients = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this client?')) return;
-
     try {
       const response = await axios.delete(`http://localhost:5000/api/clients/${id}`);
       if (response.data.success) {

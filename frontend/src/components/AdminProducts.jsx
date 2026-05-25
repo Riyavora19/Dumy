@@ -517,7 +517,18 @@ const AdminProducts = () => {
 
       if (response.data.success) {
         showNotification('Product updated successfully!', 'success');
-        fetchProducts();
+        
+        // Save current scroll position
+        const scrollPosition = window.scrollY || window.pageYOffset;
+        
+        // Fetch updated products
+        await fetchProducts();
+        
+        // Restore scroll position after a short delay to ensure DOM is updated
+        setTimeout(() => {
+          window.scrollTo(0, scrollPosition);
+        }, 0);
+        
         closeQuickEditModal();
       } else {
         showNotification(response.data.message || 'Failed to update product', 'error');
@@ -529,8 +540,6 @@ const AdminProducts = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-
     try {
       const response = await axios.delete(`http://localhost:5000/api/products/${id}`);
       if (response.data.success) {

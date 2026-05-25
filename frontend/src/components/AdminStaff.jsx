@@ -117,8 +117,6 @@ function AdminStaff() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this staff member?')) return;
-
     try {
       const token = getToken();
       const response = await fetch(`${API_URL}/staff/${id}`, {

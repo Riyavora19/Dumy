@@ -146,48 +146,65 @@ function drawHeader(doc, logoBase64, pageWidth, pageHeight) {
 }
 
 /** Draw footer on page */
-function drawFooter(doc, pageWidth, pageHeight) {
+function drawFooter(doc, pageWidth, pageHeight, activeLogos = null) {
   const footerStartY = pageHeight - 30;
   
   // Company logos section (25mm height) - NO HEADER TEXT
   doc.setFillColor(249, 249, 249);
   doc.rect(0, footerStartY, pageWidth, 25, 'F');
   
-  // Company logos grid - SMALLER WIDTH to prevent stretching
-  const logos = [
-    'Artize.png', 'Duravit.png', 'Jaguar.png', 'Johnson.png',
-    'Kajaria.png', 'Kohler.png', 'Milagro.png', 'Parryware.png',
-    'Qutone.png', 'Simero.png', 'Simpolo.png', 'TrueBlock.png', 'Woven.png'
-  ];
+  // Use provided logos or fallback to defaults
+  let logos = activeLogos;
+  if (!logos || logos.length === 0) {
+    // Fallback to default logos
+    logos = [
+      { path: '/company-logos/Artize.png' },
+      { path: '/company-logos/Duravit.png' },
+      { path: '/company-logos/Jaguar.png' },
+      { path: '/company-logos/Johnson.png' },
+      { path: '/company-logos/Kajaria.png' },
+      { path: '/company-logos/Kohler.png' },
+      { path: '/company-logos/Milagro.png' },
+      { path: '/company-logos/Parryware.png' },
+      { path: '/company-logos/Qutone.png' },
+      { path: '/company-logos/Simero.png' },
+      { path: '/company-logos/Simpolo.png' },
+      { path: '/company-logos/TrueBlock.png' },
+      { path: '/company-logos/Woven.png' }
+    ];
+  }
   
   const logosPerRow = 7;
-  const logoWidth = 15; // Reduced from 20 to 15 to prevent stretching
+  const logoWidth = 15;
   const logoHeight = 8;
   const logoSpacing = 6;
-  const startY = footerStartY + 5; // Start higher since no header text
+  const startY = footerStartY + 5;
   
-  // First row (7 logos)
-  const firstRowStartX = (pageWidth - (logosPerRow * logoWidth + (logosPerRow - 1) * logoSpacing)) / 2;
-  for (let i = 0; i < 7; i++) {
-    const logoPath = `/company-logos/${logos[i]}`;
+  // First row (up to 7 logos)
+  const firstRowCount = Math.min(logos.length, 7);
+  const firstRowStartX = (pageWidth - (firstRowCount * logoWidth + (firstRowCount - 1) * logoSpacing)) / 2;
+  for (let i = 0; i < firstRowCount; i++) {
+    const logoPath = logos[i].path;
     const xPos = firstRowStartX + i * (logoWidth + logoSpacing);
     try {
       doc.addImage(logoPath, 'PNG', xPos, startY, logoWidth, logoHeight);
     } catch (err) {
-      console.warn(`Failed to load logo: ${logos[i]}`);
+      console.warn(`Failed to load logo: ${logoPath}`);
     }
   }
   
-  // Second row (6 logos)
-  const secondRowLogos = 6;
-  const secondRowStartX = (pageWidth - (secondRowLogos * logoWidth + (secondRowLogos - 1) * logoSpacing)) / 2;
-  for (let i = 7; i < 13; i++) {
-    const logoPath = `/company-logos/${logos[i]}`;
-    const xPos = secondRowStartX + (i - 7) * (logoWidth + logoSpacing);
-    try {
-      doc.addImage(logoPath, 'PNG', xPos, startY + logoHeight + 2, logoWidth, logoHeight);
-    } catch (err) {
-      console.warn(`Failed to load logo: ${logos[i]}`);
+  // Second row (remaining logos, up to 6)
+  if (logos.length > 7) {
+    const secondRowCount = Math.min(logos.length - 7, 6);
+    const secondRowStartX = (pageWidth - (secondRowCount * logoWidth + (secondRowCount - 1) * logoSpacing)) / 2;
+    for (let i = 7; i < 7 + secondRowCount; i++) {
+      const logoPath = logos[i].path;
+      const xPos = secondRowStartX + (i - 7) * (logoWidth + logoSpacing);
+      try {
+        doc.addImage(logoPath, 'PNG', xPos, startY + logoHeight + 2, logoWidth, logoHeight);
+      } catch (err) {
+        console.warn(`Failed to load logo: ${logoPath}`);
+      }
     }
   }
   
@@ -214,7 +231,20 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
       quotationNumber,
       quotationDate,
       rooms = [],
+      columnFormat = 'format2', // Default to format2 if not provided
     } = quotationData;
+
+  // Fetch active logos from API
+  let activeLogos = null;
+  try {
+    const response = await fetch('http://localhost:5000/api/quotation-settings');
+    const data = await response.json();
+    if (data.success) {
+      activeLogos = data.data.footerLogos.filter(logo => logo.active).sort((a, b) => a.order - b.order);
+    }
+  } catch (error) {
+    console.error('Failed to fetch logos:', error);
+  }
 
   // Build rooms data
   let roomsData = [];
@@ -465,7 +495,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
   yPos = boxStartY + boxHeight + 5;
 
   // Draw footer on first page (before any autoTable)
-  drawFooter(doc, pageWidth, pageHeight);
+  drawFooter(doc, pageWidth, pageHeight, activeLogos);
 
   // ─── PRODUCTS TABLES ──────────────────────────────────────────────────────
 
@@ -479,7 +509,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
       doc.addPage();
       // Draw header and footer on new page
       yPos = drawHeader(doc, logoBase64, pageWidth, pageHeight);
-      drawFooter(doc, pageWidth, pageHeight);
+      drawFooter(doc, pageWidth, pageHeight, activeLogos);
     }
     
     // Room title
@@ -510,17 +540,16 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
       for (let index = 0; index < products.length; index++) {
         const item = products[index];
         const baseRate = parseFloat(item.rate ?? item.unitPrice ?? 0); // MRP
-        const discountedRate = calcDiscountedRate(item); // Your Price
+        const discountPercent = parseFloat(item.discountPercent ?? 0);
+        const discountedRate = calcDiscountedRate(item); // Your Price (after discount)
         const quantity = parseInt(item.quantity ?? 1);
         const amount = discountedRate * quantity;
 
         const itemName = item.productName || item.description || '';
-        const variant = item.variant || '';
         const company = item.companyName || '';
         
-        // Combine variant and company on same line with separator
-        const variantCompanyLine = [variant, company].filter(Boolean).join(' | ');
-        const itemText = [itemName, variantCompanyLine].filter(Boolean).join('\n');
+        // Show only company name (no variant)
+        const itemText = [itemName, company].filter(Boolean).join('\n');
 
         // Load product image
         let imageData = null;
@@ -543,58 +572,118 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
           content: `Rs. ${discountedRate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
           styles: { halign: 'left' }
         };
+        const discountFormatted = {
+          content: `${discountPercent.toFixed(1)}%`,
+          styles: { halign: 'center' }
+        };
         const totalFormatted = {
           content: `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
           styles: { halign: 'left' }
         };
 
+        // Build row based on column format
+        let rowData = [];
+        
         // For the first product in an area, add the area name with rowSpan
         if (index === 0) {
-          tableData.push([
-            serialNumber.toString(),
-            { content: areaName.toUpperCase(), rowSpan: products.length, styles: { valign: 'middle', halign: 'center' } },
-            imageData ? { content: '', styles: { cellPadding: 0 } } : '', // Image will be added in didDrawCell with no padding
-            itemText,
-            quantity.toString(),
-            mrpFormatted,
-            yourPriceFormatted,
-            totalFormatted,
-          ]);
+          rowData.push(serialNumber.toString());
+          rowData.push({ content: areaName.toUpperCase(), rowSpan: products.length, styles: { valign: 'middle', halign: 'center' } });
+          rowData.push(imageData ? { content: '', styles: { cellPadding: 0 } } : '');
+          rowData.push(itemText);
+          rowData.push(quantity.toString());
+          rowData.push(mrpFormatted);
+          
+          // Add columns based on format
+          if (columnFormat === 'format1') {
+            // Format 1: SR | AREA | IMAGE | ITEM | QTY | MRP | YOUR PRICE | TOTAL
+            rowData.push(yourPriceFormatted);
+            rowData.push(totalFormatted);
+          } else if (columnFormat === 'format2') {
+            // Format 2: SR | AREA | IMAGE | ITEM | QTY | MRP | DISCOUNT | TOTAL
+            rowData.push(discountFormatted);
+            rowData.push(totalFormatted);
+          }
         } else {
-          tableData.push([
-            serialNumber.toString(),
-            imageData ? { content: '', styles: { cellPadding: 0 } } : '', // Image will be added in didDrawCell with no padding
-            itemText,
-            quantity.toString(),
-            mrpFormatted,
-            yourPriceFormatted,
-            totalFormatted,
-          ]);
+          rowData.push(serialNumber.toString());
+          rowData.push(imageData ? { content: '', styles: { cellPadding: 0 } } : '');
+          rowData.push(itemText);
+          rowData.push(quantity.toString());
+          rowData.push(mrpFormatted);
+          
+          // Add columns based on format
+          if (columnFormat === 'format1') {
+            rowData.push(yourPriceFormatted);
+            rowData.push(totalFormatted);
+          } else if (columnFormat === 'format2') {
+            rowData.push(discountFormatted);
+            rowData.push(totalFormatted);
+          }
         }
         
-        // Store image data for later use in didDrawCell
+        tableData.push(rowData);
+        
+        // Store image data and company line for later use in didDrawCell
         if (imageData) {
-          if (!tableData[tableData.length - 1]._imageData) {
-            tableData[tableData.length - 1]._imageData = imageData;
-          }
+          tableData[tableData.length - 1]._imageData = imageData;
+        }
+        if (company) {
+          tableData[tableData.length - 1]._companyLine = company;
         }
         
         serialNumber++;
       }
     }
 
-    // Add subtotal row
+    // Add subtotal row - SUBTOTAL label in second-to-last column, amount in TOTAL column
+    let subtotalColspan = 6; // Default (SR, AREA, IMAGE, ITEM, QTY, MRP = 6 cols)
+    if (columnFormat === 'format1') subtotalColspan = 6; // SR, AREA, IMAGE, ITEM, QTY, MRP = 6 cols
+    else if (columnFormat === 'format2') subtotalColspan = 6; // SR, AREA, IMAGE, ITEM, QTY, MRP = 6 cols
+    
     tableData.push([
-      { content: 'SUBTOTAL:', colSpan: 7, styles: { fontStyle: 'bold', halign: 'right' } },
+      { content: '', colSpan: subtotalColspan, styles: { halign: 'right' } },
+      { content: 'SUBTOTAL:', styles: { fontStyle: 'bold', halign: 'right' } },
       { content: `Rs. ${room.calculatedTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, styles: { fontStyle: 'bold', halign: 'right' } },
     ]);
 
     // Draw table
     const availableWidth = pageWidth - marginLeft - marginRight;
+    
+    // Build table headers based on column format
+    let tableHeaders = [];
+    let columnStyles = {};
+    
+    if (columnFormat === 'format1') {
+      // Format 1: SR | AREA | IMAGE | ITEM | QTY | MRP | YOUR PRICE | TOTAL
+      tableHeaders = ['SR', 'AREA', 'IMAGE', 'ITEM', 'QTY', 'MRP', 'YOUR PRICE', 'TOTAL'];
+      columnStyles = {
+        0: { cellWidth: availableWidth * 0.05, halign: 'center' },
+        1: { cellWidth: availableWidth * 0.10, halign: 'center', valign: 'middle' },
+        2: { cellWidth: availableWidth * 0.12, halign: 'center', cellPadding: 0 },
+        3: { cellWidth: availableWidth * 0.28, halign: 'left' },
+        4: { cellWidth: availableWidth * 0.07, halign: 'center' },
+        5: { cellWidth: availableWidth * 0.12, halign: 'left' },
+        6: { cellWidth: availableWidth * 0.13, halign: 'left' },
+        7: { cellWidth: availableWidth * 0.13, halign: 'right' },
+      };
+    } else if (columnFormat === 'format2') {
+      // Format 2: SR | AREA | IMAGE | ITEM | QTY | MRP | DISCOUNT | TOTAL
+      tableHeaders = ['SR', 'AREA', 'IMAGE', 'ITEM', 'QTY', 'MRP', 'DISCOUNT', 'TOTAL'];
+      columnStyles = {
+        0: { cellWidth: availableWidth * 0.05, halign: 'center' },
+        1: { cellWidth: availableWidth * 0.10, halign: 'center', valign: 'middle' },
+        2: { cellWidth: availableWidth * 0.12, halign: 'center', cellPadding: 0 },
+        3: { cellWidth: availableWidth * 0.28, halign: 'left' },
+        4: { cellWidth: availableWidth * 0.07, halign: 'center' },
+        5: { cellWidth: availableWidth * 0.12, halign: 'left' },
+        6: { cellWidth: availableWidth * 0.13, halign: 'center' },
+        7: { cellWidth: availableWidth * 0.13, halign: 'right' },
+      };
+    }
+    
     doc.autoTable({
       startY: yPos,
       margin: { left: marginLeft, right: marginRight, top: 40, bottom: 35 }, // Reserve space for header/footer
-      head: [['SR', 'AREA', 'IMAGE', 'ITEM', 'QTY', 'MRP', 'YOUR PRICE', 'TOTAL']],
+      head: [tableHeaders],
       body: tableData,
       theme: 'grid',
       tableWidth: availableWidth,
@@ -613,19 +702,34 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         fontSize: 9,
         lineColor: [200, 200, 200],
       },
-      columnStyles: {
-        0: { cellWidth: availableWidth * 0.05, halign: 'center' },
-        1: { cellWidth: availableWidth * 0.10, halign: 'center', valign: 'middle' },
-        2: { cellWidth: availableWidth * 0.12, halign: 'center', cellPadding: 0 }, // Back to 0.12
-        3: { cellWidth: availableWidth * 0.28, halign: 'left' }, // Back to 0.28
-        4: { cellWidth: availableWidth * 0.07, halign: 'center' },
-        5: { cellWidth: availableWidth * 0.12, halign: 'left' }, // MRP - left aligned
-        6: { cellWidth: availableWidth * 0.13, halign: 'left' }, // YOUR PRICE - left aligned
-        7: { cellWidth: availableWidth * 0.13, halign: 'right' },
-      },
+      columnStyles: columnStyles,
       willDrawCell: function(data) {
+        // Determine column indices based on format
+        let itemColumnIndex, priceColumnIndices;
+        
+        if (columnFormat === 'format1') {
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 6, 7]; // MRP, YOUR PRICE, TOTAL
+        } else if (columnFormat === 'format2') {
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 7]; // MRP, TOTAL (DISCOUNT is %)
+        }
+        
+        // Custom rendering for ITEM column - prevent default rendering of company line
+        const rowData = tableData[data.row.index];
+        if (data.column.index === itemColumnIndex && data.section === 'body') {
+          const companyLine = rowData._companyLine;
+          
+          if (companyLine && data.cell.text && data.cell.text.length > 1) {
+            // Store the original lines
+            data.cell._originalLines = [...data.cell.text];
+            // Keep only the first line (product name) for default rendering
+            data.cell.text = [data.cell.text[0]];
+          }
+        }
+        
         // Custom rendering for price columns - prevent default text rendering
-        if ((data.column.index === 5 || data.column.index === 6 || data.column.index === 7) && data.section === 'body') {
+        if (priceColumnIndices.includes(data.column.index) && data.section === 'body') {
           const cell = data.cell;
           const text = typeof cell.raw === 'object' ? cell.raw.content : (cell.text && cell.text[0]);
           
@@ -639,8 +743,22 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         }
       },
       didDrawCell: function(data) {
-        // Draw product images in the IMAGE column (column index 2)
-        if (data.column.index === 2 && data.section === 'body') {
+        // Determine column indices based on format
+        let imageColumnIndex, itemColumnIndex, priceColumnIndices;
+        
+        if (columnFormat === 'format1') {
+          imageColumnIndex = 2;
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 6, 7]; // MRP, YOUR PRICE, TOTAL
+        } else if (columnFormat === 'format2') {
+          imageColumnIndex = 2;
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 7]; // MRP, TOTAL
+        }
+        
+        // Draw product images in the IMAGE column
+        const rowData = tableData[data.row.index];
+        if (data.column.index === imageColumnIndex && data.section === 'body') {
           const rowData = tableData[data.row.index];
           // Check if this row has image data stored and is not a subtotal row
           if (rowData && rowData._imageData && !rowData[0]?.content?.includes('SUBTOTAL')) {
@@ -695,8 +813,38 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
           }
         }
         
-        // Custom rendering for price columns (MRP, YOUR PRICE, TOTAL) - columns 5, 6, 7
-        if ((data.column.index === 5 || data.column.index === 6 || data.column.index === 7) && data.section === 'body') {
+        // Custom rendering for ITEM column - draw company in blue
+        if (data.column.index === itemColumnIndex && data.section === 'body') {
+          const rowData = tableData[data.row.index];
+          const companyLine = rowData._companyLine;
+          
+          if (companyLine && data.cell._originalLines && data.cell._originalLines.length > 1) {
+            const cell = data.cell;
+            
+            // Set font for company line (blue color)
+            doc.setFontSize(7);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(37, 99, 235); // Blue color (matching the header blue)
+            
+            // Calculate Y position for the second line
+            // The first line was drawn by autoTable, we need to position below it
+            const lineHeight = doc.getLineHeight() / doc.internal.scaleFactor;
+            const padding = 2;
+            const firstLineY = cell.y + padding + (lineHeight * 0.7);
+            const secondLineY = firstLineY + lineHeight;
+            
+            // Draw the company line in blue
+            doc.text(companyLine, cell.x + padding, secondLineY);
+            
+            // Reset color to black for other text
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+          }
+        }
+        
+        // Custom rendering for price columns
+        if (priceColumnIndices.includes(data.column.index) && data.section === 'body') {
           const cell = data.cell;
           const text = typeof cell.raw === 'object' ? cell.raw.content : (cell.text && cell.text[0]);
           
@@ -728,7 +876,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
           drawHeader(doc, logoBase64, pageWidth, pageHeight);
         }
         // Draw footer on ALL pages including first page
-        drawFooter(doc, pageWidth, pageHeight);
+        drawFooter(doc, pageWidth, pageHeight, activeLogos);
       }
     });
 
@@ -767,7 +915,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     if (spaceRemaining < spaceNeeded) {
       doc.addPage();
       yPos = drawHeader(doc, logoBase64, pageWidth, pageHeight);
-      drawFooter(doc, pageWidth, pageHeight);
+      drawFooter(doc, pageWidth, pageHeight, activeLogos);
     }
     
     // Summary title with gray background (same style as room titles)
@@ -824,7 +972,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         if (data.pageNumber > 1) {
           drawHeader(doc, logoBase64, pageWidth, pageHeight);
         }
-        drawFooter(doc, pageWidth, pageHeight);
+        drawFooter(doc, pageWidth, pageHeight, activeLogos);
       }
     });
 
@@ -840,7 +988,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
   if (termsSpaceRemaining < termsSpaceNeeded) {
     doc.addPage();
     yPos = drawHeader(doc, logoBase64, pageWidth, pageHeight);
-    drawFooter(doc, pageWidth, pageHeight);
+    drawFooter(doc, pageWidth, pageHeight, activeLogos);
   }
 
   // Store the starting Y position for both sections
@@ -928,7 +1076,6 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
   
   } catch (error) {
     console.error('Error generating PDF:', error);
-    alert(`Failed to generate PDF: ${error.message}`);
     throw error;
   }
 }
@@ -975,7 +1122,6 @@ async function QuotationPDFGenerator(quotationData, options = {}) {
     }
   } catch (error) {
     console.error('Error generating PDF(s):', error);
-    alert(`Failed to generate PDF(s): ${error.message}`);
     throw error;
   }
 }
