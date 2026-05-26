@@ -558,11 +558,9 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                 if (productsForThisArea.length > 0) {
                   const newProducts = productsForThisArea.map(p => {
                     const unitPrice = p.product.price || 0;
-                    // Use company's default discount if available, otherwise use product's discount
-                    const companyDiscount = p.product.company?.defaultDiscountPercentage || 0;
-                    const productDiscount = p.product.discountPercentage || 0;
-                    const discountPercent = companyDiscount > 0 ? companyDiscount : productDiscount;
-                    const discountedPrice = unitPrice * (1 - discountPercent / 100);
+                    // Default to 0% discount - admin can change later
+                    const discountPercent = 0;
+                    const discountedPrice = unitPrice;
                     const totalPrice = discountedPrice * p.quantity;
                     
                     return {
@@ -802,8 +800,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         quantity: 1,
         unitPrice: product.mrp || product.price,
         discount: 0,
-        discountPercent: product.discountPercentage || 0,
-        totalPrice: product.price,
+        discountPercent: 0, // Default to 0% discount - admin can change later
+        totalPrice: product.mrp || product.price,
         image: product.images?.[0] || '',
         roomId: formData.currentRoomId,
         roomName: currentRoom.name,
@@ -846,9 +844,9 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
       // Add new product
       const unitPrice = product.mrp || product.price;
-      const discountPercent = product.discountPercentage || 0;
-      const discountAmount = (unitPrice * discountPercent) / 100;
-      const discountedPrice = unitPrice - discountAmount;
+      const discountPercent = 0; // Default to 0% discount - admin can change later
+      const discountAmount = 0;
+      const discountedPrice = unitPrice;
       
       const newProduct = {
         product: product._id,
@@ -1985,21 +1983,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                         <strong>{product.name} {product.company?.name && `(${product.company.name})`}</strong>
                         <span className="variant">{product.variant}</span>
                         <div className="price-container">
-                          {(() => {
-                            const companyDiscount = typeof product.company === 'object' ? (product.company?.defaultDiscountPercentage || 0) : 0;
-                            const hasDiscount = companyDiscount > 0;
-                            const discountedPrice = hasDiscount ? product.price * (1 - companyDiscount / 100) : product.price;
-                            
-                            return hasDiscount ? (
-                              <>
-                                <span className="price-mrp">₹{product.price.toLocaleString()}</span>
-                                <span className="price">₹{Math.round(discountedPrice).toLocaleString()}</span>
-                                <span className="discount-badge-mini">{companyDiscount}% OFF</span>
-                              </>
-                            ) : (
-                              <span className="price">₹{product.price.toLocaleString()}</span>
-                            );
-                          })()}
+                          <span className="price">₹{product.price.toLocaleString()}</span>
                         </div>
                       </div>
                       <button 
@@ -2213,13 +2197,9 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                         
                         <div className="product-pricing">
                           <div className="unit-price-container">
-                            <span className="unit-price-mrp">₹{item.unitPrice.toLocaleString()}</span>
                             <span className="unit-price-discounted">
                               ₹{(item.unitPrice * (1 - item.discountPercent / 100)).toLocaleString()} each
                             </span>
-                            {item.discountPercent > 0 && (
-                              <span className="discount-badge-cart">{item.discountPercent}% OFF</span>
-                            )}
                           </div>
                           <span className="total-price-large">₹{(item.totalPrice || 0).toLocaleString()}</span>
                         </div>
