@@ -3471,13 +3471,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               </div>
             )}
 
-            {/* Grand Total */}
-            <div className="preview-grand-total">
-              <span>Grand Total:</span>
-              <span className="preview-total-amount">₹{calculateTotals().totalCost.toLocaleString()}</span>
-            </div>
-            
-            {/* GST Breakdown for formats 4, 5, 6 */}
+            {/* GST Breakdown for formats 4, 5, 6 - SHOWN FIRST */}
             {(columnFormat === 'format4' || columnFormat === 'format5' || columnFormat === 'format6') && (() => {
               const totals = calculateTotals();
               return (
@@ -3499,6 +3493,12 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                 </div>
               );
             })()}
+
+            {/* Grand Total - SHOWN BELOW GST BREAKDOWN */}
+            <div className="preview-grand-total" style={{ marginTop: '15px' }}>
+              <span>Grand Total:</span>
+              <span className="preview-total-amount">₹{calculateTotals().totalCost.toLocaleString()}</span>
+            </div>
             
             {Object.keys(editedPrices).length > 0 && (
               <div className="preview-edit-notice">
