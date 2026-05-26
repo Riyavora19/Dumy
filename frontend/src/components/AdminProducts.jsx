@@ -1894,31 +1894,9 @@ const AdminProducts = () => {
                       ? (product.company?.name || '-')
                       : (product.company || '-')
                     }
-                    {typeof product.company === 'object' && product.company?.defaultDiscountPercentage > 0 && (
-                      <span style={{ marginLeft: '5px', fontSize: '11px', color: '#16a34a', fontWeight: 'bold' }}>
-                        ({product.company.defaultDiscountPercentage}% OFF)
-                      </span>
-                    )}
                   </td>
                   <td>
-                    {(() => {
-                      const companyDiscount = typeof product.company === 'object' ? (product.company?.defaultDiscountPercentage || 0) : 0;
-                      const hasDiscount = companyDiscount > 0;
-                      const discountedPrice = hasDiscount ? product.price * (1 - companyDiscount / 100) : product.price;
-                      
-                      return hasDiscount ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <span style={{ textDecoration: 'line-through', fontSize: '12px', color: '#999' }}>
-                            ₹{product.price?.toLocaleString('en-IN')}
-                          </span>
-                          <span style={{ fontWeight: 'bold', color: '#16a34a' }}>
-                            ₹{Math.round(discountedPrice).toLocaleString('en-IN')}
-                          </span>
-                        </div>
-                      ) : (
-                        <span>₹{product.price?.toLocaleString('en-IN')}</span>
-                      );
-                    })()}
+                    <span>₹{product.price?.toLocaleString('en-IN')}</span>
                   </td>
                   <td>{product.stock || 0}</td>
                   <td>
@@ -2076,20 +2054,6 @@ const AdminProducts = () => {
                     step="0.01"
                     placeholder="0.00"
                   />
-                </div>
-
-                <div className="admin-products__field">
-                  <label>Original Price</label>
-                  <input
-                    type="number"
-                    name="originalPrice"
-                    value={formData.originalPrice}
-                    onChange={handleChange}
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                  />
-                  <small>For showing discounts</small>
                 </div>
 
                 <div className="admin-products__field">
@@ -3322,18 +3286,6 @@ const AdminProducts = () => {
                           value={product.variant || ''}
                           onChange={(e) => updateExcelProduct(index, 'variant', e.target.value)}
                           placeholder="e.g., White Ceramic, Chrome Finish"
-                        />
-                      </div>
-
-                      <div className="admin-products__detail-field">
-                        <label>Original Price / MRP</label>
-                        <input
-                          type="number"
-                          value={product.originalPrice || ''}
-                          onChange={(e) => updateExcelProduct(index, 'originalPrice', e.target.value)}
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
                         />
                       </div>
 

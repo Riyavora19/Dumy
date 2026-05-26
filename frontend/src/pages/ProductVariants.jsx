@@ -925,21 +925,7 @@ const ProductVariants = () => {
                 </div>
 
                 <div className="product-variants__modal-price">
-                  {(() => {
-                    const companyDiscount = typeof selectedProduct.company === 'object' ? (selectedProduct.company?.defaultDiscountPercentage || 0) : 0;
-                    const hasDiscount = companyDiscount > 0;
-                    const discountedPrice = hasDiscount ? selectedProduct.price * (1 - companyDiscount / 100) : selectedProduct.price;
-                    
-                    return hasDiscount ? (
-                      <>
-                        <span className="mrp-strikethrough">₹{selectedProduct.price.toLocaleString()}</span>
-                        <span className="current discounted">₹{Math.round(discountedPrice).toLocaleString()}</span>
-                        <span className="discount-badge">{companyDiscount}% OFF</span>
-                      </>
-                    ) : (
-                      <span className="current">₹{selectedProduct.price.toLocaleString()}</span>
-                    );
-                  })()}
+                  <span className="current">₹{selectedProduct.price.toLocaleString()}</span>
                 </div>
 
                 <div className="product-variants__modal-stock">

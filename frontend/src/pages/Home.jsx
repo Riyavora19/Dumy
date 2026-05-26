@@ -268,23 +268,7 @@ const Home = () => {
                       {typeof product.company === 'object' ? product.company?.name : product.company}
                     </p>
                     <div className="home-featured__price">
-                      {(() => {
-                        const companyDiscount = typeof product.company === 'object' ? (product.company?.defaultDiscountPercentage || 0) : 0;
-                        const hasDiscount = companyDiscount > 0;
-                        const discountedPrice = hasDiscount ? product.price * (1 - companyDiscount / 100) : product.price;
-                        
-                        return (
-                          <>
-                            {hasDiscount && (
-                              <span className="price-old">₹{product.price.toLocaleString()}</span>
-                            )}
-                            <span className="price-current">₹{Math.round(discountedPrice).toLocaleString()}</span>
-                            {hasDiscount && (
-                              <span className="discount-badge">{companyDiscount}% OFF</span>
-                            )}
-                          </>
-                        );
-                      })()}
+                      <span className="price-current">₹{product.price.toLocaleString()}</span>
                     </div>
                     <div className="home-featured__actions">
                       <button 
@@ -568,23 +552,7 @@ const Home = () => {
                 </div>
 
                 <div className="product-modal__price">
-                  {(() => {
-                    const companyDiscount = typeof selectedProduct.company === 'object' ? (selectedProduct.company?.defaultDiscountPercentage || 0) : 0;
-                    const hasDiscount = companyDiscount > 0;
-                    const discountedPrice = hasDiscount ? selectedProduct.price * (1 - companyDiscount / 100) : selectedProduct.price;
-                    
-                    return (
-                      <>
-                        {hasDiscount && (
-                          <span className="product-modal__price-old">₹{selectedProduct.price.toLocaleString()}</span>
-                        )}
-                        <span className="product-modal__price-current">₹{Math.round(discountedPrice).toLocaleString()}</span>
-                        {hasDiscount && (
-                          <span className="product-modal__discount">{companyDiscount}% OFF</span>
-                        )}
-                      </>
-                    );
-                  })()}
+                  <span className="product-modal__price-current">₹{selectedProduct.price.toLocaleString()}</span>
                 </div>
 
                 {selectedProduct.description && (
