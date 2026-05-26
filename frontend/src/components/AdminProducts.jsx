@@ -455,6 +455,7 @@ const AdminProducts = () => {
       name: product.name || '',
       price: product.price || '',
       stock: product.stock || 0,
+      itemCode: product.itemCode || '',
       company: (typeof product.company === 'object' ? product.company?._id : '') || '',
       companyName: (typeof product.company === 'object' ? product.company?.name : product.companyName) || product.company || '',
       isActive: product.isActive !== undefined ? product.isActive : true,
@@ -508,6 +509,7 @@ const AdminProducts = () => {
         name: formData.name,
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
+        itemCode: formData.itemCode || '',
         company: formData.company || undefined,
         companyName: formData.companyName || undefined,
         isActive: formData.isActive,
@@ -3471,6 +3473,16 @@ const AdminProducts = () => {
                   onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
                   required
                   min="0"
+                />
+              </div>
+
+              <div className="admin-products__field">
+                <label>Item Code</label>
+                <input
+                  type="text"
+                  value={formData.itemCode || ''}
+                  onChange={(e) => setFormData({ ...formData, itemCode: e.target.value })}
+                  placeholder="e.g., IC-12345"
                 />
               </div>
 
