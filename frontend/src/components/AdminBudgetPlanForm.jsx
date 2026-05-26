@@ -2699,167 +2699,35 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
             background: '#f8f9fa', 
             borderBottom: '2px solid #e0e0e0',
             display: 'flex',
-            gap: '10px',
-            flexWrap: 'wrap',
+            gap: '15px',
             alignItems: 'center'
           }}>
-            <strong style={{ marginRight: '10px', color: '#333' }}>Select Column Format:</strong>
+            <strong style={{ color: '#333', fontSize: '14px' }}>Select Column Format:</strong>
             
-            {/* Format 1 */}
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              padding: '8px 15px',
-              background: columnFormat === 'format1' ? '#2563eb' : 'white',
-              color: columnFormat === 'format1' ? 'white' : '#333',
-              border: '2px solid #2563eb',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: '500',
-              transition: 'all 0.2s'
-            }}>
-              <input 
-                type="radio" 
-                name="columnFormat" 
-                value="format1"
-                checked={columnFormat === 'format1'}
-                onChange={(e) => setColumnFormat(e.target.value)}
-                style={{ cursor: 'pointer' }}
-              />
-              <span>Format 1: MRP + YOUR PRICE</span>
-            </label>
-            
-            {/* Format 2 */}
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              padding: '8px 15px',
-              background: columnFormat === 'format2' ? '#2563eb' : 'white',
-              color: columnFormat === 'format2' ? 'white' : '#333',
-              border: '2px solid #2563eb',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: '500',
-              transition: 'all 0.2s'
-            }}>
-              <input 
-                type="radio" 
-                name="columnFormat" 
-                value="format2"
-                checked={columnFormat === 'format2'}
-                onChange={(e) => setColumnFormat(e.target.value)}
-                style={{ cursor: 'pointer' }}
-              />
-              <span>Format 2: MRP + DISCOUNT%</span>
-            </label>
-            
-            {/* Format 3 */}
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              padding: '8px 15px',
-              background: columnFormat === 'format3' ? '#2563eb' : 'white',
-              color: columnFormat === 'format3' ? 'white' : '#333',
-              border: '2px solid #2563eb',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: '500',
-              transition: 'all 0.2s'
-            }}>
-              <input 
-                type="radio" 
-                name="columnFormat" 
-                value="format3"
-                checked={columnFormat === 'format3'}
-                onChange={(e) => setColumnFormat(e.target.value)}
-                style={{ cursor: 'pointer' }}
-              />
-              <span>Format 3: MRP + DISC% + FINAL PRICE</span>
-            </label>
-            
-            {/* Format 4 */}
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              padding: '8px 15px',
-              background: columnFormat === 'format4' ? '#2563eb' : 'white',
-              color: columnFormat === 'format4' ? 'white' : '#333',
-              border: '2px solid #2563eb',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: '500',
-              transition: 'all 0.2s'
-            }}>
-              <input 
-                type="radio" 
-                name="columnFormat" 
-                value="format4"
-                checked={columnFormat === 'format4'}
-                onChange={(e) => setColumnFormat(e.target.value)}
-                style={{ cursor: 'pointer' }}
-              />
-              <span>Format 4: MRP (with GST breakdown in subtotal)</span>
-            </label>
-            
-            {/* Format 5 */}
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              padding: '8px 15px',
-              background: columnFormat === 'format5' ? '#2563eb' : 'white',
-              color: columnFormat === 'format5' ? 'white' : '#333',
-              border: '2px solid #2563eb',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: '500',
-              transition: 'all 0.2s'
-            }}>
-              <input 
-                type="radio" 
-                name="columnFormat" 
-                value="format5"
-                checked={columnFormat === 'format5'}
-                onChange={(e) => setColumnFormat(e.target.value)}
-                style={{ cursor: 'pointer' }}
-              />
-              <span>Format 5: MRP + YOUR PRICE (with GST breakdown)</span>
-            </label>
-            
-            {/* Format 6 */}
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              padding: '8px 15px',
-              background: columnFormat === 'format6' ? '#2563eb' : 'white',
-              color: columnFormat === 'format6' ? 'white' : '#333',
-              border: '2px solid #2563eb',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: '500',
-              transition: 'all 0.2s'
-            }}>
-              <input 
-                type="radio" 
-                name="columnFormat" 
-                value="format6"
-                checked={columnFormat === 'format6'}
-                onChange={(e) => setColumnFormat(e.target.value)}
-                style={{ cursor: 'pointer' }}
-              />
-              <span>Format 6: COMPLETE (MRP + DISC% + YOUR PRICE + GST breakdown)</span>
-            </label>
+            <select
+              value={columnFormat}
+              onChange={(e) => setColumnFormat(e.target.value)}
+              style={{
+                padding: '10px 15px',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#333',
+                background: 'white',
+                border: '2px solid #2563eb',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                outline: 'none',
+                minWidth: '400px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <option value="format1">Format 1: MRP + YOUR PRICE</option>
+              <option value="format2">Format 2: MRP + DISCOUNT%</option>
+              <option value="format3">Format 3: MRP + DISC% + FINAL PRICE</option>
+              <option value="format4">Format 4: MRP (with GST breakdown in subtotal)</option>
+              <option value="format5">Format 5: MRP + YOUR PRICE (with GST breakdown)</option>
+              <option value="format6">Format 6: COMPLETE (MRP + DISC% + YOUR PRICE + GST breakdown)</option>
+            </select>
           </div>
           
           <div className="preview-content preview-quotation-content">
