@@ -379,7 +379,18 @@ const AdminProducts = () => {
         console.log('Update response:', response.data);
         if (response.data.success) {
           showNotification('Product updated successfully!', 'success');
-          fetchProducts();
+          
+          // Save current scroll position
+          const scrollPosition = window.scrollY || window.pageYOffset;
+          
+          // Fetch updated products
+          await fetchProducts();
+          
+          // Restore scroll position after a short delay to ensure DOM is updated
+          setTimeout(() => {
+            window.scrollTo(0, scrollPosition);
+          }, 0);
+          
           closeModal();
         }
       } else {
@@ -591,7 +602,18 @@ const AdminProducts = () => {
 
       if (response.data.success) {
         showNotification('Product images updated successfully!', 'success');
-        fetchProducts();
+        
+        // Save current scroll position
+        const scrollPosition = window.scrollY || window.pageYOffset;
+        
+        // Fetch updated products
+        await fetchProducts();
+        
+        // Restore scroll position after a short delay to ensure DOM is updated
+        setTimeout(() => {
+          window.scrollTo(0, scrollPosition);
+        }, 0);
+        
         closeImageChangeModal();
       } else {
         showNotification(response.data.message || 'Failed to update images', 'error');
@@ -984,7 +1006,18 @@ const AdminProducts = () => {
     }
 
     showNotification(message, successCount > 0 ? 'success' : 'error');
-    fetchProducts();
+    
+    // Save current scroll position
+    const scrollPosition = window.scrollY || window.pageYOffset;
+    
+    // Fetch updated products
+    await fetchProducts();
+    
+    // Restore scroll position after a short delay to ensure DOM is updated
+    setTimeout(() => {
+      window.scrollTo(0, scrollPosition);
+    }, 0);
+    
     closeBulkImageModal();
   };
 
@@ -1708,7 +1741,18 @@ const AdminProducts = () => {
     }
 
     showNotification(message, successCount > 0 ? 'success' : 'error');
-    fetchProducts();
+    
+    // Save current scroll position
+    const scrollPosition = window.scrollY || window.pageYOffset;
+    
+    // Fetch updated products
+    await fetchProducts();
+    
+    // Restore scroll position after a short delay to ensure DOM is updated
+    setTimeout(() => {
+      window.scrollTo(0, scrollPosition);
+    }, 0);
+    
     closeUpdateExcelModal();
   };
 
