@@ -64,9 +64,8 @@ function AdminQuotations() {
   const handleDeleteQuotation = (id) => {
     const updatedQuotations = quotations.filter(q => q.id !== id);
     setQuotations(updatedQuotations);
-      localStorage.setItem('quotations', JSON.stringify(updatedQuotations));
-      showNotification('Quotation deleted successfully!', 'success');
-    }
+    localStorage.setItem('quotations', JSON.stringify(updatedQuotations));
+    showNotification('Quotation deleted successfully!', 'success');
   };
 
   const handleEditQuotation = (quotation) => {
