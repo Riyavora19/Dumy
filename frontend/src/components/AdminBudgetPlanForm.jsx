@@ -2727,6 +2727,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               <option value="format4">Format 4: MRP (with GST breakdown in subtotal)</option>
               <option value="format5">Format 5: MRP + YOUR PRICE (with GST breakdown)</option>
               <option value="format6">Format 6: COMPLETE (MRP + DISC% + YOUR PRICE + GST breakdown)</option>
+              <option value="format7">Format 7: NAME + DETAILS ONLY (no images)</option>
             </select>
           </div>
           
@@ -2805,8 +2806,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                           <tr>
                             <th style={{ width: '4%' }}>SR</th>
                             <th style={{ width: '12%' }}>AREA</th>
-                            <th style={{ width: '10%' }}>IMAGE</th>
-                            <th style={{ width: columnFormat === 'format6' ? '24%' : '32%' }}>ITEM</th>
+                            {columnFormat !== 'format7' && <th style={{ width: '10%' }}>IMAGE</th>}
+                            <th style={{ width: columnFormat === 'format6' ? '24%' : columnFormat === 'format7' ? '42%' : '32%' }}>ITEM</th>
                             <th style={{ width: '6%' }}>QTY</th>
                             <th style={{ width: '13%' }}>MRP</th>
                             {columnFormat === 'format1' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
@@ -2815,6 +2816,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                             {columnFormat === 'format4' && null /* MRP only, GST in subtotal */}
                             {columnFormat === 'format5' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
                             {columnFormat === 'format6' && <><th style={{ width: '8%' }}>DISC%</th><th style={{ width: '10%' }}>YOUR PRICE</th></>}
+                            {columnFormat === 'format7' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
                             <th style={{ width: '13%' }}>TOTAL</th>
                           </tr>
                         </thead>
@@ -2844,42 +2846,44 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                                     {product.areaName}
                                   </td>
                                 )}
-                                <td className="text-center">
-                                  {(() => {
-                                    // Get the first image from images array
-                                    const productImage = product.images && product.images.length > 0 ? product.images[0] : product.image;
-                                    
-                                    // Skip placeholder images entirely
-                                    const isPlaceholder = !productImage || 
-                                                        productImage.includes('placeholder.com') || 
-                                                        productImage.includes('via.placeholder') ||
-                                                        productImage.trim() === '';
-                                    
-                                    if (isPlaceholder) {
-                                      return <div className="preview-no-image">No Image</div>;
-                                    }
-                                    
-                                    const imageUrl = productImage.startsWith('http') 
-                                      ? productImage 
-                                      : `http://localhost:5000${productImage}`;
-                                    
-                                    return (
-                                      <>
-                                        <img 
-                                          src={imageUrl}
-                                          alt={product.productName}
-                                          className="preview-product-image"
-                                          onError={(e) => {
-                                            e.target.style.display = 'none';
-                                            const noImageDiv = e.target.nextElementSibling;
-                                            if (noImageDiv) noImageDiv.style.display = 'flex';
-                                          }}
-                                        />
-                                        <div className="preview-no-image" style={{ display: 'none' }}>No Image</div>
-                                      </>
-                                    );
-                                  })()}
-                                </td>
+                                {columnFormat !== 'format7' && (
+                                  <td className="text-center">
+                                    {(() => {
+                                      // Get the first image from images array
+                                      const productImage = product.images && product.images.length > 0 ? product.images[0] : product.image;
+                                      
+                                      // Skip placeholder images entirely
+                                      const isPlaceholder = !productImage || 
+                                                          productImage.includes('placeholder.com') || 
+                                                          productImage.includes('via.placeholder') ||
+                                                          productImage.trim() === '';
+                                      
+                                      if (isPlaceholder) {
+                                        return <div className="preview-no-image">No Image</div>;
+                                      }
+                                      
+                                      const imageUrl = productImage.startsWith('http') 
+                                        ? productImage 
+                                        : `http://localhost:5000${productImage}`;
+                                      
+                                      return (
+                                        <>
+                                          <img 
+                                            src={imageUrl}
+                                            alt={product.productName}
+                                            className="preview-product-image"
+                                            onError={(e) => {
+                                              e.target.style.display = 'none';
+                                              const noImageDiv = e.target.nextElementSibling;
+                                              if (noImageDiv) noImageDiv.style.display = 'flex';
+                                            }}
+                                          />
+                                          <div className="preview-no-image" style={{ display: 'none' }}>No Image</div>
+                                        </>
+                                      );
+                                    })()}
+                                  </td>
+                                )}
                                 <td className="text-left">
                                   <div className="preview-item-name">{product.productName}</div>
                                   {product.companyName && (
@@ -3229,6 +3233,63 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                                     </td>
                                   </>
                                 )}
+                                {columnFormat === 'format7' && (
+                                  <td className="text-left">
+                                    {isEditMode ? (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <span>Rs.</span>
+                                        <input
+                                          type="number"
+                                          value={discountedUnitPrice.toFixed(2)}
+                                          onChange={(e) => {
+                                            const newPrice = parseFloat(e.target.value) || 0;
+                                            const newDiscount = ((unitPrice - newPrice) / unitPrice) * 100;
+                                            setFormData(prev => ({
+                                              ...prev,
+                                              rooms: prev.rooms.map(room => {
+                                                if (room.id === product.roomId) {
+                                                  return {
+                                                    ...room,
+                                                    areas: room.areas.map(area => {
+                                                      if (area.id === product.areaId) {
+                                                        return {
+                                                          ...area,
+                                                          products: area.products.map(p => {
+                                                            if (p.productName === product.productName && p.variant === product.variant) {
+                                                              return {
+                                                                ...p,
+                                                                discountPercent: newDiscount,
+                                                                totalPrice: newPrice * p.quantity
+                                                              };
+                                                            }
+                                                            return p;
+                                                          })
+                                                        };
+                                                      }
+                                                      return area;
+                                                    })
+                                                  };
+                                                }
+                                                return room;
+                                              })
+                                            }));
+                                          }}
+                                          className="price-edit-input-table"
+                                          min="0"
+                                          step="0.01"
+                                          style={{ 
+                                            width: '100px', 
+                                            textAlign: 'right',
+                                            border: '2px solid #3b82f6',
+                                            backgroundColor: '#fff'
+                                          }}
+                                        />
+                                      </div>
+                                    ) : (
+                                      <span>Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    )}
+                                  </td>
+                                )}
                                 <td className="text-right">
                                   <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
                                     Rs. {finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -3246,7 +3307,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                               columnFormat === 'format4' ? 5 :
                               columnFormat === 'format5' ? 6 :
                               columnFormat === 'format6' ? 7 :
-                              6
+                              columnFormat === 'format7' ? 5 : 6
                             } className="text-right"></td>
                             <td className="text-right"><strong>SUBTOTAL:</strong></td>
                             <td className="text-right"><strong>Rs. {roomTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
@@ -3295,12 +3356,17 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                   <thead>
                     <tr>
                       <th style={{ width: '4%' }}>SR</th>
-                      <th style={{ width: '10%' }}>IMAGE</th>
-                      <th style={{ width: columnFormat === 'format1' ? '44%' : '44%' }}>ITEM</th>
+                      {columnFormat !== 'format7' && <th style={{ width: '10%' }}>IMAGE</th>}
+                      <th style={{ width: columnFormat === 'format7' ? '54%' : '44%' }}>ITEM</th>
                       <th style={{ width: '6%' }}>QTY</th>
                       <th style={{ width: '13%' }}>MRP</th>
                       {columnFormat === 'format1' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
                       {columnFormat === 'format2' && <th style={{ width: '10%' }}>DISCOUNT</th>}
+                      {columnFormat === 'format3' && <><th style={{ width: '8%' }}>DISC%</th><th style={{ width: '10%' }}>FINAL PRICE</th></>}
+                      {columnFormat === 'format4' && null}
+                      {columnFormat === 'format5' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
+                      {columnFormat === 'format6' && <><th style={{ width: '8%' }}>DISC%</th><th style={{ width: '10%' }}>YOUR PRICE</th></>}
+                      {columnFormat === 'format7' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
                       <th style={{ width: '13%' }}>TOTAL</th>
                     </tr>
                   </thead>
@@ -3316,42 +3382,44 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       return (
                         <tr key={idx}>
                           <td className="text-center">{idx + 1}</td>
-                          <td className="text-center">
-                            {(() => {
-                              // Get the first image from images array
-                              const productImage = product.images && product.images.length > 0 ? product.images[0] : product.image;
-                              
-                              // Skip placeholder images entirely
-                              const isPlaceholder = !productImage || 
-                                                  productImage.includes('placeholder.com') || 
-                                                  productImage.includes('via.placeholder') ||
-                                                  productImage.trim() === '';
-                              
-                              if (isPlaceholder) {
-                                return <div className="preview-no-image">No Image</div>;
-                              }
-                              
-                              const imageUrl = productImage.startsWith('http') 
-                                ? productImage 
-                                : `http://localhost:5000${productImage}`;
-                              
-                              return (
-                                <>
-                                  <img 
-                                    src={imageUrl}
-                                    alt={product.productName}
-                                    className="preview-product-image"
-                                    onError={(e) => {
-                                      e.target.style.display = 'none';
-                                      const noImageDiv = e.target.nextElementSibling;
-                                      if (noImageDiv) noImageDiv.style.display = 'flex';
-                                    }}
-                                  />
-                                  <div className="preview-no-image" style={{ display: 'none' }}>No Image</div>
-                                </>
-                              );
-                            })()}
-                          </td>
+                          {columnFormat !== 'format7' && (
+                            <td className="text-center">
+                              {(() => {
+                                // Get the first image from images array
+                                const productImage = product.images && product.images.length > 0 ? product.images[0] : product.image;
+                                
+                                // Skip placeholder images entirely
+                                const isPlaceholder = !productImage || 
+                                                    productImage.includes('placeholder.com') || 
+                                                    productImage.includes('via.placeholder') ||
+                                                    productImage.trim() === '';
+                                
+                                if (isPlaceholder) {
+                                  return <div className="preview-no-image">No Image</div>;
+                                }
+                                
+                                const imageUrl = productImage.startsWith('http') 
+                                  ? productImage 
+                                  : `http://localhost:5000${productImage}`;
+                                
+                                return (
+                                  <>
+                                    <img 
+                                      src={imageUrl}
+                                      alt={product.productName}
+                                      className="preview-product-image"
+                                      onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        const noImageDiv = e.target.nextElementSibling;
+                                        if (noImageDiv) noImageDiv.style.display = 'flex';
+                                      }}
+                                    />
+                                    <div className="preview-no-image" style={{ display: 'none' }}>No Image</div>
+                                  </>
+                                );
+                              })()}
+                            </td>
+                          )}
                           <td className="text-left">
                             <div className="preview-item-name">{product.productName}</div>
                             {product.companyName && (
@@ -3456,6 +3524,183 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                                   color: '#666'
                                 }}>%</span>
                               </div>
+                            </td>
+                          )}
+                          {columnFormat === 'format3' && (
+                            <>
+                              <td className="text-center">
+                                <div style={{ position: 'relative', display: 'inline-block' }}>
+                                  <input
+                                    type="number"
+                                    value={discountPercent}
+                                    disabled={!isEditMode}
+                                    onChange={(e) => {
+                                      const newDiscount = parseFloat(e.target.value) || 0;
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        selectedProducts: prev.selectedProducts.map((p, i) => {
+                                          if (i === idx) {
+                                            const unitPrice = p.unitPrice || 0;
+                                            const discountedPrice = unitPrice * (1 - newDiscount / 100);
+                                            return {
+                                              ...p,
+                                              discountPercent: newDiscount,
+                                              totalPrice: discountedPrice * p.quantity
+                                            };
+                                          }
+                                          return p;
+                                        })
+                                      }));
+                                    }}
+                                    className="price-edit-input-table"
+                                    min="0"
+                                    max="100"
+                                    step="0.1"
+                                    style={{ 
+                                      width: '60px', 
+                                      textAlign: 'center',
+                                      backgroundColor: isEditMode ? '#fff' : '#f3f4f6',
+                                      cursor: isEditMode ? 'text' : 'not-allowed',
+                                      opacity: isEditMode ? '1' : '0.6',
+                                      border: isEditMode ? '2px solid #3b82f6' : '1px solid #d1d5db'
+                                    }}
+                                  />
+                                  <span style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', fontSize: '11px', pointerEvents: 'none', color: '#666' }}>%</span>
+                                </div>
+                              </td>
+                              <td className="text-left">
+                                Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                            </>
+                          )}
+                          {columnFormat === 'format4' && null}
+                          {columnFormat === 'format5' && (
+                            <td className="text-left">
+                              {isEditMode ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                  <span>Rs.</span>
+                                  <input
+                                    type="number"
+                                    value={discountedUnitPrice.toFixed(2)}
+                                    onChange={(e) => {
+                                      const newPrice = parseFloat(e.target.value) || 0;
+                                      const newDiscount = ((unitPrice - newPrice) / unitPrice) * 100;
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        selectedProducts: prev.selectedProducts.map((p, i) => {
+                                          if (i === idx) {
+                                            return {
+                                              ...p,
+                                              discountPercent: newDiscount,
+                                              totalPrice: newPrice * p.quantity
+                                            };
+                                          }
+                                          return p;
+                                        })
+                                      }));
+                                    }}
+                                    className="price-edit-input-table"
+                                    min="0"
+                                    step="0.01"
+                                    style={{ 
+                                      width: '100px', 
+                                      textAlign: 'right',
+                                      border: '2px solid #3b82f6',
+                                      backgroundColor: '#fff'
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <span>Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                              )}
+                            </td>
+                          )}
+                          {columnFormat === 'format6' && (
+                            <>
+                              <td className="text-center">
+                                <div style={{ position: 'relative', display: 'inline-block' }}>
+                                  <input
+                                    type="number"
+                                    value={discountPercent}
+                                    disabled={!isEditMode}
+                                    onChange={(e) => {
+                                      const newDiscount = parseFloat(e.target.value) || 0;
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        selectedProducts: prev.selectedProducts.map((p, i) => {
+                                          if (i === idx) {
+                                            const unitPrice = p.unitPrice || 0;
+                                            const discountedPrice = unitPrice * (1 - newDiscount / 100);
+                                            return {
+                                              ...p,
+                                              discountPercent: newDiscount,
+                                              totalPrice: discountedPrice * p.quantity
+                                            };
+                                          }
+                                          return p;
+                                        })
+                                      }));
+                                    }}
+                                    className="price-edit-input-table"
+                                    min="0"
+                                    max="100"
+                                    step="0.1"
+                                    style={{ 
+                                      width: '60px', 
+                                      textAlign: 'center',
+                                      backgroundColor: isEditMode ? '#fff' : '#f3f4f6',
+                                      cursor: isEditMode ? 'text' : 'not-allowed',
+                                      opacity: isEditMode ? '1' : '0.6',
+                                      border: isEditMode ? '2px solid #3b82f6' : '1px solid #d1d5db'
+                                    }}
+                                  />
+                                  <span style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', fontSize: '11px', pointerEvents: 'none', color: '#666' }}>%</span>
+                                </div>
+                              </td>
+                              <td className="text-left">
+                                Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+                            </>
+                          )}
+                          {columnFormat === 'format7' && (
+                            <td className="text-left">
+                              {isEditMode ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                  <span>Rs.</span>
+                                  <input
+                                    type="number"
+                                    value={discountedUnitPrice.toFixed(2)}
+                                    onChange={(e) => {
+                                      const newPrice = parseFloat(e.target.value) || 0;
+                                      const newDiscount = ((unitPrice - newPrice) / unitPrice) * 100;
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        selectedProducts: prev.selectedProducts.map((p, i) => {
+                                          if (i === idx) {
+                                            return {
+                                              ...p,
+                                              discountPercent: newDiscount,
+                                              totalPrice: newPrice * p.quantity
+                                            };
+                                          }
+                                          return p;
+                                        })
+                                      }));
+                                    }}
+                                    className="price-edit-input-table"
+                                    min="0"
+                                    step="0.01"
+                                    style={{ 
+                                      width: '100px', 
+                                      textAlign: 'right',
+                                      border: '2px solid #3b82f6',
+                                      backgroundColor: '#fff'
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <span>Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                              )}
                             </td>
                           )}
                           <td className="text-right">

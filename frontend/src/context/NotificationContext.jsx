@@ -15,36 +15,8 @@ export const NotificationProvider = ({ children }) => {
   const recentNotifications = useRef(new Map());
 
   const showNotification = (message, type = 'success', duration = 3000) => {
-    const key = `${message}-${type}`;
-    const now = Date.now();
-    
-    // Check if this exact notification was shown recently (within 500ms)
-    const lastShown = recentNotifications.current.get(key);
-    if (lastShown && (now - lastShown) < 500) {
-      console.log('🚫 Duplicate notification prevented:', message);
-      return;
-    }
-    
-    // Update the last shown time for this notification
-    recentNotifications.current.set(key, now);
-    
-    // Clean up old entries (older than 1 second)
-    for (const [k, time] of recentNotifications.current.entries()) {
-      if (now - time > 1000) {
-        recentNotifications.current.delete(k);
-      }
-    }
-    
-    const id = Date.now() + Math.random();
-    const notification = { id, message, type };
-    
-    setNotifications(prev => [...prev, notification]);
-    
-    if (duration > 0) {
-      setTimeout(() => {
-        removeNotification(id);
-      }, duration);
-    }
+    // Notifications disabled - do nothing
+    return;
   };
 
   const removeNotification = (id) => {

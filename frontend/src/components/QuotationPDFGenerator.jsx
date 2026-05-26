@@ -588,7 +588,9 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         if (index === 0) {
           rowData.push(serialNumber.toString());
           rowData.push({ content: areaName.toUpperCase(), rowSpan: products.length, styles: { valign: 'middle', halign: 'center' } });
-          rowData.push(imageData ? { content: '', styles: { cellPadding: 0 } } : '');
+          if (columnFormat !== 'format7') {
+            rowData.push(imageData ? { content: '', styles: { cellPadding: 0 } } : '');
+          }
           rowData.push(itemText);
           rowData.push(quantity.toString());
           rowData.push(mrpFormatted);
@@ -619,10 +621,16 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
             rowData.push(discountFormatted);
             rowData.push(yourPriceFormatted);
             rowData.push(totalFormatted);
+          } else if (columnFormat === 'format7') {
+            // Format 7: SR | AREA | ITEM | QTY | MRP | YOUR PRICE | TOTAL (no images)
+            rowData.push(yourPriceFormatted);
+            rowData.push(totalFormatted);
           }
         } else {
           rowData.push(serialNumber.toString());
-          rowData.push(imageData ? { content: '', styles: { cellPadding: 0 } } : '');
+          if (columnFormat !== 'format7') {
+            rowData.push(imageData ? { content: '', styles: { cellPadding: 0 } } : '');
+          }
           rowData.push(itemText);
           rowData.push(quantity.toString());
           rowData.push(mrpFormatted);
@@ -645,6 +653,9 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
             rowData.push(totalFormatted);
           } else if (columnFormat === 'format6') {
             rowData.push(discountFormatted);
+            rowData.push(yourPriceFormatted);
+            rowData.push(totalFormatted);
+          } else if (columnFormat === 'format7') {
             rowData.push(yourPriceFormatted);
             rowData.push(totalFormatted);
           }
@@ -672,6 +683,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     else if (columnFormat === 'format4') subtotalColspan = 5; // SR, AREA, IMAGE, ITEM, QTY, MRP = 6 cols (but no extra column)
     else if (columnFormat === 'format5') subtotalColspan = 6; // SR, AREA, IMAGE, ITEM, QTY, MRP = 6 cols
     else if (columnFormat === 'format6') subtotalColspan = 7; // SR, AREA, IMAGE, ITEM, QTY, MRP, DISC% = 7 cols
+    else if (columnFormat === 'format7') subtotalColspan = 5; // SR, AREA, ITEM, QTY, MRP = 5 cols (no IMAGE)
     
     tableData.push([
       { content: '', colSpan: subtotalColspan, styles: { halign: 'right' } },
@@ -787,6 +799,18 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         7: { cellWidth: availableWidth * 0.13, halign: 'left' },
         8: { cellWidth: availableWidth * 0.13, halign: 'right' },
       };
+    } else if (columnFormat === 'format7') {
+      // Format 7: SR | AREA | ITEM | QTY | MRP | YOUR PRICE | TOTAL (no images)
+      tableHeaders = ['SR', 'AREA', 'ITEM', 'QTY', 'MRP', 'YOUR PRICE', 'TOTAL'];
+      columnStyles = {
+        0: { cellWidth: availableWidth * 0.05, halign: 'center' },
+        1: { cellWidth: availableWidth * 0.12, halign: 'center', valign: 'middle' },
+        2: { cellWidth: availableWidth * 0.40, halign: 'left' },
+        3: { cellWidth: availableWidth * 0.08, halign: 'center' },
+        4: { cellWidth: availableWidth * 0.13, halign: 'left' },
+        5: { cellWidth: availableWidth * 0.13, halign: 'left' },
+        6: { cellWidth: availableWidth * 0.13, halign: 'right' },
+      };
     }
     
     doc.autoTable({
@@ -834,6 +858,9 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         } else if (columnFormat === 'format6') {
           itemColumnIndex = 3;
           priceColumnIndices = [5, 7, 8]; // MRP, YOUR PRICE, TOTAL (DISC% is %)
+        } else if (columnFormat === 'format7') {
+          itemColumnIndex = 2; // No IMAGE column, so ITEM is at index 2
+          priceColumnIndices = [4, 5, 6]; // MRP, YOUR PRICE, TOTAL
         }
         
         // Custom rendering for ITEM column - prevent default rendering of company line
@@ -891,6 +918,10 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
           imageColumnIndex = 2;
           itemColumnIndex = 3;
           priceColumnIndices = [5, 7, 8]; // MRP, YOUR PRICE, TOTAL
+        } else if (columnFormat === 'format7') {
+          imageColumnIndex = -1; // No IMAGE column
+          itemColumnIndex = 2;
+          priceColumnIndices = [4, 5, 6]; // MRP, YOUR PRICE, TOTAL
         }
         
         // Draw product images in the IMAGE column
