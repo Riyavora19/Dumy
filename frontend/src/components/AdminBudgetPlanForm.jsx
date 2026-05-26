@@ -159,9 +159,10 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   const [generating, setGenerating] = useState(false);
   const [savingAs, setSavingAs] = useState(null); // 'plan' or 'order'
   const [showPreview, setShowPreview] = useState(false); // For preview modal
-  const [columnFormat, setColumnFormat] = useState('format2'); // Column format: format1 (MRP+YOUR PRICE), format2 (MRP+DISCOUNT)
+  const [columnFormat, setColumnFormat] = useState('format2'); // Column format: format1-6
   const [isEditMode, setIsEditMode] = useState(false); // For editable preview
   const [editedPrices, setEditedPrices] = useState({}); // Store edited prices by product ID
+  const [gstRate, setGstRate] = useState(18); // GST rate percentage (default 18%)
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false); // NEW: Modal for selecting room name after template click
   const [selectedTemplate, setSelectedTemplate] = useState(null); // NEW: Currently selected template for adding room
@@ -1192,8 +1193,19 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       totalBudget = formData.totalBudget;
     }
     
+    // Calculate GST breakdown (reverse calculation since MRP includes GST)
+    const divisor = 100 + gstRate; // 118 for 18% GST
+    const taxableAmount = (totalCost / divisor) * 100;
+    const gstAmount = totalCost - taxableAmount;
+    
     const remainingBudget = formData.hasBudget ? totalBudget - totalCost : null;
-    return { totalCost, totalBudget, remainingBudget };
+    return { 
+      totalCost, 
+      totalBudget, 
+      remainingBudget,
+      taxableAmount: taxableAmount,
+      gstAmount: gstAmount
+    };
   };
 
   // Helper function to get product price (edited or original)
@@ -2692,6 +2704,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
             alignItems: 'center'
           }}>
             <strong style={{ marginRight: '10px', color: '#333' }}>Select Column Format:</strong>
+            
+            {/* Format 1 */}
             <label style={{ 
               display: 'flex', 
               alignItems: 'center', 
@@ -2702,7 +2716,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               border: '2px solid #2563eb',
               borderRadius: '6px',
               cursor: 'pointer',
-              fontSize: '13px',
+              fontSize: '12px',
               fontWeight: '500',
               transition: 'all 0.2s'
             }}>
@@ -2714,9 +2728,10 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                 onChange={(e) => setColumnFormat(e.target.value)}
                 style={{ cursor: 'pointer' }}
               />
-              <span>SR | AREA | IMAGE | QTY | MRP | YOUR PRICE | TOTAL</span>
+              <span>Format 1: MRP + YOUR PRICE</span>
             </label>
             
+            {/* Format 2 */}
             <label style={{ 
               display: 'flex', 
               alignItems: 'center', 
@@ -2727,7 +2742,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               border: '2px solid #2563eb',
               borderRadius: '6px',
               cursor: 'pointer',
-              fontSize: '13px',
+              fontSize: '12px',
               fontWeight: '500',
               transition: 'all 0.2s'
             }}>
@@ -2739,7 +2754,111 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                 onChange={(e) => setColumnFormat(e.target.value)}
                 style={{ cursor: 'pointer' }}
               />
-              <span>SR | AREA | IMAGE | QTY | MRP | DISCOUNT | TOTAL</span>
+              <span>Format 2: MRP + DISCOUNT%</span>
+            </label>
+            
+            {/* Format 3 */}
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              padding: '8px 15px',
+              background: columnFormat === 'format3' ? '#2563eb' : 'white',
+              color: columnFormat === 'format3' ? 'white' : '#333',
+              border: '2px solid #2563eb',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '500',
+              transition: 'all 0.2s'
+            }}>
+              <input 
+                type="radio" 
+                name="columnFormat" 
+                value="format3"
+                checked={columnFormat === 'format3'}
+                onChange={(e) => setColumnFormat(e.target.value)}
+                style={{ cursor: 'pointer' }}
+              />
+              <span>Format 3: MRP + DISC% + FINAL PRICE</span>
+            </label>
+            
+            {/* Format 4 */}
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              padding: '8px 15px',
+              background: columnFormat === 'format4' ? '#2563eb' : 'white',
+              color: columnFormat === 'format4' ? 'white' : '#333',
+              border: '2px solid #2563eb',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '500',
+              transition: 'all 0.2s'
+            }}>
+              <input 
+                type="radio" 
+                name="columnFormat" 
+                value="format4"
+                checked={columnFormat === 'format4'}
+                onChange={(e) => setColumnFormat(e.target.value)}
+                style={{ cursor: 'pointer' }}
+              />
+              <span>Format 4: MRP (with GST breakdown in subtotal)</span>
+            </label>
+            
+            {/* Format 5 */}
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              padding: '8px 15px',
+              background: columnFormat === 'format5' ? '#2563eb' : 'white',
+              color: columnFormat === 'format5' ? 'white' : '#333',
+              border: '2px solid #2563eb',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '500',
+              transition: 'all 0.2s'
+            }}>
+              <input 
+                type="radio" 
+                name="columnFormat" 
+                value="format5"
+                checked={columnFormat === 'format5'}
+                onChange={(e) => setColumnFormat(e.target.value)}
+                style={{ cursor: 'pointer' }}
+              />
+              <span>Format 5: MRP + YOUR PRICE (with GST breakdown)</span>
+            </label>
+            
+            {/* Format 6 */}
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              padding: '8px 15px',
+              background: columnFormat === 'format6' ? '#2563eb' : 'white',
+              color: columnFormat === 'format6' ? 'white' : '#333',
+              border: '2px solid #2563eb',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '500',
+              transition: 'all 0.2s'
+            }}>
+              <input 
+                type="radio" 
+                name="columnFormat" 
+                value="format6"
+                checked={columnFormat === 'format6'}
+                onChange={(e) => setColumnFormat(e.target.value)}
+                style={{ cursor: 'pointer' }}
+              />
+              <span>Format 6: COMPLETE (MRP + DISC% + YOUR PRICE + GST breakdown)</span>
             </label>
           </div>
           
@@ -2819,11 +2938,15 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                             <th style={{ width: '4%' }}>SR</th>
                             <th style={{ width: '12%' }}>AREA</th>
                             <th style={{ width: '10%' }}>IMAGE</th>
-                            <th style={{ width: '32%' }}>ITEM</th>
+                            <th style={{ width: columnFormat === 'format6' ? '24%' : '32%' }}>ITEM</th>
                             <th style={{ width: '6%' }}>QTY</th>
                             <th style={{ width: '13%' }}>MRP</th>
                             {columnFormat === 'format1' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
                             {columnFormat === 'format2' && <th style={{ width: '10%' }}>DISCOUNT</th>}
+                            {columnFormat === 'format3' && <><th style={{ width: '8%' }}>DISC%</th><th style={{ width: '10%' }}>FINAL PRICE</th></>}
+                            {columnFormat === 'format4' && null /* MRP only, GST in subtotal */}
+                            {columnFormat === 'format5' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
+                            {columnFormat === 'format6' && <><th style={{ width: '8%' }}>DISC%</th><th style={{ width: '10%' }}>YOUR PRICE</th></>}
                             <th style={{ width: '13%' }}>TOTAL</th>
                           </tr>
                         </thead>
@@ -2983,10 +3106,19 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                                                           if (p.productName === product.productName && p.variant === product.variant) {
                                                             const unitPrice = p.unitPrice || 0;
                                                             const discountedPrice = unitPrice * (1 - newDiscount / 100);
+                                                            const newTotalPrice = discountedPrice * p.quantity;
+                                                            
+                                                            // Also update editedPrices to reflect the change
+                                                            const productKey = `${product.roomId}-${product.areaId}-${p.productName}-${p.variant}`;
+                                                            setEditedPrices(prevEdited => ({
+                                                              ...prevEdited,
+                                                              [productKey]: newTotalPrice
+                                                            }));
+                                                            
                                                             return {
                                                               ...p,
                                                               discountPercent: newDiscount,
-                                                              totalPrice: discountedPrice * p.quantity
+                                                              totalPrice: newTotalPrice
                                                             };
                                                           }
                                                           return p;
@@ -3027,6 +3159,208 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                                     </div>
                                   </td>
                                 )}
+                                {columnFormat === 'format3' && (
+                                  <>
+                                    <td className="text-center">
+                                      <div style={{ position: 'relative', display: 'inline-block' }}>
+                                        <input
+                                          type="number"
+                                          value={discountPercent}
+                                          disabled={!isEditMode}
+                                          onChange={(e) => {
+                                            const newDiscount = parseFloat(e.target.value) || 0;
+                                            setFormData(prev => ({
+                                              ...prev,
+                                              rooms: prev.rooms.map(room => {
+                                                if (room.id === product.roomId) {
+                                                  return {
+                                                    ...room,
+                                                    areas: room.areas.map(area => {
+                                                      if (area.id === product.areaId) {
+                                                        return {
+                                                          ...area,
+                                                          products: area.products.map(p => {
+                                                            if (p.productName === product.productName && p.variant === product.variant) {
+                                                              const unitPrice = p.unitPrice || 0;
+                                                              const discountedPrice = unitPrice * (1 - newDiscount / 100);
+                                                              const newTotalPrice = discountedPrice * p.quantity;
+                                                              
+                                                              // Also update editedPrices
+                                                              const productKey = `${product.roomId}-${product.areaId}-${p.productName}-${p.variant}`;
+                                                              setEditedPrices(prevEdited => ({
+                                                                ...prevEdited,
+                                                                [productKey]: newTotalPrice
+                                                              }));
+                                                              
+                                                              return {
+                                                                ...p,
+                                                                discountPercent: newDiscount,
+                                                                totalPrice: newTotalPrice
+                                                              };
+                                                            }
+                                                            return p;
+                                                          })
+                                                        };
+                                                      }
+                                                      return area;
+                                                    })
+                                                  };
+                                                }
+                                                return room;
+                                              })
+                                            }));
+                                          }}
+                                          className="price-edit-input-table"
+                                          min="0"
+                                          max="100"
+                                          step="0.1"
+                                          style={{ 
+                                            width: '60px', 
+                                            textAlign: 'center',
+                                            backgroundColor: isEditMode ? '#fff' : '#f3f4f6',
+                                            cursor: isEditMode ? 'text' : 'not-allowed',
+                                            opacity: isEditMode ? '1' : '0.6',
+                                            border: isEditMode ? '2px solid #3b82f6' : '1px solid #d1d5db'
+                                          }}
+                                        />
+                                        <span style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', fontSize: '11px', pointerEvents: 'none', color: '#666' }}>%</span>
+                                      </div>
+                                    </td>
+                                    <td className="text-left">
+                                      Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </td>
+                                  </>
+                                )}
+                                {columnFormat === 'format4' && null /* MRP only, GST in subtotal */}
+                                {columnFormat === 'format5' && (
+                                  <td className="text-left">
+                                    {isEditMode ? (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <span>Rs.</span>
+                                        <input
+                                          type="number"
+                                          value={discountedUnitPrice.toFixed(2)}
+                                          onChange={(e) => {
+                                            const newPrice = parseFloat(e.target.value) || 0;
+                                            const newDiscount = ((unitPrice - newPrice) / unitPrice) * 100;
+                                            setFormData(prev => ({
+                                              ...prev,
+                                              rooms: prev.rooms.map(room => {
+                                                if (room.id === product.roomId) {
+                                                  return {
+                                                    ...room,
+                                                    areas: room.areas.map(area => {
+                                                      if (area.id === product.areaId) {
+                                                        return {
+                                                          ...area,
+                                                          products: area.products.map(p => {
+                                                            if (p.productName === product.productName && p.variant === product.variant) {
+                                                              return {
+                                                                ...p,
+                                                                discountPercent: newDiscount,
+                                                                totalPrice: newPrice * p.quantity
+                                                              };
+                                                            }
+                                                            return p;
+                                                          })
+                                                        };
+                                                      }
+                                                      return area;
+                                                    })
+                                                  };
+                                                }
+                                                return room;
+                                              })
+                                            }));
+                                          }}
+                                          className="price-edit-input-table"
+                                          min="0"
+                                          step="0.01"
+                                          style={{ 
+                                            width: '100px', 
+                                            textAlign: 'right',
+                                            border: '2px solid #3b82f6',
+                                            backgroundColor: '#fff'
+                                          }}
+                                        />
+                                      </div>
+                                    ) : (
+                                      <span>Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    )}
+                                  </td>
+                                )}
+                                {columnFormat === 'format6' && (
+                                  <>
+                                    <td className="text-center">
+                                      <div style={{ position: 'relative', display: 'inline-block' }}>
+                                        <input
+                                          type="number"
+                                          value={discountPercent}
+                                          disabled={!isEditMode}
+                                          onChange={(e) => {
+                                            const newDiscount = parseFloat(e.target.value) || 0;
+                                            setFormData(prev => ({
+                                              ...prev,
+                                              rooms: prev.rooms.map(room => {
+                                                if (room.id === product.roomId) {
+                                                  return {
+                                                    ...room,
+                                                    areas: room.areas.map(area => {
+                                                      if (area.id === product.areaId) {
+                                                        return {
+                                                          ...area,
+                                                          products: area.products.map(p => {
+                                                            if (p.productName === product.productName && p.variant === product.variant) {
+                                                              const unitPrice = p.unitPrice || 0;
+                                                              const discountedPrice = unitPrice * (1 - newDiscount / 100);
+                                                              const newTotalPrice = discountedPrice * p.quantity;
+                                                              
+                                                              // Also update editedPrices
+                                                              const productKey = `${product.roomId}-${product.areaId}-${p.productName}-${p.variant}`;
+                                                              setEditedPrices(prevEdited => ({
+                                                                ...prevEdited,
+                                                                [productKey]: newTotalPrice
+                                                              }));
+                                                              
+                                                              return {
+                                                                ...p,
+                                                                discountPercent: newDiscount,
+                                                                totalPrice: newTotalPrice
+                                                              };
+                                                            }
+                                                            return p;
+                                                          })
+                                                        };
+                                                      }
+                                                      return area;
+                                                    })
+                                                  };
+                                                }
+                                                return room;
+                                              })
+                                            }));
+                                          }}
+                                          className="price-edit-input-table"
+                                          min="0"
+                                          max="100"
+                                          step="0.1"
+                                          style={{ 
+                                            width: '60px', 
+                                            textAlign: 'center',
+                                            backgroundColor: isEditMode ? '#fff' : '#f3f4f6',
+                                            cursor: isEditMode ? 'text' : 'not-allowed',
+                                            opacity: isEditMode ? '1' : '0.6',
+                                            border: isEditMode ? '2px solid #3b82f6' : '1px solid #d1d5db'
+                                          }}
+                                        />
+                                        <span style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', fontSize: '11px', pointerEvents: 'none', color: '#666' }}>%</span>
+                                      </div>
+                                    </td>
+                                    <td className="text-left">
+                                      Rs. {discountedUnitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </td>
+                                  </>
+                                )}
                                 <td className="text-right">
                                   <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
                                     Rs. {finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -3040,11 +3374,47 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                             <td colSpan={
                               columnFormat === 'format1' ? 6 : 
                               columnFormat === 'format2' ? 6 : 
+                              columnFormat === 'format3' ? 7 :
+                              columnFormat === 'format4' ? 5 :
+                              columnFormat === 'format5' ? 6 :
+                              columnFormat === 'format6' ? 7 :
                               6
                             } className="text-right"></td>
                             <td className="text-right"><strong>SUBTOTAL:</strong></td>
                             <td className="text-right"><strong>Rs. {roomTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
                           </tr>
+                          
+                          {/* GST Breakdown Rows for formats 4, 5, 6 */}
+                          {(columnFormat === 'format4' || columnFormat === 'format5' || columnFormat === 'format6') && (() => {
+                            const divisor = 100 + gstRate;
+                            const taxableAmount = (roomTotal / divisor) * 100;
+                            const gstAmount = roomTotal - taxableAmount;
+                            
+                            return (
+                              <>
+                                <tr className="gst-breakdown-row">
+                                  <td colSpan={
+                                    columnFormat === 'format4' ? 5 :
+                                    columnFormat === 'format5' ? 6 :
+                                    columnFormat === 'format6' ? 7 :
+                                    6
+                                  } className="text-right"></td>
+                                  <td className="text-right"><strong>Taxable Amount:</strong></td>
+                                  <td className="text-right"><strong>Rs. {taxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
+                                </tr>
+                                <tr className="gst-breakdown-row">
+                                  <td colSpan={
+                                    columnFormat === 'format4' ? 5 :
+                                    columnFormat === 'format5' ? 6 :
+                                    columnFormat === 'format6' ? 7 :
+                                    6
+                                  } className="text-right"></td>
+                                  <td className="text-right"><strong>GST @{gstRate}%:</strong></td>
+                                  <td className="text-right"><strong>Rs. {gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
+                                </tr>
+                              </>
+                            );
+                          })()}
                         </tbody>
                       </table>
                     </div>
@@ -3239,6 +3609,29 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               <span className="preview-total-amount">₹{calculateTotals().totalCost.toLocaleString()}</span>
             </div>
             
+            {/* GST Breakdown for formats 4, 5, 6 */}
+            {(columnFormat === 'format4' || columnFormat === 'format5' || columnFormat === 'format6') && (() => {
+              const totals = calculateTotals();
+              return (
+                <div className="preview-gst-breakdown" style={{ 
+                  marginTop: '15px', 
+                  padding: '15px 20px', 
+                  background: '#f8f9fa', 
+                  borderRadius: '8px',
+                  border: '1px solid #e0e0e0'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px' }}>
+                    <span><strong>Taxable Amount:</strong></span>
+                    <span><strong>₹{totals.taxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                    <span><strong>GST @{gstRate}%:</strong></span>
+                    <span><strong>₹{totals.gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+                  </div>
+                </div>
+              );
+            })()}
+            
             {Object.keys(editedPrices).length > 0 && (
               <div className="preview-edit-notice">
                 <span>⚠️ {Object.keys(editedPrices).length} price(s) have been edited</span>
@@ -3303,6 +3696,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                     rooms: roomsWithEditedPrices,
                     items: selectedProductsWithEditedPrices, // Add items for no-room scenario
                     total: calculateTotals().totalCost,
+                    columnFormat: columnFormat, // Pass column format to PDF generator
+                    gstRate: gstRate, // Pass GST rate to PDF generator
                     attendedByStaffId: staffId,
                     attendedByName: staffName,
                     attendedByPhone: staffPhone,
@@ -3378,10 +3773,11 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       rooms: roomsWithEditedPrices,
                       items: selectedProductsWithEditedPrices, // Add items for no-room scenario
                       total: calculateTotals().totalCost,
+                      columnFormat: columnFormat, // Pass column format to PDF generator
+                      gstRate: gstRate, // Pass GST rate to PDF generator
                       attendedByStaffId: staffId,
                       attendedByName: staffName,
-                      attendedByPhone: staffPhone,
-                      columnFormat: columnFormat // Pass column format to PDF generator
+                      attendedByPhone: staffPhone
                     };
                     
                     await QuotationPDFGenerator(quotationData, { separateByRoom: true });

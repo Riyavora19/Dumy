@@ -602,6 +602,23 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
             // Format 2: SR | AREA | IMAGE | ITEM | QTY | MRP | DISCOUNT | TOTAL
             rowData.push(discountFormatted);
             rowData.push(totalFormatted);
+          } else if (columnFormat === 'format3') {
+            // Format 3: SR | AREA | IMAGE | ITEM | QTY | MRP | DISC% | FINAL PRICE | TOTAL
+            rowData.push(discountFormatted);
+            rowData.push(yourPriceFormatted);
+            rowData.push(totalFormatted);
+          } else if (columnFormat === 'format4') {
+            // Format 4: SR | AREA | IMAGE | ITEM | QTY | MRP | TOTAL (GST in subtotal)
+            rowData.push(totalFormatted);
+          } else if (columnFormat === 'format5') {
+            // Format 5: SR | AREA | IMAGE | ITEM | QTY | MRP | YOUR PRICE | TOTAL (GST in subtotal)
+            rowData.push(yourPriceFormatted);
+            rowData.push(totalFormatted);
+          } else if (columnFormat === 'format6') {
+            // Format 6: SR | AREA | IMAGE | ITEM | QTY | MRP | DISC% | YOUR PRICE | TOTAL (GST in subtotal)
+            rowData.push(discountFormatted);
+            rowData.push(yourPriceFormatted);
+            rowData.push(totalFormatted);
           }
         } else {
           rowData.push(serialNumber.toString());
@@ -616,6 +633,19 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
             rowData.push(totalFormatted);
           } else if (columnFormat === 'format2') {
             rowData.push(discountFormatted);
+            rowData.push(totalFormatted);
+          } else if (columnFormat === 'format3') {
+            rowData.push(discountFormatted);
+            rowData.push(yourPriceFormatted);
+            rowData.push(totalFormatted);
+          } else if (columnFormat === 'format4') {
+            rowData.push(totalFormatted);
+          } else if (columnFormat === 'format5') {
+            rowData.push(yourPriceFormatted);
+            rowData.push(totalFormatted);
+          } else if (columnFormat === 'format6') {
+            rowData.push(discountFormatted);
+            rowData.push(yourPriceFormatted);
             rowData.push(totalFormatted);
           }
         }
@@ -638,12 +668,38 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     let subtotalColspan = 6; // Default (SR, AREA, IMAGE, ITEM, QTY, MRP = 6 cols)
     if (columnFormat === 'format1') subtotalColspan = 6; // SR, AREA, IMAGE, ITEM, QTY, MRP = 6 cols
     else if (columnFormat === 'format2') subtotalColspan = 6; // SR, AREA, IMAGE, ITEM, QTY, MRP = 6 cols
+    else if (columnFormat === 'format3') subtotalColspan = 7; // SR, AREA, IMAGE, ITEM, QTY, MRP, DISC% = 7 cols
+    else if (columnFormat === 'format4') subtotalColspan = 5; // SR, AREA, IMAGE, ITEM, QTY, MRP = 6 cols (but no extra column)
+    else if (columnFormat === 'format5') subtotalColspan = 6; // SR, AREA, IMAGE, ITEM, QTY, MRP = 6 cols
+    else if (columnFormat === 'format6') subtotalColspan = 7; // SR, AREA, IMAGE, ITEM, QTY, MRP, DISC% = 7 cols
     
     tableData.push([
       { content: '', colSpan: subtotalColspan, styles: { halign: 'right' } },
       { content: 'SUBTOTAL:', styles: { fontStyle: 'bold', halign: 'right' } },
       { content: `Rs. ${room.calculatedTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, styles: { fontStyle: 'bold', halign: 'right' } },
     ]);
+    
+    // Add GST breakdown rows for formats 4, 5, 6
+    if (columnFormat === 'format4' || columnFormat === 'format5' || columnFormat === 'format6') {
+      const gstRate = quotationData.gstRate || 18; // Default to 18% if not provided
+      const divisor = 100 + gstRate;
+      const taxableAmount = (room.calculatedTotal / divisor) * 100;
+      const gstAmount = room.calculatedTotal - taxableAmount;
+      
+      // Taxable Amount row
+      tableData.push([
+        { content: '', colSpan: subtotalColspan, styles: { halign: 'right' } },
+        { content: 'Taxable Amount:', styles: { fontStyle: 'bold', halign: 'right' } },
+        { content: `Rs. ${taxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, styles: { fontStyle: 'bold', halign: 'right' } },
+      ]);
+      
+      // GST row
+      tableData.push([
+        { content: '', colSpan: subtotalColspan, styles: { halign: 'right' } },
+        { content: `GST @${gstRate}%:`, styles: { fontStyle: 'bold', halign: 'right' } },
+        { content: `Rs. ${gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, styles: { fontStyle: 'bold', halign: 'right' } },
+      ]);
+    }
 
     // Draw table
     const availableWidth = pageWidth - marginLeft - marginRight;
@@ -677,6 +733,59 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         5: { cellWidth: availableWidth * 0.12, halign: 'left' },
         6: { cellWidth: availableWidth * 0.13, halign: 'center' },
         7: { cellWidth: availableWidth * 0.13, halign: 'right' },
+      };
+    } else if (columnFormat === 'format3') {
+      // Format 3: SR | AREA | IMAGE | ITEM | QTY | MRP | DISC% | FINAL PRICE | TOTAL
+      tableHeaders = ['SR', 'AREA', 'IMAGE', 'ITEM', 'QTY', 'MRP', 'DISC%', 'FINAL PRICE', 'TOTAL'];
+      columnStyles = {
+        0: { cellWidth: availableWidth * 0.04, halign: 'center' },
+        1: { cellWidth: availableWidth * 0.09, halign: 'center', valign: 'middle' },
+        2: { cellWidth: availableWidth * 0.10, halign: 'center', cellPadding: 0 },
+        3: { cellWidth: availableWidth * 0.25, halign: 'left' },
+        4: { cellWidth: availableWidth * 0.06, halign: 'center' },
+        5: { cellWidth: availableWidth * 0.12, halign: 'left' },
+        6: { cellWidth: availableWidth * 0.08, halign: 'center' },
+        7: { cellWidth: availableWidth * 0.13, halign: 'left' },
+        8: { cellWidth: availableWidth * 0.13, halign: 'right' },
+      };
+    } else if (columnFormat === 'format4') {
+      // Format 4: SR | AREA | IMAGE | ITEM | QTY | MRP | TOTAL (GST in subtotal)
+      tableHeaders = ['SR', 'AREA', 'IMAGE', 'ITEM', 'QTY', 'MRP', 'TOTAL'];
+      columnStyles = {
+        0: { cellWidth: availableWidth * 0.05, halign: 'center' },
+        1: { cellWidth: availableWidth * 0.10, halign: 'center', valign: 'middle' },
+        2: { cellWidth: availableWidth * 0.12, halign: 'center', cellPadding: 0 },
+        3: { cellWidth: availableWidth * 0.35, halign: 'left' },
+        4: { cellWidth: availableWidth * 0.08, halign: 'center' },
+        5: { cellWidth: availableWidth * 0.15, halign: 'left' },
+        6: { cellWidth: availableWidth * 0.15, halign: 'right' },
+      };
+    } else if (columnFormat === 'format5') {
+      // Format 5: SR | AREA | IMAGE | ITEM | QTY | MRP | YOUR PRICE | TOTAL (GST in subtotal)
+      tableHeaders = ['SR', 'AREA', 'IMAGE', 'ITEM', 'QTY', 'MRP', 'YOUR PRICE', 'TOTAL'];
+      columnStyles = {
+        0: { cellWidth: availableWidth * 0.05, halign: 'center' },
+        1: { cellWidth: availableWidth * 0.10, halign: 'center', valign: 'middle' },
+        2: { cellWidth: availableWidth * 0.12, halign: 'center', cellPadding: 0 },
+        3: { cellWidth: availableWidth * 0.28, halign: 'left' },
+        4: { cellWidth: availableWidth * 0.07, halign: 'center' },
+        5: { cellWidth: availableWidth * 0.12, halign: 'left' },
+        6: { cellWidth: availableWidth * 0.13, halign: 'left' },
+        7: { cellWidth: availableWidth * 0.13, halign: 'right' },
+      };
+    } else if (columnFormat === 'format6') {
+      // Format 6: SR | AREA | IMAGE | ITEM | QTY | MRP | DISC% | YOUR PRICE | TOTAL (GST in subtotal)
+      tableHeaders = ['SR', 'AREA', 'IMAGE', 'ITEM', 'QTY', 'MRP', 'DISC%', 'YOUR PRICE', 'TOTAL'];
+      columnStyles = {
+        0: { cellWidth: availableWidth * 0.04, halign: 'center' },
+        1: { cellWidth: availableWidth * 0.09, halign: 'center', valign: 'middle' },
+        2: { cellWidth: availableWidth * 0.10, halign: 'center', cellPadding: 0 },
+        3: { cellWidth: availableWidth * 0.25, halign: 'left' },
+        4: { cellWidth: availableWidth * 0.06, halign: 'center' },
+        5: { cellWidth: availableWidth * 0.12, halign: 'left' },
+        6: { cellWidth: availableWidth * 0.08, halign: 'center' },
+        7: { cellWidth: availableWidth * 0.13, halign: 'left' },
+        8: { cellWidth: availableWidth * 0.13, halign: 'right' },
       };
     }
     
@@ -713,6 +822,18 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         } else if (columnFormat === 'format2') {
           itemColumnIndex = 3;
           priceColumnIndices = [5, 7]; // MRP, TOTAL (DISCOUNT is %)
+        } else if (columnFormat === 'format3') {
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 7, 8]; // MRP, FINAL PRICE, TOTAL (DISC% is %)
+        } else if (columnFormat === 'format4') {
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 6]; // MRP, TOTAL
+        } else if (columnFormat === 'format5') {
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 6, 7]; // MRP, YOUR PRICE, TOTAL
+        } else if (columnFormat === 'format6') {
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 7, 8]; // MRP, YOUR PRICE, TOTAL (DISC% is %)
         }
         
         // Custom rendering for ITEM column - prevent default rendering of company line
@@ -733,7 +854,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
           const cell = data.cell;
           const text = typeof cell.raw === 'object' ? cell.raw.content : (cell.text && cell.text[0]);
           
-          if (text && !text.includes('SUBTOTAL')) {
+          if (text && !text.includes('SUBTOTAL') && !text.includes('Taxable') && !text.includes('GST')) {
             const parts = text.split(' ');
             if (parts.length >= 2 && parts[0] === 'Rs.') {
               // Clear text to prevent default rendering
@@ -754,6 +875,22 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
           imageColumnIndex = 2;
           itemColumnIndex = 3;
           priceColumnIndices = [5, 7]; // MRP, TOTAL
+        } else if (columnFormat === 'format3') {
+          imageColumnIndex = 2;
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 7, 8]; // MRP, FINAL PRICE, TOTAL
+        } else if (columnFormat === 'format4') {
+          imageColumnIndex = 2;
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 6]; // MRP, TOTAL
+        } else if (columnFormat === 'format5') {
+          imageColumnIndex = 2;
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 6, 7]; // MRP, YOUR PRICE, TOTAL
+        } else if (columnFormat === 'format6') {
+          imageColumnIndex = 2;
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 7, 8]; // MRP, YOUR PRICE, TOTAL
         }
         
         // Draw product images in the IMAGE column
