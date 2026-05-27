@@ -13,6 +13,7 @@ const allowedOrigins = [
   'https://dumy-delta.vercel.app',
   'https://my-dumy-git-main-riyavora19s-projects.vercel.app',
   'https://my-dumy-825yrtsga-riyavora19s-projects.vercel.app',
+  'https://dumy-git-main-riyavora19s-projects.vercel.app',
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
@@ -20,7 +21,10 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
+    // Allow any vercel.app subdomain (covers all preview deployments)
+    if (origin.endsWith('.vercel.app')) return callback(null, true);
+
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
