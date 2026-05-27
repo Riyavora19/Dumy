@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../utils/axios';
 import { useCart } from '../context/CartContext';
 import './Navbar.css';
 
@@ -37,7 +37,7 @@ const Navbar = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/categories/active');
+      const response = await axiosInstance.get('/api/categories/active');
       if (response.data.success) {
         setCategories(response.data.data);
       }
