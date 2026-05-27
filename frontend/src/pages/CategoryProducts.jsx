@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../utils/axios';
 import './CategoryProducts.css';
 
 const CategoryProducts = () => {
@@ -95,13 +95,13 @@ const CategoryProducts = () => {
   const fetchCategoryAndProducts = async () => {
     try {
       // Fetch category details
-      const categoryResponse = await axios.get(`http://localhost:5000/api/categories/${categoryId}`);
+      const categoryResponse = await axiosInstance.get(`/api/categories/${categoryId}`);
       if (categoryResponse.data.success) {
         setCategory(categoryResponse.data.data);
       }
 
       // Fetch products in this category
-      const productsResponse = await axios.get(`http://localhost:5000/api/products/category/${categoryId}`);
+      const productsResponse = await axiosInstance.get(`/api/products/category/${categoryId}`);
       if (productsResponse.data.success) {
         const allProducts = productsResponse.data.data;
         
