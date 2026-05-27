@@ -581,7 +581,9 @@ router.put('/:id', upload.array('images', 10), async (req, res) => {
     product.itemTypeName = itemTypeName || product.itemTypeName;
     product.price = price ? parseFloat(price) : product.price;
     product.sku = sku || product.sku;
+    console.log('🔍 Backend received itemCode:', itemCode, '| Type:', typeof itemCode);
     product.itemCode = itemCode !== undefined ? itemCode : product.itemCode;
+    console.log('✅ Product itemCode after update:', product.itemCode);
     product.stock = stock !== undefined ? parseInt(stock) : product.stock;
     product.isActive = isActive !== undefined ? (isActive === 'true' || isActive === true) : product.isActive;
     product.images = images.length > 0 ? images : product.images;

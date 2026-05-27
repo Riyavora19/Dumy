@@ -1,3 +1,4 @@
+// PDF COMPRESSION VERSION: 2.0 - Aggressive Compression (80x80px, 40% quality)
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -35,15 +36,54 @@ function calcLineAmount(item) {
   return calcDiscountedRate(item) * parseInt(item.quantity ?? 1);
 }
 
-/** Load image as base64 for jsPDF */
-async function loadImageAsBase64(url) {
+/** Load image as base64 for jsPDF with compression */
+async function loadImageAsBase64(url, maxWidth = 150, maxHeight = 150, quality = 0.4) {
   try {
     const res = await fetch(url, { mode: 'cors' });
     if (!res.ok) return null;
     const blob = await res.blob();
+    
+    console.log(`🖼️ Compressing image: ${url.substring(url.lastIndexOf('/') + 1)} - Original size: ${(blob.size / 1024).toFixed(2)}KB`);
+    
+    // Create image element to get dimensions and compress
     return await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        // Create canvas for compression
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Calculate new dimensions maintaining aspect ratio
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = width * ratio;
+          height = height * ratio;
+        }
+        
+        // Set canvas size
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress image
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convert to compressed JPEG with aggressive compression
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        const compressedSize = (compressedDataUrl.length * 0.75) / 1024; // Approximate size in KB
+        console.log(`✅ Compressed to: ${width}x${height}px, ${compressedSize.toFixed(2)}KB (${quality * 100}% quality)`);
+        resolve(compressedDataUrl);
+      };
+      
+      img.onerror = () => resolve(null);
+      
+      // Load image from blob
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
+      reader.onload = (e) => {
+        img.src = e.target.result;
+      };
       reader.onerror = () => resolve(null);
       reader.readAsDataURL(blob);
     });
@@ -291,21 +331,22 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     ? `${quotationNumber} - Revised ${revisionNumber}`
     : quotationNumber;
 
-  // Load logo image
+  // Load logo image with compression (max 120x120px, 50% quality)
   const logoOrigin = typeof window !== 'undefined' ? window.location.origin : '';
   const logoUrl = `${logoOrigin}/gtss-logo.png`;
-  const logoBase64 = await loadImageAsBase64(logoUrl);
+  const logoBase64 = await loadImageAsBase64(logoUrl, 120, 120, 0.5);
 
   // Resolve admin/staff info - prioritize attendedBy from quotationData
   const attendedByStaffId = quotationData.attendedByStaffId || getLocal('staffId') || '';
   const attendedByName = quotationData.attendedByName || getLocal('staffName') || getLocal('adminName') || 'ADMIN';
   const adminPhone = quotationData.attendedByPhone || getLocal('staffPhone') || getLocal('adminPhone') || '';
 
-  // Create PDF
+  // Create PDF with compression enabled
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
+    compress: true, // Enable PDF compression
   });
 
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -551,7 +592,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         // Show only company name (no variant)
         const itemText = [itemName, company].filter(Boolean).join('\n');
 
-        // Load product image
+        // Load product image with aggressive compression (max 80x80px, 40% quality)
         let imageData = null;
         if (item.image || item.images) {
           const imagePath = item.image || (Array.isArray(item.images) && item.images[0]);
@@ -559,7 +600,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
             const imageUrl = imagePath.startsWith('http') 
               ? imagePath 
               : `http://localhost:5000${imagePath}`;
-            imageData = await loadImageAsBase64(imageUrl);
+            imageData = await loadImageAsBase64(imageUrl, 80, 80, 0.4);
           }
         }
 
@@ -1240,6 +1281,12 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     const roomName = roomsData.length === 1 ? roomsData[0].name.replace(/\s+/g, '-') : 'Multiple';
     filename = `Quotation-${quotationNumber}-Revised-${revisionNumber}-${roomName}`;
   }
+  
+  // Log PDF info before saving
+  const pdfBlob = doc.output('blob');
+  const pdfSizeMB = (pdfBlob.size / (1024 * 1024)).toFixed(2);
+  console.log(`📄 PDF Generated: ${filename}.pdf - Size: ${pdfSizeMB}MB`);
+  
   doc.save(`${filename}.pdf`);
   
   } catch (error) {

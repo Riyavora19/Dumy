@@ -35,6 +35,7 @@ const AdminProducts = () => {
     price: '',
     originalPrice: '',
     sku: '',
+    itemCode: '',
     stock: 0,
     isActive: true,
     tags: '',
@@ -350,6 +351,7 @@ const AdminProducts = () => {
     data.append('price', formData.price);
     data.append('originalPrice', formData.originalPrice || formData.price);
     data.append('sku', formData.sku || `SKU-${Date.now()}`);
+    data.append('itemCode', formData.itemCode || '');
     data.append('stock', formData.stock || 0);
     data.append('isActive', formData.isActive);
     data.append('tags', formData.tags || '');
@@ -429,6 +431,7 @@ const AdminProducts = () => {
       price: product.price || '',
       originalPrice: product.originalPrice || product.mrp || product.price || '',
       sku: product.sku || '',
+      itemCode: product.itemCode || '',
       stock: product.stock || 0,
       isActive: product.isActive !== undefined ? product.isActive : true,
       tags: Array.isArray(product.tags) ? product.tags.join(', ') : (product.tags || ''),
@@ -523,10 +526,15 @@ const AdminProducts = () => {
         }
       };
 
+      console.log('🔍 Saving product with itemCode:', updateData.itemCode);
+      console.log('📦 Full update data:', updateData);
+
       const response = await axios.put(
         `http://localhost:5000/api/products/${editingProduct._id}`,
         updateData
       );
+
+      console.log('✅ Server response:', response.data);
 
       if (response.data.success) {
         showNotification('Product updated successfully!', 'success');
@@ -645,6 +653,7 @@ const AdminProducts = () => {
       price: '',
       originalPrice: '',
       sku: '',
+      itemCode: '',
       stock: 0,
       isActive: true,
       tags: '',
@@ -1898,6 +1907,7 @@ const AdminProducts = () => {
                 <th>Name</th>
                 <th>Category</th>
                 <th>Company</th>
+                <th>Item Code</th>
                 <th>Price</th>
                 <th>Stock</th>
                 <th>Actions</th>
@@ -1940,6 +1950,16 @@ const AdminProducts = () => {
                       ? (product.company?.name || '-')
                       : (product.company || '-')
                     }
+                  </td>
+                  <td>
+                    <span style={{ 
+                      fontFamily: 'monospace', 
+                      fontSize: '12px',
+                      color: product.itemCode ? '#2563eb' : '#999',
+                      fontWeight: product.itemCode ? '600' : 'normal'
+                    }}>
+                      {product.itemCode || '-'}
+                    </span>
                   </td>
                   <td>
                     <span>₹{product.price?.toLocaleString('en-IN')}</span>
@@ -2283,6 +2303,9 @@ const AdminProducts = () => {
                 <label>Item Code</label>
                 <input
                   type="text"
+                  name="itemCode"
+                  value={formData.itemCode || ''}
+                  onChange={handleChange}
                   placeholder="e.g., SKU-001"
                 />
               </div>
@@ -3481,9 +3504,13 @@ const AdminProducts = () => {
                 <input
                   type="text"
                   value={formData.itemCode || ''}
-                  onChange={(e) => setFormData({ ...formData, itemCode: e.target.value })}
+                  onChange={(e) => {
+                    console.log('📝 Item Code changed to:', e.target.value);
+                    setFormData({ ...formData, itemCode: e.target.value });
+                  }}
                   placeholder="e.g., IC-12345"
                 />
+                <small style={{ color: '#666', fontSize: '11px' }}>v2.0 - Item code will be saved</small>
               </div>
 
               {/* Specifications Section */}
