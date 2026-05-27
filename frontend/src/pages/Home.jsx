@@ -49,7 +49,7 @@ const Home = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/categories/active');
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/categories/active');
       if (response.data.success) {
         setCategories(response.data.data);
       }
@@ -60,7 +60,7 @@ const Home = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/products?flag=Featured');
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/products?flag=Featured');
       if (response.data.success) {
         // Get products marked as Featured, limit to 6
         setFeaturedProducts(response.data.data.slice(0, 6));
@@ -73,13 +73,13 @@ const Home = () => {
   const fetchStats = async () => {
     try {
       // Fetch products count
-      const productsRes = await axios.get('http://localhost:5000/api/products');
+      const productsRes = await axios.get('https://dumy-2-mli2.onrender.com/api/products');
       if (productsRes.data.success) {
         setStats(prev => ({ ...prev, products: productsRes.data.data.length }));
       }
       
       // Fetch categories count
-      const categoriesRes = await axios.get('http://localhost:5000/api/categories/active');
+      const categoriesRes = await axios.get('https://dumy-2-mli2.onrender.com/api/categories/active');
       if (categoriesRes.data.success) {
         setStats(prev => ({ ...prev, categories: categoriesRes.data.data.length }));
       }
@@ -243,7 +243,7 @@ const Home = () => {
                   >
                     {product.images && product.images.length > 0 ? (
                       <img 
-                        src={`http://localhost:5000${product.images[0]}`} 
+                        src={`https://dumy-2-mli2.onrender.com${product.images[0]}`} 
                         alt={product.name}
                       />
                     ) : (
@@ -531,7 +531,7 @@ const Home = () => {
               <div className="product-modal__image-section">
                 {selectedProduct.images && selectedProduct.images.length > 0 ? (
                   <img 
-                    src={`http://localhost:5000${selectedProduct.images[0]}`} 
+                    src={`https://dumy-2-mli2.onrender.com${selectedProduct.images[0]}`} 
                     alt={selectedProduct.name}
                   />
                 ) : (

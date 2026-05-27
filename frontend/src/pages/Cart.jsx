@@ -41,7 +41,7 @@ const Cart = () => {
     }));
 
     try {
-      const response = await axios.post('http://localhost:5000/api/inquiries', {
+      const response = await axios.post('https://dumy-2-mli2.onrender.com/api/inquiries', {
         ...formData,
         products: productsData
       });
@@ -94,7 +94,7 @@ const Cart = () => {
             {cartItems.map(item => (
               <div key={item._id} className="cart__item">
                 <div className="cart__item-image">
-                  <img src={`http://localhost:5000${item.images[0]}`} alt={item.name} />
+                  <img src={`https://dumy-2-mli2.onrender.com${item.images[0]}`} alt={item.name} />
                 </div>
                 <div className="cart__item-details">
                   <h3>{item.name}</h3>

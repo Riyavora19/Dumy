@@ -10,7 +10,7 @@ import AdminProducts from '../components/AdminProducts';
 import AdminCategories from '../components/AdminCategories';
 import './StaffDashboard.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com/api';
 
 function StaffDashboard() {
   const { showNotification } = useNotification();

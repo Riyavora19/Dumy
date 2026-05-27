@@ -15,7 +15,7 @@ const UserLogin = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com';
 
   const handleChange = (e) => {
     setFormData({

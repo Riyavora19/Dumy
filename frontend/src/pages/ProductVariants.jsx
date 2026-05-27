@@ -46,7 +46,7 @@ const ProductVariants = () => {
       setLoading(true);
 
       // Fetch category
-      const categoryResponse = await axios.get(`http://localhost:5000/api/categories/${categoryId}`);
+      const categoryResponse = await axios.get(`https://dumy-2-mli2.onrender.com/api/categories/${categoryId}`);
       if (categoryResponse.data.success) {
         setCategory(categoryResponse.data.data);
       }
@@ -56,7 +56,7 @@ const ProductVariants = () => {
       // If companyName is in the route, fetch all products from that company in this category
       if (companyName) {
         const productsResponse = await axios.get(
-          `http://localhost:5000/api/products/category/${categoryId}`
+          `https://dumy-2-mli2.onrender.com/api/products/category/${categoryId}`
         );
         
         if (productsResponse.data.success) {
@@ -72,7 +72,7 @@ const ProductVariants = () => {
       // If itemTypeId is provided, fetch products by item type
       else if (itemTypeId) {
         const productsResponse = await axios.get(
-          `http://localhost:5000/api/products/by-item-type/${itemTypeId}`
+          `https://dumy-2-mli2.onrender.com/api/products/by-item-type/${itemTypeId}`
         );
         
         if (productsResponse.data.success) {
@@ -92,7 +92,7 @@ const ProductVariants = () => {
       // Otherwise, fetch products by name and category (if productName is in query params)
       else if (productName) {
         const productsResponse = await axios.get(
-          `http://localhost:5000/api/products/variants/${categoryId}/${encodeURIComponent(productName)}`
+          `https://dumy-2-mli2.onrender.com/api/products/variants/${categoryId}/${encodeURIComponent(productName)}`
         );
         
         if (productsResponse.data.success) {
@@ -681,7 +681,7 @@ const ProductVariants = () => {
                       {product.images && product.images.length > 0 ? (
                         <>
                           <img 
-                            src={`http://localhost:5000${product.images[0]}`} 
+                            src={`https://dumy-2-mli2.onrender.com${product.images[0]}`} 
                             alt={product.name}
                           />
                           {product.images.length > 1 && (
@@ -828,7 +828,7 @@ const ProductVariants = () => {
                 <div className="product-variants__modal-image">
                   {selectedProduct.images && selectedProduct.images.length > 0 ? (
                     <img 
-                      src={`http://localhost:5000${selectedProduct.images[currentImageIndex]}`}
+                      src={`https://dumy-2-mli2.onrender.com${selectedProduct.images[currentImageIndex]}`}
                       alt={selectedProduct.name}
                     />
                   ) : (
@@ -873,7 +873,7 @@ const ProductVariants = () => {
                           className={`product-variants__modal-thumbnail ${index === currentImageIndex ? 'active' : ''}`}
                           onClick={() => setCurrentImageIndex(index)}
                         >
-                          <img src={`http://localhost:5000${img}`} alt="" />
+                          <img src={`https://dumy-2-mli2.onrender.com${img}`} alt="" />
                         </button>
                       ))}
                     </div>

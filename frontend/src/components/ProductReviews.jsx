@@ -30,7 +30,7 @@ const ProductReviews = ({ productId }) => {
       const params = { sort: sortBy };
       if (filterRating) params.rating = filterRating;
 
-      const response = await axios.get(`http://localhost:5000/api/reviews/product/${productId}`, { params });
+      const response = await axios.get(`https://dumy-2-mli2.onrender.com/api/reviews/product/${productId}`, { params });
       if (response.data.success) {
         setReviews(response.data.data);
         setStats(response.data.stats);
@@ -95,7 +95,7 @@ const ProductReviews = ({ productId }) => {
     });
 
     try {
-      const response = await axios.post('http://localhost:5000/api/reviews', data, {
+      const response = await axios.post('https://dumy-2-mli2.onrender.com/api/reviews', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -122,7 +122,7 @@ const ProductReviews = ({ productId }) => {
     const user = JSON.parse(userInfo);
 
     try {
-      const response = await axios.post(`http://localhost:5000/api/reviews/${reviewId}/helpful`, {
+      const response = await axios.post(`https://dumy-2-mli2.onrender.com/api/reviews/${reviewId}/helpful`, {
         userId: user.id
       });
 
@@ -347,7 +347,7 @@ const ProductReviews = ({ productId }) => {
                   {review.images.map((image, index) => (
                     <img
                       key={index}
-                      src={`http://localhost:5000${image}`}
+                      src={`https://dumy-2-mli2.onrender.com${image}`}
                       alt={`Review ${index + 1}`}
                       className="review-image"
                     />

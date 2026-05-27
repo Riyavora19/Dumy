@@ -2,7 +2,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com/api';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -277,7 +277,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
   // Fetch active logos from API
   let activeLogos = null;
   try {
-    const response = await fetch('http://localhost:5000/api/quotation-settings');
+    const response = await fetch('https://dumy-2-mli2.onrender.com/api/quotation-settings');
     const data = await response.json();
     if (data.success) {
       activeLogos = data.data.footerLogos.filter(logo => logo.active).sort((a, b) => a.order - b.order);
@@ -599,7 +599,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
           if (imagePath) {
             const imageUrl = imagePath.startsWith('http') 
               ? imagePath 
-              : `http://localhost:5000${imagePath}`;
+              : `https://dumy-2-mli2.onrender.com${imagePath}`;
             imageData = await loadImageAsBase64(imageUrl, 80, 80, 0.4);
           }
         }

@@ -305,7 +305,7 @@ async function generateImagesPDF(data) {
             if (imagePath) {
               const imageUrl = imagePath.startsWith('http') 
                 ? imagePath 
-                : `http://localhost:5000${imagePath}`;
+                : `https://dumy-2-mli2.onrender.com${imagePath}`;
               const imageData = await loadImageAsBase64(imageUrl);
 
               if (imageData) {
@@ -467,7 +467,7 @@ async function generateImagesPDF(data) {
         if (imagePath) {
           const imageUrl = imagePath.startsWith('http') 
             ? imagePath 
-            : `http://localhost:5000${imagePath}`;
+            : `https://dumy-2-mli2.onrender.com${imagePath}`;
           const imageData = await loadImageAsBase64(imageUrl);
 
           if (imageData) {

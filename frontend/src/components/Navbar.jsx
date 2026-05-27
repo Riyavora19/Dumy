@@ -60,7 +60,7 @@ const Navbar = () => {
 
     if (query.trim().length > 0) {
       try {
-        const response = await axios.get(`http://localhost:5000/api/products/search/${query}`);
+        const response = await axios.get(`https://dumy-2-mli2.onrender.com/api/products/search/${query}`);
         if (response.data.success) {
           setSearchResults(response.data.data);
           setShowSearchResults(true);
@@ -181,7 +181,7 @@ const Navbar = () => {
                   >
                     <div className="header__search-result-image">
                       <img 
-                        src={`http://localhost:5000${product.images[0]}`} 
+                        src={`https://dumy-2-mli2.onrender.com${product.images[0]}`} 
                         alt={product.name}
                       />
                     </div>

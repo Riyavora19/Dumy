@@ -25,7 +25,7 @@ const AdminOrders = () => {
       if (filterStatus) params.append('status', filterStatus);
       if (filterPaymentStatus) params.append('paymentStatus', filterPaymentStatus);
 
-      const response = await fetch(`http://localhost:5000/api/orders?${params}`);
+      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/orders?${params}`);
       const data = await response.json();
       setOrders(data.orders || []);
     } catch (error) {
@@ -37,7 +37,7 @@ const AdminOrders = () => {
 
   const handleViewDetails = async (orderId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`);
+      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/orders/${orderId}`);
       const order = await response.json();
       setSelectedOrder(order);
       setShowDetailsModal(true);
@@ -48,7 +48,7 @@ const AdminOrders = () => {
 
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/orders/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -64,7 +64,7 @@ const AdminOrders = () => {
 
   const handleApproveCommission = async (orderId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/commission/approve`, {
+      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/orders/${orderId}/commission/approve`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ approvedBy: 'admin' })
@@ -83,7 +83,7 @@ const AdminOrders = () => {
     const paymentMethod = 'cash';
 
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/commission/pay`, {
+      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/orders/${orderId}/commission/pay`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentMethod })

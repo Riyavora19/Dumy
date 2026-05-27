@@ -62,7 +62,7 @@ const AdminClients = () => {
       if (filterType) params.clientType = filterType;
       if (searchTerm) params.search = searchTerm;
 
-      const response = await axios.get('http://localhost:5000/api/clients', { params });
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/clients', { params });
       if (response.data.success) {
         setClients(response.data.data);
       }
@@ -135,14 +135,14 @@ const AdminClients = () => {
     try {
       if (editingClient) {
         const response = await axios.put(
-          `http://localhost:5000/api/clients/${editingClient._id}`,
+          `https://dumy-2-mli2.onrender.com/api/clients/${editingClient._id}`,
           clientData
         );
         if (response.data.success) {
           showNotification('Client updated successfully!', 'success');
         }
       } else {
-        const response = await axios.post('http://localhost:5000/api/clients', clientData);
+        const response = await axios.post('https://dumy-2-mli2.onrender.com/api/clients', clientData);
         if (response.data.success) {
           showNotification('Client created successfully!', 'success');
         }
@@ -199,7 +199,7 @@ const AdminClients = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`http://localhost:5000/api/clients/${id}`);
+      const response = await axios.delete(`https://dumy-2-mli2.onrender.com/api/clients/${id}`);
       if (response.data.success) {
         showNotification('Client deleted successfully!', 'success');
         fetchClients();

@@ -39,14 +39,14 @@ const AdminDashboard = ({ onNavigate }) => {
         contactsRes,
         ordersRes
       ] = await Promise.all([
-        axios.get('http://localhost:5000/api/products'),
-        axios.get('http://localhost:5000/api/categories'),
-        axios.get('http://localhost:5000/api/companies'),
-        axios.get('http://localhost:5000/api/clients'),
-        axios.get('http://localhost:5000/api/inquiries'),
-        axios.get('http://localhost:5000/api/budget-plans'),
-        axios.get('http://localhost:5000/api/contacts'),
-        axios.get('http://localhost:5000/api/orders')
+        axios.get('https://dumy-2-mli2.onrender.com/api/products'),
+        axios.get('https://dumy-2-mli2.onrender.com/api/categories'),
+        axios.get('https://dumy-2-mli2.onrender.com/api/companies'),
+        axios.get('https://dumy-2-mli2.onrender.com/api/clients'),
+        axios.get('https://dumy-2-mli2.onrender.com/api/inquiries'),
+        axios.get('https://dumy-2-mli2.onrender.com/api/budget-plans'),
+        axios.get('https://dumy-2-mli2.onrender.com/api/contacts'),
+        axios.get('https://dumy-2-mli2.onrender.com/api/orders')
       ]);
 
       // Process products
@@ -350,7 +350,7 @@ const AdminDashboard = ({ onNavigate }) => {
                           <div className="admin-dashboard__product">
                             {product.images && product.images[0] && (
                               <img 
-                                src={`http://localhost:5000${product.images[0]}`} 
+                                src={`https://dumy-2-mli2.onrender.com${product.images[0]}`} 
                                 alt={product.name}
                                 onError={(e) => {
                                   e.target.src = 'https://via.placeholder.com/40x40/667eea/ffffff?text=?';

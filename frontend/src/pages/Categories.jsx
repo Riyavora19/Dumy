@@ -119,7 +119,7 @@ const Categories = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/categories/active');
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/categories/active');
       if (response.data.success) {
         const validCategories = response.data.data.filter(item =>
           !item.hasOwnProperty('isPartner') &&

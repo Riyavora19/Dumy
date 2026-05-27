@@ -17,7 +17,7 @@ const AdminInquiries = () => {
 
   const fetchInquiries = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/inquiries');
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/inquiries');
       if (response.data.success) {
         setInquiries(response.data.data);
       }
@@ -30,7 +30,7 @@ const AdminInquiries = () => {
 
   const updateStatus = async (id, status) => {
     try {
-      const response = await axios.patch(`http://localhost:5000/api/inquiries/${id}/status`, { status });
+      const response = await axios.patch(`https://dumy-2-mli2.onrender.com/api/inquiries/${id}/status`, { status });
       if (response.data.success) {
         fetchInquiries();
         if (selectedInquiry?._id === id) {
@@ -46,7 +46,7 @@ const AdminInquiries = () => {
 
   const deleteInquiry = async (id) => {
     try {
-      const response = await axios.delete(`http://localhost:5000/api/inquiries/${id}`);
+      const response = await axios.delete(`https://dumy-2-mli2.onrender.com/api/inquiries/${id}`);
       if (response.data.success) {
         fetchInquiries();
         if (selectedInquiry?._id === id) {
@@ -63,7 +63,7 @@ const AdminInquiries = () => {
 
   const convertToLiveRequest = async (id) => {
     try {
-      const response = await axios.post(`http://localhost:5000/api/inquiries/${id}/convert-to-live-request`);
+      const response = await axios.post(`https://dumy-2-mli2.onrender.com/api/inquiries/${id}/convert-to-live-request`);
       if (response.data.success) {
         showNotification(`✅ Inquiry converted to live request successfully!\n\nRequest Number: ${response.data.data.requestNumber}\n\nYou can now view and manage this request in the Live Requests section.`, 'success', 5000);
         fetchInquiries();
@@ -292,7 +292,7 @@ const AdminInquiries = () => {
                       <div key={index} className="admin-inquiries__product-item">
                         <div className="admin-inquiries__product-image">
                           <img 
-                            src={`http://localhost:5000${product.image}`} 
+                            src={`https://dumy-2-mli2.onrender.com${product.image}`} 
                             alt={product.name}
                           />
                         </div>

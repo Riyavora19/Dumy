@@ -43,7 +43,7 @@ const Admin = () => {
     }
 
     try {
-      const response = await axios.get('http://localhost:5000/api/auth/verify', {
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/auth/verify', {
         headers: { Authorization: `Bearer ${token}` }
       });
 

@@ -40,7 +40,7 @@ const UserProfile = () => {
         return;
       }
 
-      const response = await axios.get('http://localhost:5000/api/users/profile', {
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/users/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -105,7 +105,7 @@ const UserProfile = () => {
     try {
       const token = localStorage.getItem('userToken');
       const response = await axios.put(
-        'http://localhost:5000/api/users/profile',
+        'https://dumy-2-mli2.onrender.com/api/users/profile',
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -146,7 +146,7 @@ const UserProfile = () => {
     try {
       const token = localStorage.getItem('userToken');
       const response = await axios.put(
-        'http://localhost:5000/api/users/change-password',
+        'https://dumy-2-mli2.onrender.com/api/users/change-password',
         {
           currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword

@@ -17,7 +17,7 @@ const ForgotPassword = () => {
     setSuccess(false);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/users/forgot-password', { email });
+      const response = await axios.post('https://dumy-2-mli2.onrender.com/api/users/forgot-password', { email });
       
       if (response.data.success) {
         setSuccess(true);

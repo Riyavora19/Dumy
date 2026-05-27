@@ -113,7 +113,7 @@ const AdminProducts = () => {
       if (filterItemType) params.itemType = filterItemType;
       if (filterStatus) params.isActive = filterStatus === 'active';
       
-      const response = await axios.get('http://localhost:5000/api/products', { params });
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/products', { params });
       console.log('Products response:', response.data);
       
       if (response.data.success) {
@@ -150,7 +150,7 @@ const AdminProducts = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/categories');
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/categories');
       if (response.data.success) {
         setCategories(response.data.data);
         
@@ -158,7 +158,7 @@ const AdminProducts = () => {
         const counts = {};
         for (const cat of response.data.data) {
           try {
-            const countResponse = await axios.get('http://localhost:5000/api/products', {
+            const countResponse = await axios.get('https://dumy-2-mli2.onrender.com/api/products', {
               params: { category: cat._id }
             });
             counts[cat._id] = countResponse.data.count || 0;
@@ -175,7 +175,7 @@ const AdminProducts = () => {
 
   const fetchCompanies = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/companies');
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/companies');
       if (response.data.success) {
         // Show all companies (removed partner filter)
         const allCompanies = response.data.data;
@@ -185,7 +185,7 @@ const AdminProducts = () => {
         const counts = {};
         for (const comp of allCompanies) {
           try {
-            const countResponse = await axios.get('http://localhost:5000/api/products', {
+            const countResponse = await axios.get('https://dumy-2-mli2.onrender.com/api/products', {
               params: { company: comp._id }
             });
             counts[comp._id] = countResponse.data.count || 0;
@@ -202,14 +202,14 @@ const AdminProducts = () => {
 
   const fetchItemTypes = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/item-types');
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/item-types');
       setItemTypes(response.data);
       
       // Fetch product count for each item type
       const counts = {};
       for (const itemType of response.data) {
         try {
-          const countResponse = await axios.get('http://localhost:5000/api/products', {
+          const countResponse = await axios.get('https://dumy-2-mli2.onrender.com/api/products', {
             params: { itemType: itemType._id }
           });
           counts[itemType._id] = countResponse.data.count || 0;
@@ -374,7 +374,7 @@ const AdminProducts = () => {
       console.log('Sending request...');
       if (editingProduct) {
         const response = await axios.put(
-          `http://localhost:5000/api/products/${editingProduct._id}`,
+          `https://dumy-2-mli2.onrender.com/api/products/${editingProduct._id}`,
           data,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -397,7 +397,7 @@ const AdminProducts = () => {
         }
       } else {
         const response = await axios.post(
-          'http://localhost:5000/api/products',
+          'https://dumy-2-mli2.onrender.com/api/products',
           data,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -530,7 +530,7 @@ const AdminProducts = () => {
       console.log('📦 Full update data:', updateData);
 
       const response = await axios.put(
-        `http://localhost:5000/api/products/${editingProduct._id}`,
+        `https://dumy-2-mli2.onrender.com/api/products/${editingProduct._id}`,
         updateData
       );
 
@@ -562,7 +562,7 @@ const AdminProducts = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`http://localhost:5000/api/products/${id}`);
+      const response = await axios.delete(`https://dumy-2-mli2.onrender.com/api/products/${id}`);
       if (response.data.success) {
         showNotification('Product deleted successfully!', 'success');
         fetchProducts();
@@ -605,7 +605,7 @@ const AdminProducts = () => {
       });
 
       const response = await axios.put(
-        `http://localhost:5000/api/products/${imageChangeProduct._id}`,
+        `https://dumy-2-mli2.onrender.com/api/products/${imageChangeProduct._id}`,
         data,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       );
@@ -778,7 +778,7 @@ const AdminProducts = () => {
         });
 
         const response = await axios.post(
-          'http://localhost:5000/api/products',
+          'https://dumy-2-mli2.onrender.com/api/products',
           data,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -903,7 +903,7 @@ const AdminProducts = () => {
 
       // Create new category (only if it's one of the 3 allowed)
       try {
-        const catRes = await axios.post('http://localhost:5000/api/categories/find-or-create', {
+        const catRes = await axios.post('https://dumy-2-mli2.onrender.com/api/categories/find-or-create', {
           name: trimmedName
         });
         if (catRes.data.success) {
@@ -959,7 +959,7 @@ const AdminProducts = () => {
 
         // First, try to find existing product by name
         const searchResponse = await axios.get(
-          `http://localhost:5000/api/products/search/${encodeURIComponent(productName)}`
+          `https://dumy-2-mli2.onrender.com/api/products/search/${encodeURIComponent(productName)}`
         );
 
         let productId = null;
@@ -977,14 +977,14 @@ const AdminProducts = () => {
         if (productId) {
           // UPDATE existing product
           response = await axios.put(
-            `http://localhost:5000/api/products/${productId}`,
+            `https://dumy-2-mli2.onrender.com/api/products/${productId}`,
             data,
             { headers: { 'Content-Type': 'multipart/form-data' } }
           );
         } else {
           // CREATE new product
           response = await axios.post(
-            'http://localhost:5000/api/products',
+            'https://dumy-2-mli2.onrender.com/api/products',
             data,
             { headers: { 'Content-Type': 'multipart/form-data' } }
           );
@@ -1286,7 +1286,7 @@ const AdminProducts = () => {
             resolvedCategoryId = categoryCache[catKey];
           } else {
             try {
-              const catRes = await axios.post('http://localhost:5000/api/categories/find-or-create', {
+              const catRes = await axios.post('https://dumy-2-mli2.onrender.com/api/categories/find-or-create', {
                 name: product.categoryName
               });
               if (catRes.data.success) {
@@ -1316,7 +1316,7 @@ const AdminProducts = () => {
             resolvedCompanyId = companyCache[key];
           } else {
             try {
-              const compRes = await axios.post('http://localhost:5000/api/companies/find-or-create', {
+              const compRes = await axios.post('https://dumy-2-mli2.onrender.com/api/companies/find-or-create', {
                 name: product.company
               });
               if (compRes.data.success) {
@@ -1382,7 +1382,7 @@ const AdminProducts = () => {
         if (product.schemeType) data.append('schemeType', product.schemeType);
 
         const response = await axios.post(
-          'http://localhost:5000/api/products',
+          'https://dumy-2-mli2.onrender.com/api/products',
           data,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -1729,7 +1729,7 @@ const AdminProducts = () => {
         if (excelData['GST %']) updateData.gst = parseFloat(excelData['GST %']);
 
         const response = await axios.put(
-          `http://localhost:5000/api/products/${productId}`,
+          `https://dumy-2-mli2.onrender.com/api/products/${productId}`,
           updateData
         );
 
@@ -1919,7 +1919,7 @@ const AdminProducts = () => {
                   <td>
                     {product.images && product.images[0] ? (
                       <img 
-                        src={`http://localhost:5000${product.images[0]}`} 
+                        src={`https://dumy-2-mli2.onrender.com${product.images[0]}`} 
                         alt={product.name}
                         className="admin-products__thumb"
                         onError={(e) => {
@@ -2435,7 +2435,7 @@ const AdminProducts = () => {
                     <div className="admin-products__existing-images" style={{ marginTop: '8px' }}>
                       {existingImages.map((img, index) => (
                         <div key={index} className="admin-products__existing-image">
-                          <img src={`http://localhost:5000${img}`} alt="" />
+                          <img src={`https://dumy-2-mli2.onrender.com${img}`} alt="" />
                           <button type="button" onClick={() => removeExistingImage(index)}>×</button>
                         </div>
                       ))}
@@ -3772,7 +3772,7 @@ const AdminProducts = () => {
                     {imageChangeProduct.images.map((img, idx) => (
                       <div key={idx} className="admin-products__current-image-item">
                         <img 
-                          src={`http://localhost:5000${img}`}
+                          src={`https://dumy-2-mli2.onrender.com${img}`}
                           alt={`Current ${idx + 1}`}
                         />
                         <span>Image {idx + 1}</span>

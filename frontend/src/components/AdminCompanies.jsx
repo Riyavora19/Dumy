@@ -33,7 +33,7 @@ const AdminCompanies = () => {
 
   const fetchCompanies = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/companies');
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/companies');
       if (response.data.success) {
         setCompanies(response.data.data);
       }
@@ -46,7 +46,7 @@ const AdminCompanies = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/categories');
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/categories');
       if (response.data.success) {
         setCategories(response.data.data);
       }
@@ -57,7 +57,7 @@ const AdminCompanies = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/products');
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/products');
       if (response.data.success) {
         setProducts(response.data.data);
       }
@@ -175,7 +175,7 @@ const AdminCompanies = () => {
     try {
       if (editingCompany) {
         const response = await axios.put(
-          `http://localhost:5000/api/companies/${editingCompany._id}`,
+          `https://dumy-2-mli2.onrender.com/api/companies/${editingCompany._id}`,
           data,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -184,7 +184,7 @@ const AdminCompanies = () => {
         }
       } else {
         const response = await axios.post(
-          'http://localhost:5000/api/companies',
+          'https://dumy-2-mli2.onrender.com/api/companies',
           data,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -218,7 +218,7 @@ const AdminCompanies = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`http://localhost:5000/api/companies/${id}`);
+      const response = await axios.delete(`https://dumy-2-mli2.onrender.com/api/companies/${id}`);
       if (response.data.success) {
         showNotification('Company deleted successfully!', 'success');
         fetchCompanies();
@@ -302,7 +302,7 @@ const AdminCompanies = () => {
                     <td>
                       {company.logo ? (
                         <img 
-                          src={`http://localhost:5000${company.logo}`} 
+                          src={`https://dumy-2-mli2.onrender.com${company.logo}`} 
                           alt={company.name}
                           className="admin-companies__logo-img"
                         />
@@ -430,7 +430,7 @@ const AdminCompanies = () => {
                                   {categoryProducts.map(product => (
                                     <div key={product._id} className="admin-companies__product-item">
                                       <img 
-                                        src={`http://localhost:5000${product.images[0]}`} 
+                                        src={`https://dumy-2-mli2.onrender.com${product.images[0]}`} 
                                         alt={product.name}
                                         className="admin-companies__product-img"
                                       />
@@ -553,7 +553,7 @@ const AdminCompanies = () => {
                 <label>Company Logo</label>
                 {existingLogo && !selectedLogo && (
                   <div className="admin-companies__existing-logo">
-                    <img src={`http://localhost:5000${existingLogo}`} alt="Current logo" />
+                    <img src={`https://dumy-2-mli2.onrender.com${existingLogo}`} alt="Current logo" />
                   </div>
                 )}
                 <label className="admin-companies__upload-label">

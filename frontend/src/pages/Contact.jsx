@@ -72,7 +72,7 @@ const Contact = () => {
     setSuccess(false);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/inquiries', formData);
+      const response = await axios.post('https://dumy-2-mli2.onrender.com/api/inquiries', formData);
       
       if (response.data.success) {
         setSuccess(true);

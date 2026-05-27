@@ -13,7 +13,7 @@ const AdminProductsDebug = () => {
   const fetchProducts = async () => {
     try {
       console.log('Fetching products...');
-      const response = await axios.get('http://localhost:5000/api/products');
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/products');
       console.log('Response:', response.data);
       
       if (response.data.success) {

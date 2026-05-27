@@ -41,7 +41,7 @@ const ResetPassword = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/users/reset-password/${token}`,
+        `https://dumy-2-mli2.onrender.com/api/users/reset-password/${token}`,
         { password: formData.password }
       );
       

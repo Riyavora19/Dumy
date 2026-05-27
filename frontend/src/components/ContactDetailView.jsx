@@ -22,7 +22,7 @@ const ContactDetailView = () => {
 
   const fetchContactDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/contacts/${id}`);
+      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/contacts/${id}`);
       const data = await response.json();
       setContact(data.contact);
       setRelationships(data.relationships || []);
@@ -35,7 +35,7 @@ const ContactDetailView = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/customer/${id}`);
+      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/orders/customer/${id}`);
       const data = await response.json();
       setOrders(data || []);
     } catch (error) {
@@ -45,7 +45,7 @@ const ContactDetailView = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/contacts/${id}/stats`);
+      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/contacts/${id}/stats`);
       const data = await response.json();
       setStats(data);
     } catch (error) {

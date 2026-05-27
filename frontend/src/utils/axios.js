@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Get API URL from environment variable
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com';
 
 // Debug log to verify environment variable
 console.log('🔧 API_BASE_URL:', API_BASE_URL);

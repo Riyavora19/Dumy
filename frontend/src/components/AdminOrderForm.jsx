@@ -100,7 +100,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/products');
+      const response = await fetch('https://dumy-2-mli2.onrender.com/api/products');
       const data = await response.json();
       console.log('Products API response:', data); // Debug log
       setProducts(data.data || data.products || []);
@@ -116,7 +116,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/contacts/search/autocomplete?q=${query}`);
+      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/contacts/search/autocomplete?q=${query}`);
       const data = await response.json();
       setSearchResults(data);
     } catch (error) {
@@ -237,7 +237,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
       // If new customer, create contact
       if (formData.isNewCustomer) {
         try {
-          const response = await fetch('http://localhost:5000/api/contacts', {
+          const response = await fetch('https://dumy-2-mli2.onrender.com/api/contacts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -266,7 +266,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
       // If referrer is not selected from dropdown (new referrer), create them
       if (!formData.referrer && formData.referrerName) {
         try {
-          const response = await fetch('http://localhost:5000/api/contacts', {
+          const response = await fetch('https://dumy-2-mli2.onrender.com/api/contacts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -282,7 +282,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
             setFormData(prev => ({ ...prev, referrer: newReferrer._id }));
             
             // Create relationship with the new referrer
-            await fetch('http://localhost:5000/api/relationships', {
+            await fetch('https://dumy-2-mli2.onrender.com/api/relationships', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -305,7 +305,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
       } else if (formData.referrer) {
         // Referrer already exists, just create relationship
         try {
-          await fetch('http://localhost:5000/api/relationships', {
+          await fetch('https://dumy-2-mli2.onrender.com/api/relationships', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -388,7 +388,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch('http://localhost:5000/api/orders', {
+      const response = await fetch('https://dumy-2-mli2.onrender.com/api/orders', {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(orderData)
@@ -401,7 +401,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
         // If order was created from budget plan, update budget plan status
         if (formData.budgetPlanId) {
           try {
-            await fetch(`http://localhost:5000/api/budget-plans/${formData.budgetPlanId}`, {
+            await fetch(`https://dumy-2-mli2.onrender.com/api/budget-plans/${formData.budgetPlanId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status: 'completed' })
@@ -552,7 +552,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
             {products.map(product => (
               <div key={product._id} className="product-card" onClick={() => addProduct(product)}>
                 {product.images?.[0] && (
-                  <img src={`http://localhost:5000${product.images[0]}`} alt={product.name} />
+                  <img src={`https://dumy-2-mli2.onrender.com${product.images[0]}`} alt={product.name} />
                 )}
                 <div className="product-info">
                   <strong>{product.name}</strong>

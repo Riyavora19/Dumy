@@ -29,7 +29,7 @@ const RequestQuote = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/categories');
+      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/categories');
       if (response.data.success) {
         setCategories(response.data.data);
       }
@@ -75,7 +75,7 @@ const RequestQuote = () => {
       console.log('Submitting inquiry:', inquiryData);
 
       // Save to inquiries
-      const response = await axios.post('http://localhost:5000/api/inquiries', inquiryData);
+      const response = await axios.post('https://dumy-2-mli2.onrender.com/api/inquiries', inquiryData);
       
       if (response.data.success) {
         setSubmitted(true);

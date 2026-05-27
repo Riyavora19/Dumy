@@ -238,7 +238,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
   const fetchRoomTemplates = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/room-templates');
+      const response = await fetch('https://dumy-2-mli2.onrender.com/api/room-templates');
       const data = await response.json();
       setRoomTemplates(data);
     } catch (error) {
@@ -248,7 +248,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/products');
+      const response = await fetch('https://dumy-2-mli2.onrender.com/api/products');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -287,7 +287,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/categories');
+      const response = await fetch('https://dumy-2-mli2.onrender.com/api/categories');
       const data = await response.json();
       // Ensure categories is always an array
       setCategories(Array.isArray(data) ? data : []);
@@ -464,7 +464,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/contacts/search/autocomplete?q=${query}`);
+      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/contacts/search/autocomplete?q=${query}`);
       const data = await response.json();
       setSearchResults(data);
     } catch (error) {
@@ -1239,7 +1239,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       // Create customer if new
       if (formData.isNewCustomer && !formData.customer) {
         try {
-          const response = await fetch('http://localhost:5000/api/contacts', {
+          const response = await fetch('https://dumy-2-mli2.onrender.com/api/contacts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1363,7 +1363,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
       console.log('Saving budget plan:', budgetPlanData);
 
-      const response = await fetch('http://localhost:5000/api/budget-plans', {
+      const response = await fetch('https://dumy-2-mli2.onrender.com/api/budget-plans', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -1455,7 +1455,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         }))
       };
 
-      const budgetResponse = await fetch('http://localhost:5000/api/budget-plans', {
+      const budgetResponse = await fetch('https://dumy-2-mli2.onrender.com/api/budget-plans', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -1512,7 +1512,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         budgetPlan: budgetResult._id // Link to the quotation
       };
 
-      const orderResponse = await fetch('http://localhost:5000/api/orders', {
+      const orderResponse = await fetch('https://dumy-2-mli2.onrender.com/api/orders', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -1975,7 +1975,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                     >
                       {product.images?.[0] ? (
                         <img 
-                          src={product.images[0].startsWith('http') ? product.images[0] : `http://localhost:5000${product.images[0]}`} 
+                          src={product.images[0].startsWith('http') ? product.images[0] : `https://dumy-2-mli2.onrender.com${product.images[0]}`} 
                           alt={product.name}
                           onError={(e) => {
                             e.target.src = 'https://via.placeholder.com/150x150/667eea/ffffff?text=Product';
@@ -2864,7 +2864,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                                       
                                       const imageUrl = productImage.startsWith('http') 
                                         ? productImage 
-                                        : `http://localhost:5000${productImage}`;
+                                        : `https://dumy-2-mli2.onrender.com${productImage}`;
                                       
                                       return (
                                         <>
@@ -3400,7 +3400,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                                 
                                 const imageUrl = productImage.startsWith('http') 
                                   ? productImage 
-                                  : `http://localhost:5000${productImage}`;
+                                  : `https://dumy-2-mli2.onrender.com${productImage}`;
                                 
                                 return (
                                   <>
