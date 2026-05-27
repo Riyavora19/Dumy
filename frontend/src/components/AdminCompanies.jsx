@@ -302,7 +302,7 @@ const AdminCompanies = () => {
                     <td>
                       {company.logo ? (
                         <img 
-                          src={`https://dumy-2-mli2.onrender.com${company.logo}`} 
+                          src={`${company.logo.startsWith('http') ? company.logo : 'https://dumy-2-mli2.onrender.com' + company.logo}`} 
                           alt={company.name}
                           className="admin-companies__logo-img"
                         />
@@ -430,7 +430,7 @@ const AdminCompanies = () => {
                                   {categoryProducts.map(product => (
                                     <div key={product._id} className="admin-companies__product-item">
                                       <img 
-                                        src={`https://dumy-2-mli2.onrender.com${product.images[0]}`} 
+                                        src={`${product.images[0].startsWith('http') ? product.images[0] : 'https://dumy-2-mli2.onrender.com' + product.images[0]}`} 
                                         alt={product.name}
                                         className="admin-companies__product-img"
                                       />
@@ -553,7 +553,7 @@ const AdminCompanies = () => {
                 <label>Company Logo</label>
                 {existingLogo && !selectedLogo && (
                   <div className="admin-companies__existing-logo">
-                    <img src={`https://dumy-2-mli2.onrender.com${existingLogo}`} alt="Current logo" />
+                    <img src={`${existingLogo.startsWith('http') ? existingLogo : 'https://dumy-2-mli2.onrender.com' + existingLogo}`} alt="Current logo" />
                   </div>
                 )}
                 <label className="admin-companies__upload-label">

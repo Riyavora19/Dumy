@@ -4,26 +4,11 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Company = require('../models/Company');
+const { companyStorage } = require('../config/cloudinary');
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Configure multer for logo upload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'company-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
+// Configure multer with Cloudinary storage
 const upload = multer({
-  storage: storage,
+  storage: companyStorage,
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
@@ -186,7 +171,7 @@ router.post('/', upload.single('logo'), async (req, res) => {
       name,
       description,
       categories: categoryArray,
-      logo: req.file ? `/uploads/${req.file.filename}` : null,
+      logo: req.file ? req.file.path : null, // Cloudinary returns full URL in file.path
       website,
       email,
       phone,
@@ -233,14 +218,8 @@ router.put('/:id', upload.single('logo'), async (req, res) => {
     // Handle logo
     let logo = existingLogo || company.logo;
     if (req.file) {
-      logo = `/uploads/${req.file.filename}`;
-      // Delete old logo if exists
-      if (company.logo) {
-        const oldLogoPath = path.join(__dirname, '..', company.logo);
-        if (fs.existsSync(oldLogoPath)) {
-          fs.unlinkSync(oldLogoPath);
-        }
-      }
+      logo = req.file.path; // Cloudinary returns full URL in file.path
+      // Old logo on Cloudinary is automatically replaced; no local file to delete
     }
 
     company.name = name || company.name;

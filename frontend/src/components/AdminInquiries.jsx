@@ -292,7 +292,7 @@ const AdminInquiries = () => {
                       <div key={index} className="admin-inquiries__product-item">
                         <div className="admin-inquiries__product-image">
                           <img 
-                            src={`https://dumy-2-mli2.onrender.com${product.image}`} 
+                            src={`${product.image.startsWith('http') ? product.image : 'https://dumy-2-mli2.onrender.com' + product.image}`} 
                             alt={product.name}
                           />
                         </div>

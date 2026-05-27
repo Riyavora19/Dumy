@@ -1919,7 +1919,7 @@ const AdminProducts = () => {
                   <td>
                     {product.images && product.images[0] ? (
                       <img 
-                        src={`https://dumy-2-mli2.onrender.com${product.images[0]}`} 
+                        src={`${product.images[0].startsWith('http') ? product.images[0] : 'https://dumy-2-mli2.onrender.com' + product.images[0]}`} 
                         alt={product.name}
                         className="admin-products__thumb"
                         onError={(e) => {
@@ -2435,7 +2435,7 @@ const AdminProducts = () => {
                     <div className="admin-products__existing-images" style={{ marginTop: '8px' }}>
                       {existingImages.map((img, index) => (
                         <div key={index} className="admin-products__existing-image">
-                          <img src={`https://dumy-2-mli2.onrender.com${img}`} alt="" />
+                          <img src={`${img.startsWith('http') ? img : 'https://dumy-2-mli2.onrender.com' + img}`} alt="" />
                           <button type="button" onClick={() => removeExistingImage(index)}>×</button>
                         </div>
                       ))}
@@ -3772,7 +3772,7 @@ const AdminProducts = () => {
                     {imageChangeProduct.images.map((img, idx) => (
                       <div key={idx} className="admin-products__current-image-item">
                         <img 
-                          src={`https://dumy-2-mli2.onrender.com${img}`}
+                          src={`${img.startsWith('http') ? img : 'https://dumy-2-mli2.onrender.com' + img}`}
                           alt={`Current ${idx + 1}`}
                         />
                         <span>Image {idx + 1}</span>

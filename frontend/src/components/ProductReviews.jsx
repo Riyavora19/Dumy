@@ -347,7 +347,7 @@ const ProductReviews = ({ productId }) => {
                   {review.images.map((image, index) => (
                     <img
                       key={index}
-                      src={`https://dumy-2-mli2.onrender.com${image}`}
+                      src={`${image.startsWith('http') ? image : 'https://dumy-2-mli2.onrender.com' + image}`}
                       alt={`Review ${index + 1}`}
                       className="review-image"
                     />

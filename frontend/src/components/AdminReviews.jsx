@@ -152,7 +152,7 @@ const AdminReviews = () => {
                 <div className="admin-reviews__product">
                   {review.product?.images?.[0] && (
                     <img 
-                      src={`https://dumy-2-mli2.onrender.com${review.product.images[0]}`} 
+                      src={`${review.product.images[0].startsWith('http') ? review.product.images[0] : 'https://dumy-2-mli2.onrender.com' + review.product.images[0]}`} 
                       alt={review.product.name}
                     />
                   )}
@@ -177,7 +177,7 @@ const AdminReviews = () => {
                 {review.images && review.images.length > 0 && (
                   <div className="admin-reviews__images">
                     {review.images.map((img, index) => (
-                      <img key={index} src={`https://dumy-2-mli2.onrender.com${img}`} alt="" />
+                      <img key={index} src={`${img.startsWith('http') ? img : 'https://dumy-2-mli2.onrender.com' + img}`} alt="" />
                     ))}
                   </div>
                 )}

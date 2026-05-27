@@ -6,6 +6,7 @@ const fs = require('fs');
 const Product = require('../models/Product');
 const Company = require('../models/Company');
 const { detectItemType } = require('../services/autoItemTypeService');
+const { productStorage } = require('../config/cloudinary');
 
 // Helper: when a product links a company + category, add that category to the company's categories array
 const linkCompanyToCategory = async (companyId, categoryId) => {
@@ -21,31 +22,14 @@ const linkCompanyToCategory = async (companyId, categoryId) => {
   }
 };
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Configure multer for file upload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
+// Configure multer with Cloudinary storage
 const upload = multer({
-  storage: storage,
+  storage: productStorage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
-
     if (extname && mimetype) {
       return cb(null, true);
     } else {
@@ -393,7 +377,7 @@ router.post('/', upload.array('images', 10), async (req, res) => {
     // Get image URLs - either from uploaded files or existing images
     let images = [];
     if (req.files && req.files.length > 0) {
-      images = req.files.map(file => `/uploads/${file.filename}`);
+      images = req.files.map(file => file.path); // Cloudinary returns full URL in file.path
     } else if (existingImages) {
       images = Array.isArray(existingImages) ? existingImages : [existingImages];
     }
@@ -556,7 +540,7 @@ router.put('/:id', upload.array('images', 10), async (req, res) => {
       images = Array.isArray(existingImages) ? existingImages : [existingImages];
     }
     if (req.files && req.files.length > 0) {
-      const newImages = req.files.map(file => `/uploads/${file.filename}`);
+      const newImages = req.files.map(file => file.path); // Cloudinary returns full URL in file.path
       images = [...images, ...newImages];
     }
 

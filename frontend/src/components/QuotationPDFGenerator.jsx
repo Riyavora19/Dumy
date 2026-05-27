@@ -599,7 +599,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
           if (imagePath) {
             const imageUrl = imagePath.startsWith('http') 
               ? imagePath 
-              : `https://dumy-2-mli2.onrender.com${imagePath}`;
+              : `${imagePath.startsWith('http') ? imagePath : 'https://dumy-2-mli2.onrender.com' + imagePath}`;
             imageData = await loadImageAsBase64(imageUrl, 80, 80, 0.4);
           }
         }

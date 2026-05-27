@@ -308,7 +308,7 @@ function BudgetBuilder() {
                           <div className="product-image">
                             {product.images && product.images.length > 0 ? (
                               <img 
-                                src={product.images[0].startsWith('http') ? product.images[0] : `https://dumy-2-mli2.onrender.com${product.images[0]}`} 
+                                src={product.images[0].startsWith('http') ? product.images[0] : `${product.images[0].startsWith('http') ? product.images[0] : 'https://dumy-2-mli2.onrender.com' + product.images[0]}`} 
                                 alt={product.name} 
                                 onError={(e) => {
                                   e.target.src = 'https://via.placeholder.com/400x300/f5f5f5/cccccc?text=No+Image';

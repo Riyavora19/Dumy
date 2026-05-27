@@ -681,7 +681,7 @@ const ProductVariants = () => {
                       {product.images && product.images.length > 0 ? (
                         <>
                           <img 
-                            src={`https://dumy-2-mli2.onrender.com${product.images[0]}`} 
+                            src={`${product.images[0].startsWith('http') ? product.images[0] : 'https://dumy-2-mli2.onrender.com' + product.images[0]}`} 
                             alt={product.name}
                           />
                           {product.images.length > 1 && (
@@ -828,7 +828,7 @@ const ProductVariants = () => {
                 <div className="product-variants__modal-image">
                   {selectedProduct.images && selectedProduct.images.length > 0 ? (
                     <img 
-                      src={`https://dumy-2-mli2.onrender.com${selectedProduct.images[currentImageIndex]}`}
+                      src={`${selectedProduct.images[currentImageIndex].startsWith('http') ? selectedProduct.images[currentImageIndex] : 'https://dumy-2-mli2.onrender.com' + selectedProduct.images[currentImageIndex]}`}
                       alt={selectedProduct.name}
                     />
                   ) : (
@@ -873,7 +873,7 @@ const ProductVariants = () => {
                           className={`product-variants__modal-thumbnail ${index === currentImageIndex ? 'active' : ''}`}
                           onClick={() => setCurrentImageIndex(index)}
                         >
-                          <img src={`https://dumy-2-mli2.onrender.com${img}`} alt="" />
+                          <img src={`${img.startsWith('http') ? img : 'https://dumy-2-mli2.onrender.com' + img}`} alt="" />
                         </button>
                       ))}
                     </div>

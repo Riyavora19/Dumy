@@ -552,7 +552,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
             {products.map(product => (
               <div key={product._id} className="product-card" onClick={() => addProduct(product)}>
                 {product.images?.[0] && (
-                  <img src={`https://dumy-2-mli2.onrender.com${product.images[0]}`} alt={product.name} />
+                  <img src={`${product.images[0].startsWith('http') ? product.images[0] : 'https://dumy-2-mli2.onrender.com' + product.images[0]}`} alt={product.name} />
                 )}
                 <div className="product-info">
                   <strong>{product.name}</strong>

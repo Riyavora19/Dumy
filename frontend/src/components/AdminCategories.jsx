@@ -249,7 +249,7 @@ const AdminCategories = () => {
                             {categoryCompanies.map(company => (
                               <div key={company._id} className="admin-categories__company-item">
                                 {company.logo ? (
-                                  <img src={`https://dumy-2-mli2.onrender.com${company.logo}`} alt={company.name} />
+                                  <img src={`${company.logo.startsWith('http') ? company.logo : 'https://dumy-2-mli2.onrender.com' + company.logo}`} alt={company.name} />
                                 ) : (
                                   <div className="admin-categories__company-placeholder">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

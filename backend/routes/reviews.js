@@ -5,24 +5,11 @@ const Product = require('../models/Product');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { reviewStorage } = require('../config/cloudinary');
 
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = 'uploads/reviews';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'review-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
+// Configure multer with Cloudinary storage
 const upload = multer({
-  storage: storage,
+  storage: reviewStorage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|webp/;
@@ -120,7 +107,7 @@ router.post('/', upload.array('images', 5), async (req, res) => {
     }
 
     // Process uploaded images
-    const imagePaths = req.files ? req.files.map(file => `/uploads/reviews/${file.filename}`) : [];
+    const imagePaths = req.files ? req.files.map(file => file.path) : []; // Cloudinary returns full URL
 
     // Create review
     const review = new Review({

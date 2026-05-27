@@ -243,7 +243,7 @@ const Home = () => {
                   >
                     {product.images && product.images.length > 0 ? (
                       <img 
-                        src={`https://dumy-2-mli2.onrender.com${product.images[0]}`} 
+                        src={`${product.images[0].startsWith('http') ? product.images[0] : 'https://dumy-2-mli2.onrender.com' + product.images[0]}`} 
                         alt={product.name}
                       />
                     ) : (
@@ -531,7 +531,7 @@ const Home = () => {
               <div className="product-modal__image-section">
                 {selectedProduct.images && selectedProduct.images.length > 0 ? (
                   <img 
-                    src={`https://dumy-2-mli2.onrender.com${selectedProduct.images[0]}`} 
+                    src={`${selectedProduct.images[0].startsWith('http') ? selectedProduct.images[0] : 'https://dumy-2-mli2.onrender.com' + selectedProduct.images[0]}`} 
                     alt={selectedProduct.name}
                   />
                 ) : (

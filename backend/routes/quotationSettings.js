@@ -3,24 +3,11 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { quotationStorage } = require('../config/cloudinary');
 
-// Configure multer for logo uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = 'uploads/quotation-logos';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'logo-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
+// Configure multer with Cloudinary storage
 const upload = multer({
-  storage: storage,
+  storage: quotationStorage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: function (req, file, cb) {
     const allowedTypes = /jpeg|jpg|png|gif|svg/;
@@ -108,7 +95,7 @@ router.post('/upload-logo', upload.single('logo'), (req, res) => {
     const newLogo = {
       id: Date.now(),
       name: name,
-      path: `/uploads/quotation-logos/${req.file.filename}`,
+      path: req.file.path, // Cloudinary returns full URL in file.path
       order: quotationSettings.footerLogos.length + 1,
       active: true
     };
