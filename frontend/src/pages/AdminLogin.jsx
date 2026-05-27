@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../config/api';
+import axiosInstance from '../utils/axios';
 import './AdminLogin.css';
 
 const AdminLogin = () => {
@@ -32,12 +31,12 @@ const AdminLogin = () => {
       let isStaff = false;
       
       try {
-        response = await axios.post(`${API_BASE_URL}/api/staff/login`, formData);
+        response = await axiosInstance.post('/api/staff/login', formData);
         isStaff = true;
       } catch (staffError) {
         // If staff login fails, try admin login
         try {
-          response = await axios.post(`${API_BASE_URL}/api/auth/login`, formData);
+          response = await axiosInstance.post('/api/auth/login', formData);
           isStaff = false;
         } catch (adminError) {
           throw new Error('Invalid credentials');
