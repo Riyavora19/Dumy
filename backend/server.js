@@ -10,6 +10,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'https://my-dumy.vercel.app',
+  'https://dumy-delta.vercel.app',
   'https://my-dumy-git-main-riyavora19s-projects.vercel.app',
   'https://my-dumy-825yrtsga-riyavora19s-projects.vercel.app',
   process.env.FRONTEND_URL
