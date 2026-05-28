@@ -593,15 +593,44 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         const itemText = [itemName, company].filter(Boolean).join('\n');
 
         // Load product image with aggressive compression (max 80x80px, 40% quality)
+        // Falls back to company logo if product image fails or is missing
         let imageData = null;
+        const companyNameLower = (item.companyName || '').toLowerCase();
+
+        // Map company names to their logo files
+        const companyLogoMap = {
+          'kohler'    : '/company-logos/Kohler.png',
+          'jaguar'    : '/company-logos/Jaguar.png',
+          'artize'    : '/company-logos/Artize.png',
+          'duravit'   : '/company-logos/Duravit.png',
+          'johnson'   : '/company-logos/Johnson.png',
+          'kajaria'   : '/company-logos/Kajaria.png',
+          'milagro'   : '/company-logos/Milagro.png',
+          'parryware' : '/company-logos/Parryware.png',
+          'qutone'    : '/company-logos/Qutone.png',
+          'simero'    : '/company-logos/Simero.png',
+          'simpolo'   : '/company-logos/Simpolo.png',
+          'trueblock' : '/company-logos/TrueBlock.png',
+          'woven'     : '/company-logos/Woven.png',
+        };
+
+        const matchedLogoKey = Object.keys(companyLogoMap).find(k => companyNameLower.includes(k));
+        const fallbackLogoPath = matchedLogoKey ? companyLogoMap[matchedLogoKey] : null;
+
         if (item.image || item.images) {
           const imagePath = item.image || (Array.isArray(item.images) && item.images[0]);
           if (imagePath) {
-            const imageUrl = imagePath.startsWith('http') 
-              ? imagePath 
-              : `${imagePath.startsWith('http') ? imagePath : 'https://dumy-2-mli2.onrender.com' + imagePath}`;
+            const imageUrl = imagePath.startsWith('http')
+              ? imagePath
+              : `https://dumy-2-mli2.onrender.com${imagePath}`;
             imageData = await loadImageAsBase64(imageUrl, 80, 80, 0.4);
           }
+        }
+
+        // If product image failed or missing, use company logo as fallback
+        if (!imageData && fallbackLogoPath) {
+          const logoOriginFallback = typeof window !== 'undefined' ? window.location.origin : '';
+          imageData = await loadImageAsBase64(`${logoOriginFallback}${fallbackLogoPath}`, 80, 80, 0.6);
         }
 
         // Format prices with metadata for custom rendering

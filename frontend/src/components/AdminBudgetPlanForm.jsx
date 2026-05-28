@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './AdminBudgetPlanForm.css';
 import './QuotationPreviewPDF.css';
 import QuotationPDFGenerator from './QuotationPDFGenerator';
-import { roomTemplatePresets } from './RoomTemplatePresets';
+import { roomTemplatePresets } from './RoomTemplatePresets'; // fallback only
 
 const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -11,6 +11,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   const [contacts, setContacts] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
+  const [dbPresets, setDbPresets] = useState({});  // roomName → preset from DB
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [productSearchQuery, setProductSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -230,6 +231,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     fetchRoomTemplates();
     fetchProducts();
     fetchCategories();
+    fetchDbPresets();
   }, []);
 
   useEffect(() => {
@@ -243,6 +245,22 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       setRoomTemplates(data);
     } catch (error) {
       console.error('Error fetching room templates:', error);
+    }
+  };
+
+  // Fetch DB-backed presets and build a roomName → preset map
+  const fetchDbPresets = async () => {
+    try {
+      const r = await fetch('https://dumy-2-mli2.onrender.com/api/budget-plan-presets');
+      const d = await r.json();
+      if (d.success && d.data) {
+        const map = {};
+        d.data.forEach(p => { if (p.isActive) map[p.roomName] = p; });
+        setDbPresets(map);
+        console.log('✅ Loaded DB presets for rooms:', Object.keys(map));
+      }
+    } catch (err) {
+      console.warn('Could not load DB presets, falling back to hardcoded:', err.message);
     }
   };
 
@@ -503,6 +521,85 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   // Function to auto-add default products for a room
   const autoAddDefaultProducts = (roomId, roomName) => {
     try {
+      // ── 1. Try DB preset first ──────────────────────────────────────────
+      const dbPreset = dbPresets[roomName] ||
+        Object.values(dbPresets).find(p => p.roomName.toLowerCase() === roomName.toLowerCase());
+
+      if (dbPreset && dbPreset.areas) {
+        console.log(`✅ Using DB preset for "${roomName}"`);
+        const productsToAdd = [];
+
+        // Support both flat products array and areas-based structure
+        const flatProducts = dbPreset.products && dbPreset.products.length > 0
+          ? dbPreset.products
+          : (dbPreset.areas || []).flatMap(a => a.defaultProducts || []);
+
+        for (const dp of flatProducts) {
+          productsToAdd.push({
+            areaId:  dp.areaId || 'all',
+            product: {
+              _id:         dp.productId,
+              name:        dp.productName,
+              companyName: dp.companyName,
+              company:     { name: dp.companyName },
+              images:      dp.images || [],
+              price:       dp.price || 0,
+              mrp:         dp.price || 0,
+              variant:     '',
+              sku:         '',
+              stock:       10,
+              isActive:    true,
+            },
+            quantity:  dp.quantity || 1,
+            essential: dp.essential !== false,
+          });
+        }
+
+        if (productsToAdd.length > 0) {
+          setFormData(prev => {
+            const updatedRooms = prev.rooms.map(room => {
+              if (room.id !== roomId) return room;
+              const updatedAreas = room.areas.map((area, areaIndex) => {
+                // Match by areaId; unassigned ('all'/undefined) go to first area only
+                const forArea = productsToAdd.filter(p =>
+                  p.areaId === area.id ||
+                  ((!p.areaId || p.areaId === 'all') && areaIndex === 0)
+                );
+                if (forArea.length === 0) return area;
+                const newProducts = forArea.map(({ product, quantity }) => ({
+                  product:     product._id,
+                  productName: product.name,
+                  variant:     product.variant || '',
+                  sku:         product.sku || '',
+                  company:     product.company?._id || product.company,
+                  companyName: product.company?.name || product.companyName || '',
+                  category:    product.category?._id || product.category,
+                  categoryName: product.category?.name || '',
+                  quantity,
+                  unitPrice:   product.mrp || product.price,
+                  rate:        product.mrp || product.price,
+                  discountPercent: 0,
+                  totalPrice:  product.mrp || product.price,
+                  image:       product.images?.[0] || '',
+                  images:      product.images || [],
+                  roomId,
+                  roomName,
+                  areaId:      area.id,
+                  areaName:    area.name,
+                }));
+                return { ...area, products: [...area.products, ...newProducts] };
+              });
+              return { ...room, areas: updatedAreas };
+            });
+            return { ...prev, rooms: updatedRooms };
+          });
+          console.log(`Auto-added ${productsToAdd.length} DB-preset products to "${roomName}"`);
+        }
+        return; // done — don't fall through to hardcoded
+      }
+
+      // ── 2. Fall back to hardcoded RoomTemplatePresets ───────────────────
+      console.log(`⚠️ No DB preset for "${roomName}", using hardcoded fallback`);
       const roomPreset = roomTemplatePresets[roomName];
       if (!roomPreset || !roomPreset.areas) {
         console.log('No preset found for room:', roomName);
@@ -1992,8 +2089,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                         }}></div>
                       )}
                       <div className="product-card-info">
-                        <strong>{product.name} {product.company?.name && `(${product.company.name})`}</strong>
-                        <span className="variant">{product.variant}</span>
+                        <strong>{product.name}</strong>
+                        <span className="variant">{product.company?.name || product.companyName || ''}</span>
                         <div className="price-container">
                           <span className="price">₹{product.price.toLocaleString()}</span>
                         </div>

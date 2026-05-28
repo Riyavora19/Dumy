@@ -1,0 +1,196 @@
+/* ── Page ─────────────────────────────────────────────────────────────────── */
+.abpp { padding: 24px; max-width: 1200px; }
+.abpp__header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+.abpp__header h2 { margin: 0 0 4px; font-size: 22px; }
+.abpp__header p  { margin: 0; color: #6b7280; font-size: 14px; }
+.abpp__loading, .abpp__empty { text-align: center; padding: 60px 20px; color: #6b7280; }
+
+/* Buttons */
+.abpp__btn-primary { background: #2563eb; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.abpp__btn-primary:hover { background: #1d4ed8; }
+.abpp__btn-edit   { flex: 1; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 7px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.abpp__btn-delete { flex: 1; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 7px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.abpp__btn-cancel { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+.abpp__btn-save   { background: #2563eb; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.abpp__btn-save:hover { background: #1d4ed8; }
+
+/* Preset cards */
+.abpp__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.abpp__card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
+.abpp__card--inactive { opacity: 0.6; }
+.abpp__card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.abpp__card-icon { font-size: 28px; }
+.abpp__card-top h3 { margin: 0 0 4px; font-size: 16px; }
+.abpp__badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+.abpp__badge--active { background: #d1fae5; color: #065f46; }
+.abpp__badge--off    { background: #f3f4f6; color: #6b7280; }
+.abpp__card-total { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
+.abpp__card-actions { display: flex; gap: 8px; }
+
+/* Modal */
+.abpp__overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 12px; }
+.abpp__modal { background: #fff; border-radius: 16px; width: 100%; max-width: 1060px; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; }
+.abpp__modal-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px 14px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; }
+.abpp__modal-header h3 { margin: 0; font-size: 18px; }
+.abpp__close { background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280; }
+
+/* Form */
+.abpp__form { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Config bar */
+.abpp__config-bar { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; flex-wrap: wrap; }
+.abpp__icon-row { display: flex; gap: 5px; }
+.abpp__icon-btn { background: #f3f4f6; border: 2px solid transparent; border-radius: 8px; padding: 5px 9px; font-size: 16px; cursor: pointer; }
+.abpp__icon-btn--active { border-color: #2563eb; background: #eff6ff; }
+.abpp__room-name-input { flex: 1; min-width: 200px; border: 1px solid #d1d5db; border-radius: 8px; padding: 9px 14px; font-size: 14px; }
+.abpp__room-name-input:focus { border-color: #2563eb; outline: none; }
+.abpp__room-name-select { flex: 1; min-width: 200px; border: 1px solid #d1d5db; border-radius: 8px; padding: 9px 14px; font-size: 14px; background: #fff; cursor: pointer; }
+.abpp__room-name-select:focus { border-color: #2563eb; outline: none; }
+.abpp__room-name-select:disabled { background: #f3f4f6; color: #6b7280; cursor: default; }
+.abpp__toggle-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #374151; white-space: nowrap; }
+.abpp__toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+.abpp__toggle input { opacity: 0; width: 0; height: 0; }
+.abpp__toggle-slider { position: absolute; inset: 0; background: #d1d5db; border-radius: 22px; cursor: pointer; transition: .2s; }
+.abpp__toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+.abpp__toggle input:checked + .abpp__toggle-slider { background: #2563eb; }
+.abpp__toggle input:checked + .abpp__toggle-slider::before { transform: translateX(18px); }
+
+/* Split */
+.abpp__split { flex: 1; display: flex; overflow: hidden; }
+
+/* LEFT — product browser */
+.abpp__left { width: 58%; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; overflow: hidden; }
+.abpp__browser-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 6px; flex-shrink: 0; }
+.abpp__browser-title { font-size: 14px; font-weight: 600; color: #374151; }
+.abpp__prod-count { font-size: 12px; color: #6b7280; }
+.abpp__filters { display: flex; gap: 8px; padding: 0 16px 10px; flex-shrink: 0; }
+.abpp__search-input { flex: 1; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+.abpp__search-input:focus { border-color: #2563eb; outline: none; }
+.abpp__company-filter { border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 10px; font-size: 13px; min-width: 130px; }
+.abpp__prod-loading { text-align: center; padding: 40px; color: #6b7280; }
+
+.abpp__prod-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 0 16px 16px; }
+.abpp__prod-card { position: relative; background: #fff; border: 2px solid #e5e7eb; border-radius: 10px; padding: 8px; cursor: pointer; transition: all .15s; text-align: center; user-select: none; }
+.abpp__prod-card:hover { border-color: #93c5fd; background: #f0f9ff; transform: translateY(-1px); }
+.abpp__prod-card--selected { border-color: #2563eb; background: #eff6ff; }
+.abpp__prod-check { position: absolute; top: 5px; right: 5px; background: #2563eb; color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.abpp__prod-img { height: 65px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
+.abpp__prod-img img { max-width: 100%; max-height: 65px; object-fit: contain; }
+.abpp__prod-no-img { font-size: 26px; }
+.abpp__prod-name { font-size: 11px; color: #111827; font-weight: 500; line-height: 1.3; margin-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.abpp__prod-co { font-size: 10px; color: #6b7280; }
+.abpp__prod-price { font-size: 11px; color: #2563eb; font-weight: 600; margin-top: 2px; }
+
+/* RIGHT — selected */
+.abpp__right { width: 42%; display: flex; flex-direction: column; overflow: hidden; padding: 14px 16px; }
+.abpp__sel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.abpp__sel-header strong { font-size: 14px; }
+.abpp__sel-count { background: #2563eb; color: #fff; border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: 600; }
+.abpp__sel-hint { font-size: 12px; color: #6b7280; margin: 0 0 12px; }
+.abpp__selected-empty { text-align: center; padding: 30px 16px; color: #9ca3af; font-size: 13px; border: 2px dashed #e5e7eb; border-radius: 10px; }
+.abpp__selected-items { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+
+.abpp__sel-item { display: flex; align-items: center; gap: 8px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; }
+.abpp__sel-thumb { width: 38px; height: 38px; object-fit: contain; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; flex-shrink: 0; }
+.abpp__sel-no-img { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.abpp__sel-info { flex: 1; min-width: 0; }
+.abpp__sel-name { display: block; font-size: 12px; font-weight: 500; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.abpp__sel-co { display: block; font-size: 11px; color: #6b7280; }
+.abpp__qty-label { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: #6b7280; gap: 2px; flex-shrink: 0; }
+.abpp__sel-qty { width: 44px; border: 1px solid #d1d5db; border-radius: 6px; padding: 4px 6px; text-align: center; font-size: 13px; }
+.abpp__sel-remove { background: none; border: none; color: #dc2626; font-size: 16px; cursor: pointer; padding: 2px 4px; flex-shrink: 0; }
+
+/* Footer */
+.abpp__form-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px; border-top: 1px solid #e5e7eb; flex-shrink: 0; }
+
+/* ── Area picker popup ────────────────────────────────────────────────────── */
+.abpp__area-picker {
+  position: absolute;
+  z-index: 200;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  padding: 10px;
+  min-width: 170px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.abpp__area-picker-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  text-align: center;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #f3f4f6;
+  margin-bottom: 2px;
+}
+.abpp__area-picker-btn {
+  border: 1.5px solid;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: opacity .15s;
+}
+.abpp__area-picker-btn:hover { opacity: 0.8; }
+.abpp__area-picker-btn--cancel {
+  background: #f3f4f6 !important;
+  color: #6b7280 !important;
+  border-color: #d1d5db !important;
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* ── Product card area badge ──────────────────────────────────────────────── */
+.abpp__prod-area-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 6px;
+  white-space: nowrap;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Area groups in right panel ───────────────────────────────────────────── */
+.abpp__area-group { margin-bottom: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
+.abpp__area-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.abpp__area-group-count {
+  margin-left: auto;
+  background: rgba(0,0,0,.1);
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 11px;
+}
+
+/* ── Area select in selected item ─────────────────────────────────────────── */
+.abpp__sel-area-select {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 11px;
+  max-width: 100px;
+  flex-shrink: 0;
+}
+
+/* ── Card areas on preset cards ───────────────────────────────────────────── */
+.abpp__card-areas { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.abpp__area-pill { display: flex; align-items: center; gap: 3px; background: #eff6ff; color: #1d4ed8; font-size: 11px; padding: 2px 7px; border-radius: 20px; }
+.abpp__area-count { background: #2563eb; color: #fff; border-radius: 10px; padding: 0 4px; font-size: 10px; }

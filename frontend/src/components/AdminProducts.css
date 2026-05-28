@@ -1652,6 +1652,13 @@
   box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
 }
 
+.admin-products__image-upload-box.drag-over {
+  border-color: #4f46e5;
+  background: linear-gradient(135deg, #dde4ff 0%, #ede0ff 100%);
+  transform: scale(1.01);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.25);
+}
+
 .admin-products__image-upload-box svg {
   color: #667eea;
 }
@@ -1672,6 +1679,34 @@
 .admin-products__upload-text span {
   font-size: 14px;
   color: #6b7280;
+}
+
+.admin-products__paste-hint {
+  display: none; /* removed — paste is now a dedicated button */
+}
+
+.admin-products__paste-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 16px;
+  background: #eef2ff;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 10px;
+  color: #4f46e5;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-products__paste-btn:hover {
+  background: #e0e7ff;
+  border-color: #818cf8;
+  color: #3730a3;
 }
 
 .admin-products__image-upload-box small {

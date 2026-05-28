@@ -75,6 +75,9 @@ app.use('/api/item-types', require('./routes/productItemTypes'));
 // Budget Plan routes
 app.use('/api/budget-plans', require('./routes/budgetPlans'));
 
+// Budget Plan Preset routes
+app.use('/api/budget-plan-presets', require('./routes/budgetPlanPresets'));
+
 // Client routes
 app.use('/api/clients', require('./routes/clients'));
 

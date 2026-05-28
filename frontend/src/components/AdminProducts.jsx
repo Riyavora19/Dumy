@@ -592,6 +592,30 @@ const AdminProducts = () => {
     setNewProductImages(files.slice(0, 5)); // Max 5 images
   };
 
+  const handleImageChangePaste = async () => {
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      const imageFiles = [];
+      for (const item of clipboardItems) {
+        for (const type of item.types) {
+          if (type.startsWith('image/')) {
+            const blob = await item.getType(type);
+            const ext = type.split('/')[1] || 'png';
+            const file = new File([blob], `pasted-image.${ext}`, { type });
+            imageFiles.push(file);
+          }
+        }
+      }
+      if (imageFiles.length > 0) {
+        setNewProductImages(prev => [...prev, ...imageFiles].slice(0, 5));
+      } else {
+        showNotification('No image found in clipboard. Copy an image first.', 'warning');
+      }
+    } catch {
+      showNotification('Could not read clipboard. Please copy an image and try again.', 'error');
+    }
+  };
+
   const handleImageChangeSubmit = async () => {
     if (newProductImages.length === 0) {
       showNotification('Please select at least one image', 'error');
@@ -3794,7 +3818,17 @@ const AdminProducts = () => {
               {/* Upload New Images Section */}
               <div className="admin-products__upload-new-section">
                 <h3>Upload New Images</h3>
-                <label className="admin-products__image-upload-box">
+                <label
+                  className="admin-products__image-upload-box"
+                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }}
+                  onDragLeave={(e) => { e.currentTarget.classList.remove('drag-over'); }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove('drag-over');
+                    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                    if (files.length > 0) setNewProductImages(prev => [...prev, ...files].slice(0, 5));
+                  }}
+                >
                   <input
                     type="file"
                     accept="image/*"
@@ -3813,6 +3847,19 @@ const AdminProducts = () => {
                   </div>
                   <small>PNG, JPG, WEBP up to 10MB (Max 5 images)</small>
                 </label>
+
+                {/* Paste button — separate from the label so it only fires on explicit click */}
+                <button
+                  type="button"
+                  className="admin-products__paste-btn"
+                  onClick={handleImageChangePaste}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                  </svg>
+                  Paste Image from Clipboard
+                </button>
 
                 {newProductImages.length > 0 && (
                   <div className="admin-products__new-images-preview">
