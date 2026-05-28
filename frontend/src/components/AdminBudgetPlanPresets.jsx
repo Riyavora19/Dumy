@@ -377,11 +377,13 @@ export default function AdminBudgetPlanPresets() {
 
                 {/* RIGHT — selected products grouped by area */}
                 <div className="abpp__right">
-                  <div className="abpp__sel-header">
-                    <strong>Auto-add Products</strong>
-                    <span className="abpp__sel-count">{form.products.length} selected</span>
+                  <div className="abpp__right-top">
+                    <div className="abpp__sel-header">
+                      <strong>Auto-add Products</strong>
+                      <span className="abpp__sel-count">{form.products.length} selected</span>
+                    </div>
+                    <p className="abpp__sel-hint">Click a product → pick its area. Products auto-add when this room is created.</p>
                   </div>
-                  <p className="abpp__sel-hint">Click a product → pick its area. Products auto-add when this room is created.</p>
 
                   {form.products.length === 0 ? (
                     <div className="abpp__selected-empty">Click products on the left → choose area</div>
