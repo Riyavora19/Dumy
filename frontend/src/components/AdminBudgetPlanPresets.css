@@ -35,7 +35,7 @@
 .abpp__close { background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280; }
 
 /* Form */
-.abpp__form { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.abpp__form { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
 /* Config bar */
 .abpp__config-bar { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; flex-wrap: wrap; }
@@ -56,7 +56,7 @@
 .abpp__toggle input:checked + .abpp__toggle-slider::before { transform: translateX(18px); }
 
 /* Split */
-.abpp__split { flex: 1; display: flex; overflow: hidden; }
+.abpp__split { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 
 /* LEFT — product browser */
 .abpp__left { width: 58%; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; overflow: hidden; }
@@ -83,12 +83,12 @@
 
 /* RIGHT — selected */
 .abpp__right { width: 42%; display: flex; flex-direction: column; overflow: hidden; padding: 14px 16px; }
-.abpp__sel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.abpp__sel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-shrink: 0; }
 .abpp__sel-header strong { font-size: 14px; }
 .abpp__sel-count { background: #2563eb; color: #fff; border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: 600; }
-.abpp__sel-hint { font-size: 12px; color: #6b7280; margin: 0 0 12px; }
+.abpp__sel-hint { font-size: 12px; color: #6b7280; margin: 0 0 12px; flex-shrink: 0; }
 .abpp__selected-empty { text-align: center; padding: 30px 16px; color: #9ca3af; font-size: 13px; border: 2px dashed #e5e7eb; border-radius: 10px; }
-.abpp__selected-items { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.abpp__selected-items { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 
 .abpp__sel-item { display: flex; align-items: center; gap: 8px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; }
 .abpp__sel-thumb { width: 38px; height: 38px; object-fit: contain; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; flex-shrink: 0; }
