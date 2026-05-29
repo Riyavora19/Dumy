@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNotification } from '../context/NotificationContext';
 import './AdminBudgetPlanPresets.css';
 
-const API = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com';
+const API = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : 'https://dumy-2-mli2.onrender.com/api';
 
 const ROOM_ICONS = ['🏠','🚿','🛁','🚽','🍳','🛏️','🪟','🔧'];
 
@@ -57,7 +59,7 @@ export default function AdminBudgetPlanPresets() {
   const fetchPresets = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}/api/budget-plan-presets`);
+      const r = await fetch(`${API}/budget-plan-presets`);
       const d = await r.json();
       setPresets(d.data || []);
     } catch { showNotification('Failed to load presets', 'error'); }
@@ -70,7 +72,7 @@ export default function AdminBudgetPlanPresets() {
   useEffect(() => {
     if (!showForm || allProducts.length > 0) return;
     setProductsLoading(true);
-    fetch(`${API}/api/products`)
+    fetch(`${API}/products`)
       .then(r => r.json())
       .then(d => {
         const prods = d.data || d.products || (Array.isArray(d) ? d : []);
@@ -203,7 +205,7 @@ export default function AdminBudgetPlanPresets() {
       areas: Object.values(areaMap),
     };
 
-    const url    = editing ? `${API}/api/budget-plan-presets/${editing._id}` : `${API}/api/budget-plan-presets`;
+    const url    = editing ? `${API}/budget-plan-presets/${editing._id}` : `${API}/budget-plan-presets`;
     const method = editing ? 'PUT' : 'POST';
     try {
       const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -218,7 +220,7 @@ export default function AdminBudgetPlanPresets() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this preset?')) return;
     try {
-      await fetch(`${API}/api/budget-plan-presets/${id}`, { method: 'DELETE' });
+      await fetch(`${API}/budget-plan-presets/${id}`, { method: 'DELETE' });
       showNotification('Deleted', 'success');
       fetchPresets();
     } catch { showNotification('Delete failed', 'error'); }

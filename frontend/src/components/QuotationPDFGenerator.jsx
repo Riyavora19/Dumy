@@ -695,6 +695,15 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
             // Format 7: SR | AREA | ITEM | QTY | MRP | YOUR PRICE | TOTAL (no images)
             rowData.push(yourPriceFormatted);
             rowData.push(totalFormatted);
+          } else if (columnFormat === 'format8') {
+            // Format 8: SR | AREA | IMAGE | ITEM | QTY | MRP | PRICE | TOTAL
+            const sdpPrice = parseFloat(item.sdp || item.unitPrice || baseRate);
+            const sdpFormatted = {
+              content: `Rs. ${sdpPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+              styles: { halign: 'left' }
+            };
+            rowData.push(sdpFormatted);
+            rowData.push(totalFormatted);
           }
         } else {
           rowData.push(serialNumber.toString());
@@ -728,6 +737,14 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
           } else if (columnFormat === 'format7') {
             rowData.push(yourPriceFormatted);
             rowData.push(totalFormatted);
+          } else if (columnFormat === 'format8') {
+            const sdpPrice = parseFloat(item.sdp || item.unitPrice || baseRate);
+            const sdpFormatted = {
+              content: `Rs. ${sdpPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+              styles: { halign: 'left' }
+            };
+            rowData.push(sdpFormatted);
+            rowData.push(totalFormatted);
           }
         }
         
@@ -754,6 +771,7 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
     else if (columnFormat === 'format5') subtotalColspan = 6; // SR, AREA, IMAGE, ITEM, QTY, MRP = 6 cols
     else if (columnFormat === 'format6') subtotalColspan = 7; // SR, AREA, IMAGE, ITEM, QTY, MRP, DISC% = 7 cols
     else if (columnFormat === 'format7') subtotalColspan = 5; // SR, AREA, ITEM, QTY, MRP = 5 cols (no IMAGE)
+    else if (columnFormat === 'format8') subtotalColspan = 6; // SR, AREA, IMAGE, ITEM, QTY, MRP = 6 cols
     
     tableData.push([
       { content: '', colSpan: subtotalColspan, styles: { halign: 'right' } },
@@ -881,6 +899,19 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         5: { cellWidth: availableWidth * 0.13, halign: 'left' },
         6: { cellWidth: availableWidth * 0.13, halign: 'right' },
       };
+    } else if (columnFormat === 'format8') {
+      // Format 8: SR | AREA | IMAGE | ITEM | QTY | MRP | PRICE | TOTAL
+      tableHeaders = ['SR', 'AREA', 'IMAGE', 'ITEM', 'QTY', 'MRP', 'PRICE', 'TOTAL'];
+      columnStyles = {
+        0: { cellWidth: availableWidth * 0.05, halign: 'center' },
+        1: { cellWidth: availableWidth * 0.10, halign: 'center', valign: 'middle' },
+        2: { cellWidth: availableWidth * 0.12, halign: 'center', cellPadding: 0 },
+        3: { cellWidth: availableWidth * 0.28, halign: 'left' },
+        4: { cellWidth: availableWidth * 0.07, halign: 'center' },
+        5: { cellWidth: availableWidth * 0.12, halign: 'left' },
+        6: { cellWidth: availableWidth * 0.13, halign: 'left' },
+        7: { cellWidth: availableWidth * 0.13, halign: 'right' },
+      };
     }
     
     doc.autoTable({
@@ -931,6 +962,9 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
         } else if (columnFormat === 'format7') {
           itemColumnIndex = 2; // No IMAGE column, so ITEM is at index 2
           priceColumnIndices = [4, 5, 6]; // MRP, YOUR PRICE, TOTAL
+        } else if (columnFormat === 'format8') {
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 6, 7]; // MRP, PRICE, TOTAL
         }
         
         // Custom rendering for ITEM column - prevent default rendering of company line
@@ -992,6 +1026,10 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
           imageColumnIndex = -1; // No IMAGE column
           itemColumnIndex = 2;
           priceColumnIndices = [4, 5, 6]; // MRP, YOUR PRICE, TOTAL
+        } else if (columnFormat === 'format8') {
+          imageColumnIndex = 2;
+          itemColumnIndex = 3;
+          priceColumnIndices = [5, 6, 7]; // MRP, PRICE, TOTAL
         }
         
         // Draw product images in the IMAGE column

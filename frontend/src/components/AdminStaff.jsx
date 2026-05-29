@@ -2,7 +2,42 @@ import { useState, useEffect } from 'react';
 import { useNotification } from '../context/NotificationContext';
 import './AdminStaff.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com/api';
+const API_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : 'https://dumy-2-mli2.onrender.com/api';
+
+// All admin tabs mapped to permission keys
+const ALL_PERMISSIONS = [
+  { key: 'canViewDashboard',       label: 'Dashboard',           group: 'General' },
+  { key: 'canCreateQuotation',     label: 'Create Quotation',    group: 'Quotations' },
+  { key: 'canViewAllQuotations',   label: 'View Quotations',     group: 'Quotations' },
+  { key: 'canApproveQuotation',    label: 'Approve/Reject Quotation', group: 'Quotations' },
+  { key: 'canViewDeliveries',      label: 'Deliveries',          group: 'Quotations' },
+  { key: 'canViewPayments',        label: 'Payments',            group: 'Quotations' },
+  { key: 'canViewOrderHistory',    label: 'Order History',       group: 'Quotations' },
+  { key: 'canViewMarginAnalysis',  label: 'Margin Analysis',     group: 'Quotations' },
+  { key: 'canViewAllOrders',       label: 'View Orders',         group: 'Orders' },
+  { key: 'canCreateOrder',         label: 'Create Order',        group: 'Orders' },
+  { key: 'canManageProducts',      label: 'Products',            group: 'Catalogue' },
+  { key: 'canManageCategories',    label: 'Categories',          group: 'Catalogue' },
+  { key: 'canManageCompanies',     label: 'Companies',           group: 'Catalogue' },
+  { key: 'canManageContacts',      label: 'Contacts & Network',  group: 'CRM' },
+  { key: 'canManageClients',       label: 'Clients',             group: 'CRM' },
+  { key: 'canViewInquiries',       label: 'Inquiries',           group: 'CRM' },
+  { key: 'canViewLiveRequests',    label: 'Live Requests',       group: 'CRM' },
+  { key: 'canManageRoomTemplates', label: 'Room Templates',      group: 'Budget Planner' },
+  { key: 'canManageItemTypes',     label: 'Item Types',          group: 'Budget Planner' },
+  { key: 'canViewBudgetPlans',     label: 'Budget Plans',        group: 'Budget Planner' },
+  { key: 'canManageReviews',       label: 'Reviews',             group: 'Other' },
+  { key: 'canManageStaff',         label: 'Staff Management',    group: 'Other' },
+  { key: 'canManageSettings',      label: 'Company Settings',    group: 'Other' },
+];
+
+const DEFAULT_PERMISSIONS = {
+  canViewDashboard: true,
+  canCreateQuotation: true,
+  canViewAllQuotations: true,
+};
 
 function AdminStaff() {
   const { showNotification } = useNotification();
@@ -19,7 +54,8 @@ function AdminStaff() {
     password: '',
     phone: '',
     role: 'sales_staff',
-    status: 'active'
+    status: 'active',
+    permissions: { ...DEFAULT_PERMISSIONS }
   });
 
   useEffect(() => {
@@ -105,13 +141,19 @@ function AdminStaff() {
 
   const handleEdit = (staffMember) => {
     setSelectedStaff(staffMember);
+    // Merge saved permissions with defaults so Dashboard is always visible
+    const savedPerms = staffMember.permissions || {};
+    const mergedPerms = Object.keys(savedPerms).length > 0
+      ? savedPerms
+      : { ...DEFAULT_PERMISSIONS };
     setFormData({
       name: staffMember.name,
       email: staffMember.email,
-      password: '', // Don't pre-fill password
+      password: '',
       phone: staffMember.phone || '',
       role: staffMember.role,
-      status: staffMember.status
+      status: staffMember.status,
+      permissions: mergedPerms
     });
     setShowModal(true);
   };
@@ -142,9 +184,30 @@ function AdminStaff() {
       password: '',
       phone: '',
       role: 'sales_staff',
-      status: 'active'
+      status: 'active',
+      permissions: { ...DEFAULT_PERMISSIONS }
     });
   };
+
+  const togglePermission = (key) => {
+    setFormData(prev => ({
+      ...prev,
+      permissions: { ...prev.permissions, [key]: !prev.permissions[key] }
+    }));
+  };
+
+  const setAllPermissions = (value) => {
+    const all = {};
+    ALL_PERMISSIONS.forEach(p => { all[p.key] = value; });
+    setFormData(prev => ({ ...prev, permissions: all }));
+  };
+
+  // Group permissions by group label
+  const permissionGroups = ALL_PERMISSIONS.reduce((acc, p) => {
+    if (!acc[p.group]) acc[p.group] = [];
+    acc[p.group].push(p);
+    return acc;
+  }, {});
 
   const getRoleBadgeClass = (role) => {
     const classes = {
@@ -279,7 +342,7 @@ function AdminStaff() {
               >×</button>
             </div>
             
-            <form onSubmit={handleSubmit} className="staff-form" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={handleSubmit} id="staff-form" className="staff-form" onClick={(e) => e.stopPropagation()}>
               <div className="form-grid">
                 <div className="form-group">
                   <label>Name *</label>
@@ -346,34 +409,49 @@ function AdminStaff() {
               </div>
 
               <div className="role-permissions-info">
-                <h4>Role Permissions:</h4>
-                <div>
-                  <p><strong>✓ All staff members have full access to all features:</strong></p>
-                  <p>✓ Create and manage quotations and orders</p>
-                  <p>✓ Manage products, categories, and inventory</p>
-                  <p>✓ Manage contacts and customers</p>
-                  <p>✓ Manage staff and settings</p>
-                  <p>✓ View all reports and data</p>
+                <div className="permissions-header">
+                  <h4>Tab Access Permissions</h4>
+                  <div className="permissions-bulk">
+                    <button type="button" className="perm-bulk-btn" onClick={() => setAllPermissions(true)}>Select All</button>
+                    <button type="button" className="perm-bulk-btn" onClick={() => setAllPermissions(false)}>Clear All</button>
+                  </div>
                 </div>
-              </div>
-
-              <div className="modal-footer">
-                <button 
-                  type="button" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowModal(false);
-                  }} 
-                  className="btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary">
-                  {selectedStaff ? 'Update Staff' : 'Create Staff'}
-                </button>
+                {Object.entries(permissionGroups).map(([group, perms]) => (
+                  <div key={group} className="perm-group">
+                    <div className="perm-group__title">{group}</div>
+                    <div className="perm-group__items">
+                      {perms.map(p => (
+                        <label key={p.key} className="perm-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={!!formData.permissions[p.key]}
+                            onChange={() => togglePermission(p.key)}
+                          />
+                          <span>{p.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </form>
+
+            <div className="modal-footer">
+              <button 
+                type="button" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowModal(false);
+                }} 
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+              <button type="submit" form="staff-form" className="btn-primary">
+                {selectedStaff ? 'Update Staff' : 'Create Staff'}
+              </button>
+            </div>
           </div>
         </div>
       )}

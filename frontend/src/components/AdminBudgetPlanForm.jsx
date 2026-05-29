@@ -2914,6 +2914,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               <option value="format5">Format 5: MRP + YOUR PRICE (with GST breakdown)</option>
               <option value="format6">Format 6: COMPLETE (MRP + DISC% + YOUR PRICE + GST breakdown)</option>
               <option value="format7">Format 7: NAME + DETAILS ONLY (no images)</option>
+              <option value="format8">Format 8: MRP + PRICE</option>
             </select>
           </div>
           
@@ -3003,6 +3004,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                             {columnFormat === 'format5' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
                             {columnFormat === 'format6' && <><th style={{ width: '8%' }}>DISC%</th><th style={{ width: '10%' }}>YOUR PRICE</th></>}
                             {columnFormat === 'format7' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
+                            {columnFormat === 'format8' && <th style={{ width: '13%' }}>PRICE</th>}
                             <th style={{ width: '13%' }}>TOTAL</th>
                           </tr>
                         </thead>
@@ -3476,6 +3478,11 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                                     )}
                                   </td>
                                 )}
+                                {columnFormat === 'format8' && (
+                                  <td className="text-left">
+                                    Rs. {(product.sdp || discountedUnitPrice).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </td>
+                                )}
                                 <td className="text-right">
                                   <span className={editedPrices[productKey] !== undefined ? 'edited-price' : ''}>
                                     Rs. {finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -3493,7 +3500,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                               columnFormat === 'format4' ? 5 :
                               columnFormat === 'format5' ? 6 :
                               columnFormat === 'format6' ? 7 :
-                              columnFormat === 'format7' ? 5 : 6
+                              columnFormat === 'format7' ? 5 :
+                              columnFormat === 'format8' ? 6 : 6
                             } className="text-right"></td>
                             <td className="text-right"><strong>SUBTOTAL:</strong></td>
                             <td className="text-right"><strong>Rs. {roomTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
@@ -3553,6 +3561,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                       {columnFormat === 'format5' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
                       {columnFormat === 'format6' && <><th style={{ width: '8%' }}>DISC%</th><th style={{ width: '10%' }}>YOUR PRICE</th></>}
                       {columnFormat === 'format7' && <th style={{ width: '10%' }}>YOUR PRICE</th>}
+                      {columnFormat === 'format8' && <th style={{ width: '13%' }}>PRICE</th>}
                       <th style={{ width: '13%' }}>TOTAL</th>
                     </tr>
                   </thead>

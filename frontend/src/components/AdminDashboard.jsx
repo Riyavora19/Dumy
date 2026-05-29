@@ -1,6 +1,23 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import {
+  Chart as ChartJS,
+  ArcElement, Tooltip, Legend,
+  CategoryScale, LinearScale, BarElement, PointElement, LineElement,
+  Title, Filler
+} from 'chart.js';
+import { Pie, Bar, Line } from 'react-chartjs-2';
 import './AdminDashboard.css';
+
+ChartJS.register(
+  ArcElement, Tooltip, Legend,
+  CategoryScale, LinearScale, BarElement, PointElement, LineElement,
+  Title, Filler
+);
+
+const API_BASE = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : 'https://dumy-2-mli2.onrender.com/api';
 
 const AdminDashboard = ({ onNavigate }) => {
   const [stats, setStats] = useState({
@@ -16,7 +33,16 @@ const AdminDashboard = ({ onNavigate }) => {
     recentInquiries: [],
     recentBudgetPlans: [],
     recentOrders: [],
-    lowStockProducts: []
+    lowStockProducts: [],
+    // chart data
+    quotationStatusData: [],
+    deliveryPaymentData: [],
+    productsByCompany: [],
+    quotationTrend: [],
+    totalQuotations: 0,
+    totalQuotationValue: 0,
+    totalDelivered: 0,
+    totalCollected: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +54,6 @@ const AdminDashboard = ({ onNavigate }) => {
     try {
       setLoading(true);
       
-      // Fetch all data in parallel
       const [
         productsRes,
         categoriesRes,
@@ -37,37 +62,77 @@ const AdminDashboard = ({ onNavigate }) => {
         inquiriesRes,
         budgetPlansRes,
         contactsRes,
-        ordersRes
+        ordersRes,
+        quotationsRes
       ] = await Promise.all([
-        axios.get('https://dumy-2-mli2.onrender.com/api/products'),
-        axios.get('https://dumy-2-mli2.onrender.com/api/categories'),
-        axios.get('https://dumy-2-mli2.onrender.com/api/companies'),
-        axios.get('https://dumy-2-mli2.onrender.com/api/clients'),
-        axios.get('https://dumy-2-mli2.onrender.com/api/inquiries'),
-        axios.get('https://dumy-2-mli2.onrender.com/api/budget-plans'),
-        axios.get('https://dumy-2-mli2.onrender.com/api/contacts'),
-        axios.get('https://dumy-2-mli2.onrender.com/api/orders')
+        axios.get(`${API_BASE}/products`),
+        axios.get(`${API_BASE}/categories`),
+        axios.get(`${API_BASE}/companies`),
+        axios.get(`${API_BASE}/clients`),
+        axios.get(`${API_BASE}/inquiries`),
+        axios.get(`${API_BASE}/budget-plans`),
+        axios.get(`${API_BASE}/contacts`),
+        axios.get(`${API_BASE}/orders`),
+        axios.get(`${API_BASE}/quotations?limit=100`).catch(() => ({ data: { quotations: [] } }))
       ]);
 
-      // Process products
       const products = productsRes.data.data || [];
       const lowStock = products.filter(p => p.stock < 10).slice(0, 5);
-
-      // Process inquiries
       const inquiries = inquiriesRes.data.data || [];
-      const recentInquiries = inquiries.slice(0, 5);
-
-      // Process budget plans
       const budgetPlans = budgetPlansRes.data || [];
-      const recentPlans = budgetPlans.slice(0, 5);
-
-      // Process contacts
       const contacts = contactsRes.data.contacts || [];
       const referrers = contacts.filter(c => c.isReferrer);
-
-      // Process orders
       const orders = ordersRes.data.orders || [];
-      const recentOrders = orders.slice(0, 5);
+      const quotations = quotationsRes.data.quotations || [];
+
+      // ── Chart 1: Quotation status breakdown (Pie) ──
+      const statusCount = { pending_approval: 0, approved: 0, rejected: 0, draft: 0 };
+      quotations.forEach(q => { statusCount[q.status] = (statusCount[q.status] || 0) + 1; });
+      const quotationStatusData = [
+        { name: 'Pending', value: statusCount.pending_approval, color: '#ed8936' },
+        { name: 'Approved', value: statusCount.approved, color: '#48bb78' },
+        { name: 'Rejected', value: statusCount.rejected, color: '#e53e3e' },
+        { name: 'Draft', value: statusCount.draft, color: '#a0aec0' },
+      ].filter(d => d.value > 0);
+
+      // ── Chart 2: Delivery & Payment status (Bar) ──
+      const approvedQuotations = quotations.filter(q => q.status === 'approved');
+      const deliveryPaymentData = [
+        { name: 'Not Started', deliveries: approvedQuotations.filter(q => q.deliveryStatus === 'not_started').length, payments: approvedQuotations.filter(q => q.paymentStatus === 'unpaid').length },
+        { name: 'Partial', deliveries: approvedQuotations.filter(q => q.deliveryStatus === 'partial').length, payments: approvedQuotations.filter(q => q.paymentStatus === 'partial').length },
+        { name: 'Completed', deliveries: approvedQuotations.filter(q => q.deliveryStatus === 'completed').length, payments: approvedQuotations.filter(q => q.paymentStatus === 'paid').length },
+      ];
+
+      // ── Chart 3: Products by company (Bar) ──
+      const companyCount = {};
+      products.forEach(p => {
+        const name = p.companyName || 'Unknown';
+        companyCount[name] = (companyCount[name] || 0) + 1;
+      });
+      const productsByCompany = Object.entries(companyCount)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8);
+
+      // ── Chart 4: Quotation value trend by month ──
+      const monthMap = {};
+      quotations.forEach(q => {
+        const d = new Date(q.createdAt);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        const label = d.toLocaleString('en-IN', { month: 'short', year: '2-digit' });
+        if (!monthMap[key]) monthMap[key] = { label, value: 0, count: 0 };
+        monthMap[key].value += q.total || 0;
+        monthMap[key].count += 1;
+      });
+      const quotationTrend = Object.entries(monthMap)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .slice(-6)
+        .map(([, v]) => ({ name: v.label, value: Math.round(v.value), count: v.count }));
+
+      // ── Summary numbers ──
+      const totalQuotationValue = quotations.reduce((s, q) => s + (q.total || 0), 0);
+      const totalDelivered = quotations.reduce((s, q) => s + (q.totalDelivered || 0), 0);
+      const totalCollected = quotations.reduce((s, q) => s + (q.totalPaid || 0), 0);
 
       setStats({
         totalProducts: products.length,
@@ -79,10 +144,18 @@ const AdminDashboard = ({ onNavigate }) => {
         totalContacts: contacts.length,
         totalOrders: orders.length,
         totalReferrers: referrers.length,
-        recentInquiries,
-        recentBudgetPlans: recentPlans,
-        recentOrders,
-        lowStockProducts: lowStock
+        recentInquiries: inquiries.slice(0, 5),
+        recentBudgetPlans: budgetPlans.slice(0, 5),
+        recentOrders: orders.slice(0, 5),
+        lowStockProducts: lowStock,
+        quotationStatusData,
+        deliveryPaymentData,
+        productsByCompany,
+        quotationTrend,
+        totalQuotations: quotations.length,
+        totalQuotationValue,
+        totalDelivered,
+        totalCollected,
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -214,6 +287,146 @@ const AdminDashboard = ({ onNavigate }) => {
             <h3>{stats.totalOrders}</h3>
             <p>Orders</p>
           </div>
+        </div>
+      </div>
+
+      {/* ── CHARTS SECTION ── */}
+      <div className="admin-dashboard__charts-header">
+        <h2>Business Overview</h2>
+        <div className="admin-dashboard__biz-stats">
+          <div className="admin-dashboard__biz-stat">
+            <span>Total Quotations</span>
+            <strong>{stats.totalQuotations}</strong>
+          </div>
+          <div className="admin-dashboard__biz-stat">
+            <span>Quotation Value</span>
+            <strong>₹{(stats.totalQuotationValue || 0).toLocaleString('en-IN')}</strong>
+          </div>
+          <div className="admin-dashboard__biz-stat admin-dashboard__biz-stat--green">
+            <span>Total Delivered</span>
+            <strong>₹{(stats.totalDelivered || 0).toLocaleString('en-IN')}</strong>
+          </div>
+          <div className="admin-dashboard__biz-stat admin-dashboard__biz-stat--blue">
+            <span>Total Collected</span>
+            <strong>₹{(stats.totalCollected || 0).toLocaleString('en-IN')}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div className="admin-dashboard__charts">
+        {/* Chart 1: Quotation Status Pie */}
+        <div className="admin-dashboard__chart-card">
+          <h3>Quotation Status</h3>
+          {stats.quotationStatusData.length === 0 ? (
+            <div className="admin-dashboard__chart-empty">No quotations yet</div>
+          ) : (
+            <div style={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Pie
+                data={{
+                  labels: stats.quotationStatusData.map(d => d.name),
+                  datasets: [{
+                    data: stats.quotationStatusData.map(d => d.value),
+                    backgroundColor: stats.quotationStatusData.map(d => d.color),
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                  }]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } } }
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Chart 2: Delivery & Payment Status Bar */}
+        <div className="admin-dashboard__chart-card">
+          <h3>Delivery & Payment Status</h3>
+          {stats.deliveryPaymentData.every(d => d.deliveries === 0 && d.payments === 0) ? (
+            <div className="admin-dashboard__chart-empty">No approved quotations yet</div>
+          ) : (
+            <div style={{ height: 220 }}>
+              <Bar
+                data={{
+                  labels: stats.deliveryPaymentData.map(d => d.name),
+                  datasets: [
+                    { label: 'Deliveries', data: stats.deliveryPaymentData.map(d => d.deliveries), backgroundColor: '#4f46e5', borderRadius: 4 },
+                    { label: 'Payments', data: stats.deliveryPaymentData.map(d => d.payments), backgroundColor: '#48bb78', borderRadius: 4 }
+                  ]
+                }}
+                options={{
+                  responsive: true, maintainAspectRatio: false,
+                  plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } },
+                  scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } }
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Chart 3: Products by Company Bar */}
+        <div className="admin-dashboard__chart-card">
+          <h3>Products by Company</h3>
+          {stats.productsByCompany.length === 0 ? (
+            <div className="admin-dashboard__chart-empty">No products yet</div>
+          ) : (
+            <div style={{ height: 220 }}>
+              <Bar
+                data={{
+                  labels: stats.productsByCompany.map(d => d.name),
+                  datasets: [{
+                    label: 'Products',
+                    data: stats.productsByCompany.map(d => d.count),
+                    backgroundColor: ['#4f46e5','#48bb78','#ed8936','#e53e3e','#38b2ac','#f093fb','#667eea','#764ba2'],
+                    borderRadius: 4
+                  }]
+                }}
+                options={{
+                  responsive: true, maintainAspectRatio: false,
+                  indexAxis: 'y',
+                  plugins: { legend: { display: false } },
+                  scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Chart 4: Quotation Value Trend Line */}
+        <div className="admin-dashboard__chart-card">
+          <h3>Quotation Value Trend</h3>
+          {stats.quotationTrend.length === 0 ? (
+            <div className="admin-dashboard__chart-empty">No quotation data yet</div>
+          ) : (
+            <div style={{ height: 220 }}>
+              <Line
+                data={{
+                  labels: stats.quotationTrend.map(d => d.name),
+                  datasets: [{
+                    label: 'Value (₹)',
+                    data: stats.quotationTrend.map(d => d.value),
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79,70,229,0.08)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#4f46e5',
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.3
+                  }]
+                }}
+                options={{
+                  responsive: true, maintainAspectRatio: false,
+                  plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ₹${ctx.raw.toLocaleString('en-IN')}` } } },
+                  scales: {
+                    y: { beginAtZero: true, ticks: { callback: v => `₹${(v/1000).toFixed(0)}k` } },
+                    x: { grid: { display: false } }
+                  }
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
 

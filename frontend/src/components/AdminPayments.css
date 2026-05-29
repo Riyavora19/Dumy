@@ -2,10 +2,10 @@
 .admin-payments { padding: 24px; max-width: 1400px; }
 
 .ap-header { margin-bottom: 24px; }
-.ap-header h1 { font-size: 1.6rem; font-weight: 700; color: #1a202c; margin: 0 0 4px; }
-.ap-header p { color: #718096; margin: 0; font-size: 0.9rem; }
+.ap-header h1 { font-size: 1.8rem; font-weight: 700; color: #1a202c; margin: 0 0 4px; }
+.ap-header p { color: #718096; margin: 0; font-size: 1rem; }
 
-.ap-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
+.ap-layout { display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: start; }
 
 /* Left */
 .ap-left { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
@@ -13,11 +13,11 @@
 .ap-tabs { display: flex; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
 .ap-tab {
   flex: 1;
-  padding: 10px 8px;
+  padding: 11px 8px;
   border: none;
   background: none;
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: #718096;
   border-bottom: 2px solid transparent;
@@ -32,8 +32,8 @@
   width: 100%;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.875rem;
+  padding: 9px 13px;
+  font-size: 0.95rem;
   outline: none;
   box-sizing: border-box;
 }
@@ -51,32 +51,32 @@
 .ap-card--active { background: #eef2ff; border-left: 3px solid #4f46e5; }
 
 .ap-card__top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.ap-card__num { font-weight: 700; color: #4f46e5; font-size: 0.85rem; font-family: monospace; }
-.ap-card__client { font-size: 0.9rem; color: #2d3748; font-weight: 500; margin-bottom: 6px; }
-.ap-card__amounts { display: flex; gap: 12px; font-size: 0.78rem; color: #718096; margin-bottom: 4px; }
-.ap-card__balance { font-size: 0.78rem; color: #e53e3e; font-weight: 600; margin-bottom: 6px; }
+.ap-card__num { font-weight: 700; color: #4f46e5; font-size: 0.95rem; font-family: monospace; }
+.ap-card__client { font-size: 1rem; color: #2d3748; font-weight: 500; margin-bottom: 6px; }
+.ap-card__amounts { display: flex; gap: 12px; font-size: 0.875rem; color: #718096; margin-bottom: 4px; }
+.ap-card__balance { font-size: 0.875rem; color: #e53e3e; font-weight: 600; margin-bottom: 6px; }
 
 .ap-badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 20px;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 .badge--success { background: #c6f6d5; color: #276749; }
 .badge--warning { background: #fefcbf; color: #744210; }
 .badge--danger  { background: #fed7d7; color: #9b2c2c; }
 
-.ap-progress-bar { height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; }
+.ap-progress-bar { height: 5px; background: #e2e8f0; border-radius: 2px; overflow: hidden; }
 .ap-progress-fill { height: 100%; background: #4f46e5; border-radius: 2px; transition: width 0.3s; }
-.ap-progress-label { font-size: 0.72rem; color: #718096; margin-top: 3px; }
+.ap-progress-label { font-size: 0.82rem; color: #718096; margin-top: 3px; }
 
 /* Right */
 .ap-right {
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 24px;
+  padding: 28px;
   min-height: 400px;
 }
 
@@ -89,7 +89,7 @@
   color: #a0aec0;
   gap: 12px;
 }
-.ap-placeholder p { font-size: 0.95rem; }
+.ap-placeholder p { font-size: 1.05rem; }
 
 .ap-detail-header {
   display: flex;
@@ -99,16 +99,16 @@
   flex-wrap: wrap;
   gap: 12px;
 }
-.ap-detail-header h2 { margin: 0 0 4px; font-size: 1.2rem; color: #1a202c; }
-.ap-detail-header p { margin: 0; color: #718096; font-size: 0.875rem; }
+.ap-detail-header h2 { margin: 0 0 4px; font-size: 1.4rem; color: #1a202c; }
+.ap-detail-header p { margin: 0; color: #718096; font-size: 1rem; }
 
 .ap-add-btn {
   background: #4f46e5;
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 9px 18px;
-  font-size: 0.875rem;
+  padding: 10px 20px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -121,10 +121,10 @@
   background: #f7fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 14px 16px;
+  padding: 16px 18px;
 }
-.ap-summary-card span { display: block; font-size: 0.78rem; color: #718096; margin-bottom: 4px; }
-.ap-summary-card strong { font-size: 1.1rem; font-weight: 700; color: #1a202c; }
+.ap-summary-card span { display: block; font-size: 0.875rem; color: #718096; margin-bottom: 4px; }
+.ap-summary-card strong { font-size: 1.2rem; font-weight: 700; color: #1a202c; }
 .ap-summary-card--paid { background: #f0fff4; border-color: #9ae6b4; }
 .ap-summary-card--paid strong { color: #276749; }
 .ap-summary-card--due { background: #fff5f5; border-color: #feb2b2; }
@@ -137,24 +137,24 @@
   background: #f7fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 20px;
+  padding: 22px;
   margin-bottom: 24px;
 }
-.ap-form h3 { margin: 0 0 16px; font-size: 1rem; color: #1a202c; }
+.ap-form h3 { margin: 0 0 16px; font-size: 1.1rem; color: #1a202c; }
 
 .ap-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .ap-form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-.ap-form-group label { font-size: 0.82rem; font-weight: 600; color: #4a5568; }
+.ap-form-group label { font-size: 0.9rem; font-weight: 600; color: #4a5568; }
 .ap-form-group input, .ap-form-group select, .ap-form-group textarea {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.875rem;
+  padding: 9px 13px;
+  font-size: 0.95rem;
   outline: none;
   background: #fff;
 }
 .ap-form-group input:focus, .ap-form-group select:focus, .ap-form-group textarea:focus { border-color: #4f46e5; }
-.ap-hint { font-size: 0.78rem; color: #e53e3e; font-weight: 600; }
+.ap-hint { font-size: 0.82rem; color: #e53e3e; font-weight: 600; }
 
 .ap-form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
 .ap-btn-primary {
@@ -162,8 +162,8 @@
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 9px 20px;
-  font-size: 0.875rem;
+  padding: 10px 22px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -173,20 +173,20 @@
   color: #4a5568;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 9px 20px;
-  font-size: 0.875rem;
+  padding: 10px 22px;
+  font-size: 0.95rem;
   cursor: pointer;
 }
 .ap-btn-secondary:hover { background: #f7fafc; }
 
 /* History */
-.ap-history h3 { font-size: 1rem; color: #1a202c; margin: 0 0 14px; }
+.ap-history h3 { font-size: 1.1rem; color: #1a202c; margin: 0 0 14px; }
 
 .ap-payment-card {
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: 18px;
+  margin-bottom: 14px;
   background: #fff;
 }
 .ap-payment-card__header {
@@ -195,32 +195,32 @@
   align-items: flex-start;
   margin-bottom: 8px;
 }
-.ap-payment-num { font-weight: 700; color: #4f46e5; font-size: 0.875rem; display: block; }
-.ap-payment-date { font-size: 0.8rem; color: #718096; margin-right: 8px; }
+.ap-payment-num { font-weight: 700; color: #4f46e5; font-size: 1rem; display: block; }
+.ap-payment-date { font-size: 0.9rem; color: #718096; margin-right: 8px; }
 .ap-payment-method {
   display: inline-block;
   background: #edf2f7;
   color: #4a5568;
   border-radius: 4px;
-  padding: 1px 6px;
-  font-size: 0.72rem;
+  padding: 2px 8px;
+  font-size: 0.8rem;
   font-weight: 600;
   margin-right: 6px;
 }
-.ap-txn-id { font-size: 0.78rem; color: #718096; }
-.ap-payment-amount { font-size: 1.2rem; font-weight: 700; color: #276749; }
+.ap-txn-id { font-size: 0.875rem; color: #718096; }
+.ap-payment-amount { font-size: 1.3rem; font-weight: 700; color: #276749; }
 
 .ap-payment-running {
   display: flex;
   gap: 16px;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: #718096;
   margin-bottom: 6px;
 }
 .ap-due { color: #e53e3e; font-weight: 600; }
 .ap-clear { color: #276749; font-weight: 600; }
 
-.ap-payment-notes { font-size: 0.82rem; color: #718096; font-style: italic; margin-top: 6px; }
+.ap-payment-notes { font-size: 0.9rem; color: #718096; font-style: italic; margin-top: 6px; }
 
 .ap-delete-btn {
   margin-top: 10px;
@@ -228,13 +228,13 @@
   border: 1px solid #fed7d7;
   color: #c53030;
   border-radius: 6px;
-  padding: 4px 12px;
-  font-size: 0.78rem;
+  padding: 5px 14px;
+  font-size: 0.875rem;
   cursor: pointer;
 }
 .ap-delete-btn:hover { background: #fff5f5; }
 
-.ap-loading, .ap-empty { text-align: center; padding: 40px 20px; color: #a0aec0; font-size: 0.9rem; }
+.ap-loading, .ap-empty { text-align: center; padding: 40px 20px; color: #a0aec0; font-size: 1rem; }
 
 @media (max-width: 900px) {
   .ap-layout { grid-template-columns: 1fr; }

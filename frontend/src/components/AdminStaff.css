@@ -204,12 +204,14 @@
   background: white;
   border-radius: 12px;
   width: 100%;
-  max-width: 600px;
+  max-width: 680px;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   pointer-events: auto;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
@@ -251,6 +253,8 @@
 /* Form */
 .staff-form {
   padding: 24px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .form-grid {
@@ -313,8 +317,10 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding-top: 16px;
+  padding: 16px 24px;
   border-top: 1px solid #e2e8f0;
+  background: #fff;
+  flex-shrink: 0;
 }
 
 /* Buttons */
@@ -382,4 +388,77 @@
   .filter-group select {
     width: 100%;
   }
+}
+
+/* Permission checkboxes */
+.permissions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.permissions-header h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+.permissions-bulk {
+  display: flex;
+  gap: 8px;
+}
+.perm-bulk-btn {
+  padding: 4px 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: #4a5568;
+  font-weight: 500;
+}
+.perm-bulk-btn:hover { background: #f7fafc; border-color: #4f46e5; color: #4f46e5; }
+
+.perm-group {
+  margin-bottom: 14px;
+}
+.perm-group__title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #4f46e5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.perm-group__items {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px 12px;
+}
+.perm-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #2d3748;
+  padding: 5px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  user-select: none;
+}
+.perm-checkbox:hover { background: #f0f4ff; }
+.perm-checkbox input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: #4f46e5;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.perm-checkbox span { line-height: 1.3; }
+
+@media (max-width: 600px) {
+  .perm-group__items { grid-template-columns: repeat(2, 1fr); }
 }

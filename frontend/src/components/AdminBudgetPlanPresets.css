@@ -56,7 +56,7 @@
 .abpp__toggle input:checked + .abpp__toggle-slider::before { transform: translateX(18px); }
 
 /* Split */
-.abpp__split { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+.abpp__split { flex: 1; display: flex; min-height: 0; overflow: hidden; }
 
 /* LEFT — product browser */
 .abpp__left { width: 58%; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; overflow: hidden; }
@@ -86,30 +86,27 @@
   width: 42%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
   border-left: 1px solid #e5e7eb;
+  overflow: hidden;
 }
 .abpp__right-top {
-  padding: 14px 16px 0;
+  padding: 14px 16px 8px;
   flex-shrink: 0;
+  border-bottom: 1px solid #f3f4f6;
 }
 .abpp__sel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .abpp__sel-header strong { font-size: 14px; }
 .abpp__sel-count { background: #2563eb; color: #fff; border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: 600; }
-.abpp__sel-hint { font-size: 12px; color: #6b7280; margin: 0 0 10px; }
-.abpp__selected-empty { text-align: center; padding: 30px 16px; color: #9ca3af; font-size: 13px; border: 2px dashed #e5e7eb; border-radius: 10px; margin: 0 16px; }
+.abpp__sel-hint { font-size: 12px; color: #6b7280; margin: 0; }
+.abpp__selected-empty { text-align: center; padding: 30px 16px; color: #9ca3af; font-size: 13px; border: 2px dashed #e5e7eb; border-radius: 10px; margin: 16px; }
 .abpp__selected-items {
   flex: 1;
   overflow-y: auto;
-  min-height: 0;
-  padding: 0 16px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  padding: 12px 16px 16px;
 }
 
-.abpp__sel-item { display: flex; align-items: center; gap: 8px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; }
+.abpp__sel-item { display: flex; align-items: center; gap: 8px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; padding: 8px 10px; }
+.abpp__sel-item:last-child { border-bottom: none; }
 .abpp__sel-thumb { width: 38px; height: 38px; object-fit: contain; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; flex-shrink: 0; }
 .abpp__sel-no-img { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
 .abpp__sel-info { flex: 1; min-width: 0; }
@@ -181,7 +178,7 @@
 }
 
 /* ── Area groups in right panel ───────────────────────────────────────────── */
-.abpp__area-group { margin-bottom: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
+.abpp__area-group { margin-bottom: 12px; border-radius: 8px; border: 1px solid #e5e7eb; }
 .abpp__area-group-header {
   display: flex;
   align-items: center;
@@ -190,6 +187,7 @@
   font-size: 12px;
   font-weight: 600;
   border-bottom: 1px solid rgba(0,0,0,.06);
+  border-radius: 8px 8px 0 0;
 }
 .abpp__area-group-count {
   margin-left: auto;
