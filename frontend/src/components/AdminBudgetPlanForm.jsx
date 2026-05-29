@@ -1385,14 +1385,14 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     try {
       setSavingAs('plan');
       const totals = calculateTotals();
-      
+
       // Collect all products from rooms and areas
-      let allProducts = [];
+      let allProductsList = [];
       if (formData.rooms.length > 0) {
         formData.rooms.forEach(room => {
           room.areas.forEach(area => {
             area.products.forEach(product => {
-              allProducts.push({
+              allProductsList.push({
                 ...product,
                 roomId: room.id,
                 roomName: room.name,
@@ -1403,15 +1403,86 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
           });
         });
       } else {
-        allProducts = formData.selectedProducts;
+        allProductsList = formData.selectedProducts;
       }
-      
-      // Determine status based on save option
-      let status = 'draft';
+
+      // ── SAVE AS QUOTATION → post to /api/quotations ──────────────────────
       if (saveOption === 'quotation') {
-        status = 'finalized';
+        const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com/api';
+
+        const items = allProductsList.map(item => ({
+          product: item.product || item._id || item.productId || null,
+          productName: item.productName || item.itemName || '',
+          sku: item.sku || '',
+          companyName: item.companyName || '',
+          categoryName: item.categoryName || '',
+          quantity: item.quantity || 1,
+          unitPrice: item.unitPrice || item.rate || 0,
+          discountPercent: item.discountPercent || 0,
+          totalPrice: item.totalPrice || 0,
+          image: item.image || (item.images && item.images[0]) || '',
+          roomName: item.roomName || '',
+          areaName: item.areaName || ''
+        }));
+
+        const subtotal = items.reduce((s, i) => s + i.totalPrice, 0);
+        const gstAmt = (subtotal * gstRate) / 100;
+        const total = subtotal + gstAmt;
+
+        const quotationPayload = {
+          clientName: formData.customerName || '',
+          clientEmail: formData.customerEmail || '',
+          clientPhone: formData.customerPhone || '',
+          clientAddress: formData.customerAddress || '',
+          clientGST: formData.customerGST || '',
+          projectLocation: formData.projectLocation || '',
+          attention: formData.attention || '',
+          items,
+          subtotal,
+          gstRate,
+          gstAmount: gstAmt,
+          total,
+          quotationValidity: formData.quotationValidity || '30 days',
+          deliveryTime: formData.deliveryTime || '2-3 weeks',
+          paymentTerms: formData.paymentTerms || '50% advance, 50% before dispatch',
+          specialInstructions: formData.specialInstructions || '',
+          notes: formData.notes || '',
+          status: 'pending_approval'
+        };
+
+        console.log('Saving quotation:', quotationPayload);
+
+        const response = await fetch(`${API_URL}/quotations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('staffToken')}`
+          },
+          body: JSON.stringify(quotationPayload)
+        });
+
+        let result;
+        try {
+          result = await response.json();
+        } catch (parseErr) {
+          console.error('Response was not JSON. Status:', response.status, response.statusText);
+          alert(`Server error (${response.status}): The quotation API route is not available on the server. Please ensure the backend is deployed with the latest code.`);
+          return;
+        }
+
+        console.log('Quotation save response:', response.status, result);
+
+        if (result.success) {
+          onSuccess && onSuccess(result.quotation);
+          onClose && onClose();
+        } else {
+          console.error('Server error saving quotation:', result);
+          alert(result.message || 'Failed to save quotation. Please try again.');
+        }
+        return;
       }
-      
+
+      // ── SAVE AS BUDGET PLAN → original logic ────────────────────────────
       const budgetPlanData = {
         userId: formData.customer,
         userName: formData.customerName,
@@ -1420,7 +1491,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         roomTemplate: formData.roomTemplate || null,
         roomName: formData.roomName || 'Custom Project',
         totalBudget: totals.totalBudget,
-        selectedProducts: allProducts.map(item => ({
+        selectedProducts: allProductsList.map(item => ({
           itemType: item.itemType,
           itemName: item.itemName || item.itemTypeName || item.productName,
           product: item.product,
@@ -1437,7 +1508,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         })),
         totalCost: totals.totalCost,
         remainingBudget: totals.remainingBudget,
-        status: status,
+        status: 'draft',
         notes: formData.notes,
         rooms: formData.rooms.map(room => ({
           id: room.id,
@@ -1448,21 +1519,14 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
             name: area.name,
             productCount: area.products.length
           }))
-        })),
-        // Add quotation-specific fields if saving as quotation
-        ...(saveOption === 'quotation' && {
-          quotationValidity: formData.quotationValidity,
-          deliveryTime: formData.deliveryTime,
-          paymentTerms: formData.paymentTerms,
-          specialInstructions: formData.specialInstructions
-        })
+        }))
       };
 
       console.log('Saving budget plan:', budgetPlanData);
 
       const response = await fetch('https://dumy-2-mli2.onrender.com/api/budget-plans', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('staffToken')}`
         },
@@ -1472,16 +1536,13 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       const result = await response.json();
 
       if (response.ok) {
-        const message = saveOption === 'quotation' 
-          ? 'Quotation saved successfully!' 
-          : 'Budget plan saved successfully!';
         onSuccess && onSuccess(result);
         onClose && onClose();
       } else {
         console.error('Server error:', result);
       }
     } catch (error) {
-      console.error('Error saving budget plan:', error);
+      console.error('Error saving:', error);
     } finally {
       setSavingAs(null);
     }

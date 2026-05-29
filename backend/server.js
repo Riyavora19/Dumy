@@ -8,6 +8,8 @@ const app = express();
 // CORS Configuration
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
   'http://localhost:3000',
   'https://my-dumy.vercel.app',
   'https://dumy-delta.vercel.app',
@@ -105,6 +107,15 @@ app.use('/api/staff', staffRouter);
 
 // Quotation Settings routes
 app.use('/api/quotation-settings', require('./routes/quotationSettings'));
+
+// Quotation lifecycle routes
+app.use('/api/quotations', require('./routes/quotations'));
+
+// Delivery routes
+app.use('/api/deliveries', require('./routes/deliveries'));
+
+// Payment routes
+app.use('/api/payments', require('./routes/payments'));
 
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5000;
