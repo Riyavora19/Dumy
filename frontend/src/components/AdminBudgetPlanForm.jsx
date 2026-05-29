@@ -176,6 +176,14 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
   const [selectedSuggestion, setSelectedSuggestion] = useState(''); // For highlighting selected suggestion
   const [selectedRoomNames, setSelectedRoomNames] = useState([]); // For checkbox selection in modal
   const [customRoomName, setCustomRoomName] = useState(''); // For custom room name input
+
+  // Staff members for "Attended By" dropdown
+  const STAFF_MEMBERS = [
+    { id: 'paras',   name: 'Paras Shah',   phone: '92272 06063' },
+    { id: 'hemang',  name: 'Hemang Shah',  phone: '98250 24763' },
+    { id: 'harshal', name: 'Harshal Shah', phone: '99792 31820' },
+  ];
+  const [attendedBy, setAttendedBy] = useState(STAFF_MEMBERS[0]); // default to Paras Shah
   
   // Product type suggestions for each area
   const getAreaSuggestions = (areaId) => {
@@ -1408,7 +1416,9 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
       // ── SAVE AS QUOTATION → post to /api/quotations ──────────────────────
       if (saveOption === 'quotation') {
-        const API_URL = 'https://dumy-2-mli2.onrender.com/api';
+        const API_URL = window.location.hostname === 'localhost'
+          ? 'http://localhost:5000/api'
+          : 'https://dumy-2-mli2.onrender.com/api';
 
         const items = allProductsList.map(item => ({
           product: item.product || item._id || item.productId || null,
@@ -1447,7 +1457,9 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
           paymentTerms: formData.paymentTerms || '50% advance, 50% before dispatch',
           specialInstructions: formData.specialInstructions || '',
           notes: formData.notes || '',
-          status: 'pending_approval'
+          status: 'pending_approval',
+          attendedByName: attendedBy.name,
+          attendedByPhone: attendedBy.phone
         };
 
         console.log('Saving quotation:', quotationPayload);
@@ -1788,6 +1800,22 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
             onChange={(e) => setFormData(prev => ({ ...prev, attention: e.target.value }))}
             placeholder="Contact person name (e.g., Mr. Rajesh Kumar)"
           />
+        </div>
+
+        <div className="form-group">
+          <label>Attended By *</label>
+          <select
+            value={attendedBy.id}
+            onChange={(e) => {
+              const staff = STAFF_MEMBERS.find(s => s.id === e.target.value);
+              if (staff) setAttendedBy(staff);
+            }}
+            style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', width: '100%', background: '#fff' }}
+          >
+            {STAFF_MEMBERS.map(s => (
+              <option key={s.id} value={s.id}>{s.name} — {s.phone}</option>
+            ))}
+          </select>
         </div>
 
         <div className="form-group">
@@ -3916,10 +3944,10 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               onClick={async () => {
                 setGenerating(true);
                 try {
-                  // Get staff info from localStorage
-                  const staffId = localStorage.getItem('staffId') || '';
-                  const staffName = localStorage.getItem('staffName') || '';
-                  const staffPhone = localStorage.getItem('staffPhone') || '';
+                  // Get staff info from selected attendedBy
+                  const staffId = '';
+                  const staffName = attendedBy.name || '';
+                  const staffPhone = attendedBy.phone || '';
                   
                   // Apply edited prices to rooms data or selected products
                   const roomsWithEditedPrices = formData.rooms.map(room => ({
@@ -3993,10 +4021,10 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                 onClick={async () => {
                   setGenerating(true);
                   try {
-                    // Get staff info from localStorage
-                    const staffId = localStorage.getItem('staffId') || '';
-                    const staffName = localStorage.getItem('staffName') || '';
-                    const staffPhone = localStorage.getItem('staffPhone') || '';
+                    // Get staff info from selected attendedBy
+                    const staffId = '';
+                    const staffName = attendedBy.name || '';
+                    const staffPhone = attendedBy.phone || '';
                     
                     // Apply edited prices to rooms data
                     const roomsWithEditedPrices = formData.rooms.map(room => ({

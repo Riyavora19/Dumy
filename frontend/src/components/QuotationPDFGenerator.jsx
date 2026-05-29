@@ -1267,32 +1267,18 @@ async function generateSinglePDF(quotationData, roomsToInclude, revisionNumber =
   // Right side - Attended by content (starts at same Y as first term)
   let attendedYPos = contentYPos;
   doc.setFontSize(8);
-  doc.setFont('helvetica', 'bold');
-  if (attendedByStaffId) {
-    doc.text(`${attendedByStaffId} - ${attendedByName}`, pageWidth - marginRight - 40, attendedYPos);
-  } else {
-    doc.text(attendedByName, pageWidth - marginRight - 40, attendedYPos);
+  doc.setFont('helvetica', 'normal');
+
+  // Show name in red + phone in black on one line
+  const displayName = attendedByName || 'Admin';
+  const nameLabel = displayName + (adminPhone ? ' : ' : '');
+  doc.setTextColor(255, 0, 0);
+  doc.text(nameLabel, pageWidth - marginRight - 40, attendedYPos);
+  if (adminPhone) {
+    doc.setTextColor(0, 0, 0);
+    doc.text(adminPhone, pageWidth - marginRight - 40 + doc.getTextWidth(nameLabel), attendedYPos);
   }
   attendedYPos += 4;
-  
-  // Three staff members (aligned with terms 2, 3, 4)
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(255, 0, 0); // Red color for names
-  doc.text('Paras Shah : ', pageWidth - marginRight - 40, attendedYPos);
-  doc.setTextColor(0, 0, 0); // Black color for phone numbers
-  doc.text('92272 06063', pageWidth - marginRight - 40 + doc.getTextWidth('Paras Shah : '), attendedYPos);
-  attendedYPos += 4;
-  
-  doc.setTextColor(255, 0, 0); // Red color for names
-  doc.text('Hemang Shah : ', pageWidth - marginRight - 40, attendedYPos);
-  doc.setTextColor(0, 0, 0); // Black color for phone numbers
-  doc.text('98250 24763', pageWidth - marginRight - 40 + doc.getTextWidth('Hemang Shah : '), attendedYPos);
-  attendedYPos += 4;
-  
-  doc.setTextColor(255, 0, 0); // Red color for names
-  doc.text('Harshal Shah : ', pageWidth - marginRight - 40, attendedYPos);
-  doc.setTextColor(0, 0, 0); // Black color for phone numbers
-  doc.text('99792 31820', pageWidth - marginRight - 40 + doc.getTextWidth('Harshal Shah : '), attendedYPos);
   
   // Reset text color to black
   doc.setTextColor(0, 0, 0);

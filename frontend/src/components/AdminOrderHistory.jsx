@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNotification } from '../context/NotificationContext';
 import './AdminOrderHistory.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com/api';
+const API_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : 'https://dumy-2-mli2.onrender.com/api';
 
 function AdminOrderHistory() {
   const { showNotification } = useNotification();
@@ -59,6 +61,7 @@ function AdminOrderHistory() {
       subtitle: `${q.quotationNumber} · ${(q.items || []).length} items`,
       amount: q.total,
       date: q.createdAt,
+      order: 0,
       color: '#4f46e5'
     });
 
@@ -69,6 +72,7 @@ function AdminOrderHistory() {
         title: 'Quotation Approved',
         subtitle: q.approvedBy ? `by ${q.approvedBy}` : '',
         date: q.approvedAt || q.updatedAt,
+        order: 1,
         color: '#276749'
       });
     }
@@ -80,6 +84,7 @@ function AdminOrderHistory() {
         title: 'Quotation Rejected',
         subtitle: q.rejectionReason || (q.rejectedBy ? `by ${q.rejectedBy}` : ''),
         date: q.rejectedAt || q.updatedAt,
+        order: 1,
         color: '#c53030'
       });
     }
@@ -91,7 +96,9 @@ function AdminOrderHistory() {
         title: `Delivery #${idx + 1} Recorded`,
         subtitle: `${d.deliveryNumber} · ${(d.items || []).length} items`,
         amount: d.deliveryValue,
-        date: d.deliveredDate || d.createdAt,
+        date: d.createdAt,          // use createdAt for accurate time
+        displayDate: d.deliveredDate, // show deliveredDate as the delivery date label
+        order: 2 + idx,
         color: '#2b6cb0',
         items: d.items,
         notes: d.notes,
@@ -106,15 +113,21 @@ function AdminOrderHistory() {
         title: `Payment #${idx + 1} Received`,
         subtitle: `${p.paymentMethod?.replace('_', ' ').toUpperCase()} ${p.transactionId ? `· Ref: ${p.transactionId}` : ''}`,
         amount: p.amount,
-        date: p.paymentDate || p.createdAt,
+        date: p.createdAt,          // use createdAt for accurate time
+        displayDate: p.paymentDate,  // show paymentDate as the payment date label
+        order: 100 + idx,
         color: '#276749',
         balance: p.balanceAfterThis,
         notes: p.notes
       });
     });
 
-    // Sort by date
-    events.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Sort: first by logical order type, then by date within same type
+    events.sort((a, b) => {
+      if (a.order !== b.order) return a.order - b.order;
+      return new Date(a.date) - new Date(b.date);
+    });
+
     return events;
   };
 
@@ -273,7 +286,15 @@ function AdminOrderHistory() {
                           ))}
                         </div>
                       )}
-                      <div className="oh-event__date">{fmtDateTime(event.date)}</div>
+                      <div className="oh-event__date">
+                        {event.displayDate
+                          ? <>
+                              <span>Delivery date: {fmtDate(event.displayDate)}</span>
+                              <span style={{ marginLeft: 8 }}>· Recorded: {fmtDateTime(event.date)}</span>
+                            </>
+                          : fmtDateTime(event.date)
+                        }
+                      </div>
                     </div>
                   </div>
                 ))}

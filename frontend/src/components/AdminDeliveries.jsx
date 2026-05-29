@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNotification } from '../context/NotificationContext';
 import './AdminDeliveries.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com/api';
+const API_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : 'https://dumy-2-mli2.onrender.com/api';
 
 const DELIVERY_STATUS = {
   not_started: { label: 'Not Started', cls: 'badge--neutral' },
@@ -20,10 +22,18 @@ function AdminDeliveries() {
   const [deliveries, setDeliveries] = useState([]);
   const [deliverySummary, setDeliverySummary] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [formItems, setFormItems] = useState([]);
-  const [formNotes, setFormNotes] = useState('');
+
+  // Form state
   const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
   const [formDeliveredBy, setFormDeliveredBy] = useState('');
+  const [formNotes, setFormNotes] = useState('');
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  // Payment state for this delivery
+  const [paymentStatus, setPaymentStatus] = useState('not_paid'); // 'not_paid' | 'paid' | 'partial'
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentTxnId, setPaymentTxnId] = useState('');
 
   const TABS = [
     { key: 'all', label: 'All Approved' },
@@ -35,16 +45,13 @@ function AdminDeliveries() {
   const fetchQuotations = useCallback(async () => {
     try {
       setLoading(true);
-      // Only show approved quotations in deliveries
       const params = new URLSearchParams({ status: 'approved', limit: 100 });
       if (search) params.append('search', search);
       const res = await fetch(`${API_URL}/quotations?${params}`);
       const data = await res.json();
       if (data.success) {
         let list = data.quotations;
-        if (activeTab !== 'all') {
-          list = list.filter(q => q.deliveryStatus === activeTab);
-        }
+        if (activeTab !== 'all') list = list.filter(q => q.deliveryStatus === activeTab);
         setQuotations(list);
       }
     } catch (err) {
@@ -59,6 +66,7 @@ function AdminDeliveries() {
   const openQuotation = async (quotation) => {
     setSelectedQuotation(quotation);
     setShowAddForm(false);
+    setSelectedItems([]);
     try {
       const res = await fetch(`${API_URL}/deliveries/quotation/${quotation._id}`);
       const data = await res.json();
@@ -72,34 +80,68 @@ function AdminDeliveries() {
   };
 
   const openAddForm = () => {
-    // Pre-fill items from quotation
-    const items = (selectedQuotation.items || []).map(item => ({
-      ...item,
-      quantityOrdered: item.quantity,
-      quantityDelivered: item.quantity, // default to full
-      totalPrice: item.totalPrice
-    }));
-    setFormItems(items);
-    setFormNotes('');
+    setSelectedItems([]);
     setFormDate(new Date().toISOString().split('T')[0]);
     setFormDeliveredBy('');
+    setFormNotes('');
+    setPaymentStatus('not_paid');
+    setPaymentAmount('');
+    setPaymentMethod('cash');
+    setPaymentTxnId('');
     setShowAddForm(true);
   };
 
-  const updateItemQty = (idx, val) => {
-    setFormItems(prev => prev.map((item, i) => {
-      if (i !== idx) return item;
-      const qty = Math.max(0, Math.min(Number(val), item.quantityOrdered));
-      return { ...item, quantityDelivered: qty, totalPrice: qty * item.unitPrice };
+  // Add a product from the quotation to the delivery list
+  const addProductToDelivery = (item) => {
+    const key = item._id || item.productName;
+    if (selectedItems.find(i => i._itemKey === key)) return;
+    setSelectedItems(prev => [...prev, {
+      _itemKey: key,
+      product: item.product,
+      productName: item.productName,
+      sku: item.sku || '',
+      companyName: item.companyName || '',
+      categoryName: item.categoryName || '',
+      quantityOrdered: item.quantity,
+      quantityDelivered: item.quantity,
+      unitPrice: item.unitPrice || 0,
+      totalPrice: item.totalPrice || 0,
+      image: item.image || '',
+      roomName: item.roomName || '',
+      areaName: item.areaName || '',
+    }]);
+  };
+
+  const removeFromDelivery = (key) => {
+    setSelectedItems(prev => prev.filter(i => i._itemKey !== key));
+  };
+
+  const updateDeliveryQty = (key, val) => {
+    setSelectedItems(prev => prev.map(i => {
+      if (i._itemKey !== key) return i;
+      const qty = Math.max(0, Math.min(Number(val), i.quantityOrdered));
+      return { ...i, quantityDelivered: qty, totalPrice: qty * i.unitPrice };
     }));
   };
 
   const handleAddDelivery = async () => {
-    const deliveredItems = formItems.filter(i => i.quantityDelivered > 0);
+    const deliveredItems = selectedItems.filter(i => i.quantityDelivered > 0);
     if (deliveredItems.length === 0) {
-      showNotification('Add at least one item with quantity > 0', 'error');
+      showNotification('Add at least one product with quantity > 0', 'error');
       return;
     }
+
+    const deliveryValue = deliveredItems.reduce((s, i) => s + i.totalPrice, 0);
+
+    // Validate payment amount if paid/partial
+    if (paymentStatus !== 'not_paid') {
+      const amt = parseFloat(paymentAmount);
+      if (!amt || amt <= 0) {
+        showNotification('Enter a valid payment amount', 'error');
+        return;
+      }
+    }
+
     try {
       const payload = {
         quotation: selectedQuotation._id,
@@ -132,10 +174,46 @@ function AdminDeliveries() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        showNotification(`Server error (${res.status}): Could not parse response`, 'error');
+        return;
+      }
+
       if (data.success) {
-        showNotification('Delivery recorded!', 'success');
+        // If payment was collected, create a payment record too
+        if (paymentStatus !== 'not_paid') {
+          const amt = parseFloat(paymentAmount) || deliveryValue;
+          const paymentPayload = {
+            quotation: selectedQuotation._id,
+            amount: amt,
+            paymentMethod,
+            transactionId: paymentTxnId,
+            paymentDate: formDate,
+            notes: `Payment for delivery ${data.delivery.deliveryNumber}`
+          };
+          try {
+            await fetch(`${API_URL}/payments`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(paymentPayload)
+            });
+          } catch (payErr) {
+            console.error('Payment save failed:', payErr);
+          }
+        }
+
+        showNotification(
+          paymentStatus !== 'not_paid'
+            ? 'Delivery recorded & payment saved!'
+            : 'Delivery recorded!',
+          'success'
+        );
         setShowAddForm(false);
+        setSelectedItems([]);
         openQuotation(selectedQuotation);
         fetchQuotations();
       } else {
@@ -161,6 +239,19 @@ function AdminDeliveries() {
   const fmt = (n) => `₹${(n || 0).toLocaleString('en-IN')}`;
   const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
 
+  // Products from quotation not yet added to selectedItems AND not already fully delivered
+  const alreadyDeliveredKeys = new Set(
+    deliveries.flatMap(d => (d.items || []).map(i => i.productName))
+  );
+
+  const availableProducts = (selectedQuotation?.items || []).filter(item => {
+    // Not already in current delivery selection
+    if (selectedItems.find(i => i._itemKey === (item._id || item.productName))) return false;
+    // Not already delivered in a previous delivery
+    if (alreadyDeliveredKeys.has(item.productName)) return false;
+    return true;
+  });
+
   return (
     <div className="admin-deliveries">
       <div className="ad-header">
@@ -171,7 +262,7 @@ function AdminDeliveries() {
       </div>
 
       <div className="ad-layout">
-        {/* Left: Quotation list */}
+        {/* Left panel */}
         <div className="ad-left">
           <div className="ad-tabs">
             {TABS.map(t => (
@@ -180,19 +271,10 @@ function AdminDeliveries() {
               </button>
             ))}
           </div>
-
           <div className="ad-search">
-            <input
-              type="text"
-              placeholder="Search client or quotation #..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
+            <input type="text" placeholder="Search client or quotation #..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-
-          {loading ? (
-            <div className="ad-loading">Loading...</div>
-          ) : quotations.length === 0 ? (
+          {loading ? <div className="ad-loading">Loading...</div> : quotations.length === 0 ? (
             <div className="ad-empty">No approved quotations found</div>
           ) : (
             <div className="ad-list">
@@ -200,11 +282,7 @@ function AdminDeliveries() {
                 const ds = DELIVERY_STATUS[q.deliveryStatus || 'not_started'];
                 const pct = q.total > 0 ? Math.min(100, Math.round(((q.totalDelivered || 0) / q.total) * 100)) : 0;
                 return (
-                  <div
-                    key={q._id}
-                    className={`ad-card ${selectedQuotation?._id === q._id ? 'ad-card--active' : ''}`}
-                    onClick={() => openQuotation(q)}
-                  >
+                  <div key={q._id} className={`ad-card ${selectedQuotation?._id === q._id ? 'ad-card--active' : ''}`} onClick={() => openQuotation(q)}>
                     <div className="ad-card__top">
                       <span className="ad-card__num">{q.quotationNumber}</span>
                       <span className={`ad-badge ${ds.cls}`}>{ds.label}</span>
@@ -214,9 +292,7 @@ function AdminDeliveries() {
                       <span>Total: {fmt(q.total)}</span>
                       <span>Delivered: {fmt(q.totalDelivered)}</span>
                     </div>
-                    <div className="ad-progress-bar">
-                      <div className="ad-progress-fill" style={{ width: `${pct}%` }} />
-                    </div>
+                    <div className="ad-progress-bar"><div className="ad-progress-fill" style={{ width: `${pct}%` }} /></div>
                     <div className="ad-progress-label">{pct}% delivered</div>
                   </div>
                 );
@@ -225,7 +301,7 @@ function AdminDeliveries() {
           )}
         </div>
 
-        {/* Right: Delivery detail */}
+        {/* Right panel */}
         <div className="ad-right">
           {!selectedQuotation ? (
             <div className="ad-placeholder">
@@ -242,26 +318,17 @@ function AdminDeliveries() {
               <div className="ad-detail-header">
                 <div>
                   <h2>{selectedQuotation.quotationNumber}</h2>
-                  <p>{selectedQuotation.clientName} {selectedQuotation.clientPhone && `· ${selectedQuotation.clientPhone}`}</p>
+                  <p>{selectedQuotation.clientName}{selectedQuotation.clientPhone && ` · ${selectedQuotation.clientPhone}`}</p>
                 </div>
-                <button className="ad-add-btn" onClick={openAddForm}>+ Record Delivery</button>
+                {!showAddForm && <button className="ad-add-btn" onClick={openAddForm}>+ Record Delivery</button>}
               </div>
 
-              {/* Summary cards */}
+              {/* Summary */}
               {deliverySummary && (
                 <div className="ad-summary">
-                  <div className="ad-summary-card">
-                    <span>Quotation Total</span>
-                    <strong>{fmt(deliverySummary.quotationTotal)}</strong>
-                  </div>
-                  <div className="ad-summary-card ad-summary-card--delivered">
-                    <span>Total Delivered</span>
-                    <strong>{fmt(deliverySummary.totalDelivered)}</strong>
-                  </div>
-                  <div className="ad-summary-card ad-summary-card--pending">
-                    <span>Remaining</span>
-                    <strong>{fmt(deliverySummary.remaining)}</strong>
-                  </div>
+                  <div className="ad-summary-card"><span>Quotation Total</span><strong>{fmt(deliverySummary.quotationTotal)}</strong></div>
+                  <div className="ad-summary-card ad-summary-card--delivered"><span>Total Delivered</span><strong>{fmt(deliverySummary.totalDelivered)}</strong></div>
+                  <div className="ad-summary-card ad-summary-card--pending"><span>Remaining</span><strong>{fmt(deliverySummary.remaining)}</strong></div>
                 </div>
               )}
 
@@ -269,6 +336,7 @@ function AdminDeliveries() {
               {showAddForm && (
                 <div className="ad-form">
                   <h3>Record New Delivery</h3>
+
                   <div className="ad-form-row">
                     <div className="ad-form-group">
                       <label>Delivery Date</label>
@@ -280,59 +348,137 @@ function AdminDeliveries() {
                     </div>
                   </div>
 
-                  <div className="ad-form-items">
-                    <table className="ad-items-table">
-                      <thead>
-                        <tr>
-                          <th>Product</th>
-                          <th>Ordered</th>
-                          <th>Delivering</th>
-                          <th>Unit Price</th>
-                          <th>Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {formItems.map((item, idx) => (
-                          <tr key={idx}>
-                            <td>
-                              <div className="ad-item-name">{item.productName}</div>
-                              {item.companyName && <div className="ad-item-sub">{item.companyName}</div>}
-                            </td>
-                            <td>{item.quantityOrdered}</td>
-                            <td>
-                              <input
-                                type="number"
-                                min="0"
-                                max={item.quantityOrdered}
-                                value={item.quantityDelivered}
-                                onChange={e => updateItemQty(idx, e.target.value)}
-                                className="ad-qty-input"
-                              />
-                            </td>
-                            <td>{fmt(item.unitPrice)}</td>
-                            <td>{fmt(item.totalPrice)}</td>
-                          </tr>
+                  {/* Two-panel picker */}
+                  <div className="ad-two-panel">
+                    {/* Left: available products */}
+                    <div className="ad-panel">
+                      <div className="ad-panel__title">
+                        Quotation Products
+                        <span className="ad-panel__count">{availableProducts.length}</span>
+                        {alreadyDeliveredKeys.size > 0 && (
+                          <span className="ad-panel__delivered-note">{alreadyDeliveredKeys.size} delivered</span>
+                        )}
+                      </div>
+                      <div className="ad-panel__list">
+                        {availableProducts.length === 0 ? (
+                          <div className="ad-panel__empty">
+                            {alreadyDeliveredKeys.size > 0 ? 'All products already delivered' : 'All products added'}
+                          </div>
+                        ) : availableProducts.map((item, idx) => (
+                          <div key={idx} className="ad-panel__item" onClick={() => addProductToDelivery(item)}>
+                            <div className="ad-panel__item-info">
+                              <span className="ad-panel__item-name">{item.productName}</span>
+                              {item.companyName && <span className="ad-panel__item-company">{item.companyName}</span>}
+                              <span className="ad-panel__item-meta">Qty: {item.quantity} · {fmt(item.unitPrice)}</span>
+                            </div>
+                            <span className="ad-panel__add">+</span>
+                          </div>
                         ))}
-                      </tbody>
-                      <tfoot>
-                        <tr>
-                          <td colSpan={4} style={{ textAlign: 'right', fontWeight: 600 }}>Delivery Value:</td>
-                          <td style={{ fontWeight: 700, color: '#276749' }}>
-                            {fmt(formItems.reduce((s, i) => s + i.totalPrice, 0))}
-                          </td>
-                        </tr>
-                      </tfoot>
-                    </table>
+                      </div>
+                    </div>
+
+                    {/* Right: selected for delivery */}
+                    <div className="ad-panel">
+                      <div className="ad-panel__title">
+                        Delivering
+                        <span className="ad-panel__count ad-panel__count--active">{selectedItems.length}</span>
+                      </div>
+                      <div className="ad-panel__list">
+                        {selectedItems.length === 0 ? (
+                          <div className="ad-panel__empty">Click products on the left to add</div>
+                        ) : selectedItems.map(item => (
+                          <div key={item._itemKey} className="ad-panel__item ad-panel__item--selected">
+                            <div className="ad-panel__item-info">
+                              <span className="ad-panel__item-name">{item.productName}</span>
+                              {item.companyName && <span className="ad-panel__item-company">{item.companyName}</span>}
+                              <div className="ad-panel__qty-row">
+                                <span>Qty:</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max={item.quantityOrdered}
+                                  value={item.quantityDelivered}
+                                  onChange={e => updateDeliveryQty(item._itemKey, e.target.value)}
+                                  className="ad-qty-input"
+                                  onClick={e => e.stopPropagation()}
+                                />
+                                <span>/ {item.quantityOrdered}</span>
+                                <span className="ad-panel__item-total">{fmt(item.totalPrice)}</span>
+                              </div>
+                            </div>
+                            <button className="ad-remove-btn" onClick={() => removeFromDelivery(item._itemKey)}>✕</button>
+                          </div>
+                        ))}
+                        {selectedItems.length > 0 && (
+                          <div className="ad-panel__subtotal">
+                            Total: <strong>{fmt(selectedItems.reduce((s, i) => s + i.totalPrice, 0))}</strong>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="ad-form-group">
+                  <div className="ad-form-group" style={{ marginTop: '12px' }}>
                     <label>Notes</label>
                     <textarea value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder="Delivery notes..." rows={2} />
                   </div>
 
+                  {/* Payment for this delivery */}
+                  <div className="ad-payment-section">
+                    <div className="ad-payment-section__title">Payment for this Delivery</div>
+                    <div className="ad-payment-options">
+                      <label className={`ad-payment-opt ${paymentStatus === 'not_paid' ? 'ad-payment-opt--active' : ''}`}>
+                        <input type="radio" name="payStatus" value="not_paid" checked={paymentStatus === 'not_paid'} onChange={() => setPaymentStatus('not_paid')} />
+                        <span>❌ Not Paid</span>
+                      </label>
+                      <label className={`ad-payment-opt ${paymentStatus === 'paid' ? 'ad-payment-opt--active ad-payment-opt--paid' : ''}`}>
+                        <input type="radio" name="payStatus" value="paid" checked={paymentStatus === 'paid'} onChange={() => { setPaymentStatus('paid'); setPaymentAmount(String(selectedItems.reduce((s,i) => s + i.totalPrice, 0))); }} />
+                        <span>✅ Fully Paid</span>
+                      </label>
+                      <label className={`ad-payment-opt ${paymentStatus === 'partial' ? 'ad-payment-opt--active ad-payment-opt--partial' : ''}`}>
+                        <input type="radio" name="payStatus" value="partial" checked={paymentStatus === 'partial'} onChange={() => setPaymentStatus('partial')} />
+                        <span>⚡ Partial</span>
+                      </label>
+                    </div>
+
+                    {paymentStatus !== 'not_paid' && (
+                      <div className="ad-payment-fields">
+                        <div className="ad-form-row">
+                          <div className="ad-form-group">
+                            <label>Amount Paid (₹)</label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={paymentAmount}
+                              onChange={e => setPaymentAmount(e.target.value)}
+                              placeholder="Enter amount"
+                            />
+                            <span style={{ fontSize: '0.75rem', color: '#718096' }}>
+                              Delivery value: {fmt(selectedItems.reduce((s,i) => s + i.totalPrice, 0))}
+                            </span>
+                          </div>
+                          <div className="ad-form-group">
+                            <label>Payment Method</label>
+                            <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '0.875rem' }}>
+                              {['cash','card','upi','bank_transfer','cheque','other'].map(m => (
+                                <option key={m} value={m}>{m.replace('_',' ').toUpperCase()}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        <div className="ad-form-group">
+                          <label>Transaction ID / Reference (optional)</label>
+                          <input type="text" value={paymentTxnId} onChange={e => setPaymentTxnId(e.target.value)} placeholder="Cheque no / UPI ref / etc." />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="ad-form-actions">
-                    <button className="ad-btn-secondary" onClick={() => setShowAddForm(false)}>Cancel</button>
-                    <button className="ad-btn-primary" onClick={handleAddDelivery}>Save Delivery</button>
+                    <button className="ad-btn-secondary" onClick={() => { setShowAddForm(false); setSelectedItems([]); }}>Cancel</button>
+                    <button className="ad-btn-primary" onClick={handleAddDelivery}>
+                      Save Delivery {selectedItems.length > 0 && `(${selectedItems.length} items)`}
+                    </button>
                   </div>
                 </div>
               )}
@@ -342,31 +488,29 @@ function AdminDeliveries() {
                 <h3>Delivery History ({deliveries.length})</h3>
                 {deliveries.length === 0 ? (
                   <div className="ad-empty">No deliveries recorded yet</div>
-                ) : (
-                  deliveries.map((d, idx) => (
-                    <div key={d._id} className="ad-delivery-card">
-                      <div className="ad-delivery-card__header">
-                        <div>
-                          <span className="ad-delivery-num">Delivery #{idx + 1} · {d.deliveryNumber}</span>
-                          <span className="ad-delivery-date">{fmtDate(d.deliveredDate)}</span>
-                          {d.deliveredBy && <span className="ad-delivery-by">by {d.deliveredBy}</span>}
-                        </div>
-                        <div className="ad-delivery-value">{fmt(d.deliveryValue)}</div>
+                ) : deliveries.map((d, idx) => (
+                  <div key={d._id} className="ad-delivery-card">
+                    <div className="ad-delivery-card__header">
+                      <div>
+                        <span className="ad-delivery-num">Delivery #{idx + 1} · {d.deliveryNumber}</span>
+                        <span className="ad-delivery-date">{fmtDate(d.deliveredDate)}</span>
+                        {d.deliveredBy && <span className="ad-delivery-by">by {d.deliveredBy}</span>}
                       </div>
-                      <div className="ad-delivery-items">
-                        {(d.items || []).map((item, i) => (
-                          <div key={i} className="ad-delivery-item">
-                            <span>{item.productName}</span>
-                            <span>×{item.quantityDelivered}</span>
-                            <span>{fmt(item.totalPrice)}</span>
-                          </div>
-                        ))}
-                      </div>
-                      {d.notes && <div className="ad-delivery-notes">{d.notes}</div>}
-                      <button className="ad-delete-btn" onClick={() => handleDeleteDelivery(d._id)}>Delete</button>
+                      <div className="ad-delivery-value">{fmt(d.deliveryValue)}</div>
                     </div>
-                  ))
-                )}
+                    <div className="ad-delivery-items">
+                      {(d.items || []).map((item, i) => (
+                        <div key={i} className="ad-delivery-item">
+                          <span>{item.productName}</span>
+                          <span>×{item.quantityDelivered}</span>
+                          <span>{fmt(item.totalPrice)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {d.notes && <div className="ad-delivery-notes">{d.notes}</div>}
+                    <button className="ad-delete-btn" onClick={() => handleDeleteDelivery(d._id)}>Delete</button>
+                  </div>
+                ))}
               </div>
             </>
           )}

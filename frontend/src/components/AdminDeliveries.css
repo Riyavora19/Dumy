@@ -250,3 +250,209 @@
   .ad-summary { grid-template-columns: 1fr 1fr; }
   .ad-form-row { grid-template-columns: 1fr; }
 }
+
+/* Two-panel product picker */
+.ad-two-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.ad-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ad-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f7fafc;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.ad-panel__count {
+  background: #e2e8f0;
+  color: #4a5568;
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.ad-panel__count--active { background: #c6f6d5; color: #276749; }
+
+.ad-panel__list {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.ad-panel__empty {
+  padding: 24px 14px;
+  text-align: center;
+  color: #a0aec0;
+  font-size: 0.82rem;
+}
+
+.ad-panel__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f4f8;
+  cursor: pointer;
+  transition: background 0.15s;
+  gap: 8px;
+}
+.ad-panel__item:last-child { border-bottom: none; }
+.ad-panel__item:hover { background: #f0f7ff; }
+.ad-panel__item--selected { background: #f0fff4; cursor: default; }
+.ad-panel__item--selected:hover { background: #e6ffed; }
+
+.ad-panel__item-info { flex: 1; min-width: 0; }
+.ad-panel__item-name {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #2d3748;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ad-panel__item-company {
+  display: block;
+  font-size: 0.72rem;
+  color: #4f46e5;
+  margin-top: 1px;
+}
+.ad-panel__item-meta {
+  display: block;
+  font-size: 0.72rem;
+  color: #718096;
+  margin-top: 2px;
+}
+
+.ad-panel__qty-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: #4a5568;
+}
+.ad-panel__item-total {
+  margin-left: auto;
+  font-weight: 700;
+  color: #276749;
+  font-size: 0.8rem;
+}
+
+.ad-panel__add {
+  width: 26px;
+  height: 26px;
+  background: #4f46e5;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.ad-panel__item:hover .ad-panel__add { background: #4338ca; }
+
+.ad-remove-btn {
+  width: 24px;
+  height: 24px;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  color: #c53030;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+}
+.ad-remove-btn:hover { background: #fed7d7; }
+
+.ad-panel__subtotal {
+  padding: 10px 14px;
+  background: #f0fff4;
+  border-top: 1px solid #c6f6d5;
+  font-size: 0.82rem;
+  color: #276749;
+  text-align: right;
+}
+
+@media (max-width: 700px) {
+  .ad-two-panel { grid-template-columns: 1fr; }
+}
+
+.ad-panel__delivered-note {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: #276749;
+  background: #c6f6d5;
+  border-radius: 8px;
+  padding: 1px 7px;
+  font-weight: 600;
+}
+
+/* Payment section in delivery form */
+.ad-payment-section {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 12px;
+  background: #fafbff;
+}
+
+.ad-payment-section__title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 12px;
+}
+
+.ad-payment-options {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.ad-payment-opt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4a5568;
+  background: #fff;
+  transition: all 0.15s;
+  user-select: none;
+}
+.ad-payment-opt input[type="radio"] { display: none; }
+.ad-payment-opt:hover { border-color: #a0aec0; }
+.ad-payment-opt--active { border-color: #4a5568; background: #edf2f7; }
+.ad-payment-opt--paid { border-color: #48bb78; background: #f0fff4; color: #276749; }
+.ad-payment-opt--partial { border-color: #ed8936; background: #fffaf0; color: #c05621; }
+
+.ad-payment-fields {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+}

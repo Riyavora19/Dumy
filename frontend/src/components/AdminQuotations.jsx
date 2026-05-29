@@ -4,7 +4,9 @@ import AdminBudgetPlanForm from './AdminBudgetPlanForm';
 import QuotationPDFGenerator from './QuotationPDFGenerator';
 import './AdminQuotations.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com/api';
+const API_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : 'https://dumy-2-mli2.onrender.com/api';
 
 const STATUS_TABS = [
   { key: 'all', label: 'All' },
@@ -119,29 +121,69 @@ function AdminQuotations() {
   };
 
   const handleGeneratePDF = async (quotation) => {
-    // Build legacy format for PDF generator
-    const legacyFormat = {
+    // Rebuild rooms structure from flat items (items have roomName + areaName)
+    const roomsMap = {};
+    (quotation.items || []).forEach(item => {
+      const roomName = item.roomName || 'Products';
+      const areaName = item.areaName || 'General';
+      if (!roomsMap[roomName]) roomsMap[roomName] = {};
+      if (!roomsMap[roomName][areaName]) roomsMap[roomName][areaName] = [];
+      roomsMap[roomName][areaName].push({
+        productName: item.productName,
+        companyName: item.companyName,
+        categoryName: item.categoryName,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        rate: item.unitPrice,
+        discountPercent: item.discountPercent || 0,
+        totalPrice: item.totalPrice,
+        image: item.image,
+        images: item.image ? [item.image] : [],
+        sku: item.sku,
+        areaName
+      });
+    });
+
+    // Convert to rooms array format the PDF generator expects
+    const rooms = Object.entries(roomsMap).map(([roomName, areas]) => ({
+      name: roomName,
+      areas: Object.entries(areas).map(([areaName, products]) => ({
+        id: areaName.toLowerCase().replace(/\s+/g, '_'),
+        name: areaName,
+        products
+      }))
+    }));
+
+    const pdfData = {
       quotationNumber: quotation.quotationNumber,
-      quotationDate: quotation.quotationDate,
+      quotationDate: quotation.quotationDate || quotation.createdAt,
       quotationValidity: quotation.quotationValidity,
       deliveryTime: quotation.deliveryTime,
       paymentTerms: quotation.paymentTerms,
       specialInstructions: quotation.specialInstructions,
+      gstRate: quotation.gstRate || 18,
+      columnFormat: 'format2',
+      rooms,
+      items: quotation.items || [],
       clientData: {
         clientName: quotation.clientName,
+        customerName: quotation.clientName,
+        companyName: quotation.companyName || quotation.clientName,
         email: quotation.clientEmail,
+        customerEmail: quotation.clientEmail,
         phone: quotation.clientPhone,
+        mobileNumber: quotation.clientPhone,
+        customerPhone: quotation.clientPhone,
         address: quotation.clientAddress,
-        companyName: quotation.companyName,
-        gst: quotation.clientGST
-      },
-      items: quotation.items,
-      subtotal: quotation.subtotal,
-      gstAmount: quotation.gstAmount,
-      total: quotation.total,
-      gst: quotation.gstRate
+        customerAddress: quotation.clientAddress,
+        gstNumber: quotation.clientGST,
+        customerGST: quotation.clientGST,
+        projectLocation: quotation.projectLocation,
+        attention: quotation.attention
+      }
     };
-    await QuotationPDFGenerator(legacyFormat);
+
+    await QuotationPDFGenerator(pdfData);
   };
 
   const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';

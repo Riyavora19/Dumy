@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNotification } from '../context/NotificationContext';
 import './AdminPayments.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com/api';
+const API_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : 'https://dumy-2-mli2.onrender.com/api';
 
 const PAYMENT_STATUS = {
   unpaid:  { label: 'Unpaid',   cls: 'badge--danger' },
