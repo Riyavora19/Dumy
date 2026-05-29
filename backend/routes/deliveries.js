@@ -56,12 +56,12 @@ router.post('/', async (req, res) => {
   try {
     const data = { ...req.body };
 
-    // Generate delivery number
-    const count = await Delivery.countDocuments();
+    // Generate unique delivery number using timestamp to avoid duplicates
     const date = new Date();
     const yy = date.getFullYear().toString().slice(-2);
     const mm = (date.getMonth() + 1).toString().padStart(2, '0');
-    data.deliveryNumber = `DL${yy}${mm}${(count + 1).toString().padStart(4, '0')}`;
+    const ts = Date.now().toString().slice(-6);
+    data.deliveryNumber = `DL${yy}${mm}${ts}`;
 
     data.deliveryValue = (data.items || []).reduce((sum, item) => sum + (item.totalPrice || 0), 0);
 

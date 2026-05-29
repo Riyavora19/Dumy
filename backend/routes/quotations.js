@@ -61,12 +61,12 @@ router.post('/', async (req, res) => {
   try {
     const data = { ...req.body };
 
-    // Generate quotation number
-    const count = await Quotation.countDocuments();
+    // Generate unique quotation number using timestamp
     const date = new Date();
     const yy = date.getFullYear().toString().slice(-2);
     const mm = (date.getMonth() + 1).toString().padStart(2, '0');
-    data.quotationNumber = `QT${yy}${mm}${(count + 1).toString().padStart(4, '0')}`;
+    const ts = Date.now().toString().slice(-6);
+    data.quotationNumber = `QT${yy}${mm}${ts}`;
 
     // Calculate totals
     const subtotal = (data.items || []).reduce((sum, item) => sum + (item.totalPrice || 0), 0);
