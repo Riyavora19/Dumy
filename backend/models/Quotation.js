@@ -2,16 +2,16 @@ const mongoose = require('mongoose');
 
 const quotationItemSchema = new mongoose.Schema({
   product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-  productName: { type: String, required: true },
+  productName: { type: String, required: false, default: '' },
   sku: String,
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
   companyName: String,
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   categoryName: String,
-  quantity: { type: Number, required: true, min: 1 },
-  unitPrice: { type: Number, required: true, min: 0 },
+  quantity: { type: Number, required: false, default: 1, min: 1 },
+  unitPrice: { type: Number, required: false, default: 0, min: 0 },
   discountPercent: { type: Number, default: 0 },
-  totalPrice: { type: Number, required: true, min: 0 },
+  totalPrice: { type: Number, required: false, default: 0, min: 0 },
   image: String,
   roomName: String,
   areaName: String
@@ -22,7 +22,7 @@ const quotationSchema = new mongoose.Schema({
 
   // Client info
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'Contact' },
-  clientName: { type: String, required: true, trim: true },
+  clientName: { type: String, required: false, trim: true, default: 'Unknown Client' },
   clientEmail: { type: String, trim: true },
   clientPhone: { type: String, trim: true },
   clientAddress: { type: String, trim: true },

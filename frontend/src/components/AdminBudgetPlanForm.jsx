@@ -1408,7 +1408,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
       // ── SAVE AS QUOTATION → post to /api/quotations ──────────────────────
       if (saveOption === 'quotation') {
-        const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com/api';
+        const API_URL = 'https://dumy-2-mli2.onrender.com/api';
 
         const items = allProductsList.map(item => ({
           product: item.product || item._id || item.productId || null,
