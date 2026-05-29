@@ -89,7 +89,7 @@ const quotationSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Auto-generate quotation number
-quotationSchema.pre('save', async function (next) {
+quotationSchema.pre('save', async function () {
   if (!this.quotationNumber) {
     const count = await mongoose.model('Quotation').countDocuments();
     const date = new Date();
@@ -97,7 +97,6 @@ quotationSchema.pre('save', async function (next) {
     const mm = (date.getMonth() + 1).toString().padStart(2, '0');
     this.quotationNumber = `QT${yy}${mm}${(count + 1).toString().padStart(4, '0')}`;
   }
-  next();
 });
 
 quotationSchema.index({ status: 1, createdAt: -1 });

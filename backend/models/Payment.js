@@ -34,7 +34,7 @@ const paymentSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Auto-generate payment number
-paymentSchema.pre('save', async function (next) {
+paymentSchema.pre('save', async function () {
   if (!this.paymentNumber) {
     const count = await mongoose.model('Payment').countDocuments();
     const date = new Date();
@@ -42,7 +42,6 @@ paymentSchema.pre('save', async function (next) {
     const mm = (date.getMonth() + 1).toString().padStart(2, '0');
     this.paymentNumber = `PAY${yy}${mm}${(count + 1).toString().padStart(4, '0')}`;
   }
-  next();
 });
 
 paymentSchema.index({ quotation: 1, paymentDate: -1 });
