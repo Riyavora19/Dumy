@@ -52,16 +52,8 @@ const deliverySchema = new mongoose.Schema({
   createdByName: { type: String }
 }, { timestamps: true });
 
-// Auto-generate delivery number
-deliverySchema.pre('save', async function () {
-  if (!this.deliveryNumber) {
-    const count = await mongoose.model('Delivery').countDocuments();
-    const date = new Date();
-    const yy = date.getFullYear().toString().slice(-2);
-    const mm = (date.getMonth() + 1).toString().padStart(2, '0');
-    this.deliveryNumber = `DL${yy}${mm}${(count + 1).toString().padStart(4, '0')}`;
-  }
-});
+// Auto-generate delivery number — done in route
+// (pre-save hooks with async cause issues on some Mongoose versions)
 
 deliverySchema.index({ quotation: 1, createdAt: -1 });
 

@@ -33,16 +33,8 @@ const paymentSchema = new mongoose.Schema({
   createdByName: { type: String }
 }, { timestamps: true });
 
-// Auto-generate payment number
-paymentSchema.pre('save', async function () {
-  if (!this.paymentNumber) {
-    const count = await mongoose.model('Payment').countDocuments();
-    const date = new Date();
-    const yy = date.getFullYear().toString().slice(-2);
-    const mm = (date.getMonth() + 1).toString().padStart(2, '0');
-    this.paymentNumber = `PAY${yy}${mm}${(count + 1).toString().padStart(4, '0')}`;
-  }
-});
+// Auto-generate payment number — done in route
+// (pre-save hooks with async cause issues on some Mongoose versions)
 
 paymentSchema.index({ quotation: 1, paymentDate: -1 });
 

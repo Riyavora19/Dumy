@@ -54,6 +54,13 @@ router.post('/', async (req, res) => {
   try {
     const data = { ...req.body };
 
+    // Generate payment number
+    const count = await Payment.countDocuments();
+    const date = new Date();
+    const yy = date.getFullYear().toString().slice(-2);
+    const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+    data.paymentNumber = `PAY${yy}${mm}${(count + 1).toString().padStart(4, '0')}`;
+
     // Get quotation to calculate running totals
     const quotation = await Quotation.findById(data.quotation);
     if (!quotation) return res.status(404).json({ success: false, message: 'Quotation not found' });

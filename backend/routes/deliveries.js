@@ -56,7 +56,13 @@ router.post('/', async (req, res) => {
   try {
     const data = { ...req.body };
 
-    // Calculate delivery value from items
+    // Generate delivery number
+    const count = await Delivery.countDocuments();
+    const date = new Date();
+    const yy = date.getFullYear().toString().slice(-2);
+    const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+    data.deliveryNumber = `DL${yy}${mm}${(count + 1).toString().padStart(4, '0')}`;
+
     data.deliveryValue = (data.items || []).reduce((sum, item) => sum + (item.totalPrice || 0), 0);
 
     const delivery = new Delivery(data);

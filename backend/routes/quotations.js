@@ -61,6 +61,13 @@ router.post('/', async (req, res) => {
   try {
     const data = { ...req.body };
 
+    // Generate quotation number
+    const count = await Quotation.countDocuments();
+    const date = new Date();
+    const yy = date.getFullYear().toString().slice(-2);
+    const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+    data.quotationNumber = `QT${yy}${mm}${(count + 1).toString().padStart(4, '0')}`;
+
     // Calculate totals
     const subtotal = (data.items || []).reduce((sum, item) => sum + (item.totalPrice || 0), 0);
     data.subtotal = subtotal;
@@ -77,7 +84,6 @@ router.post('/', async (req, res) => {
     data.gstAmount = (taxable * (data.gstRate || 18)) / 100;
     data.total = taxable + data.gstAmount;
 
-    // Default status when saved
     if (!data.status) data.status = 'pending_approval';
 
     const quotation = new Quotation(data);

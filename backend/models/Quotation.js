@@ -88,16 +88,8 @@ const quotationSchema = new mongoose.Schema({
   totalPaid: { type: Number, default: 0 }
 }, { timestamps: true });
 
-// Auto-generate quotation number
-quotationSchema.pre('save', async function () {
-  if (!this.quotationNumber) {
-    const count = await mongoose.model('Quotation').countDocuments();
-    const date = new Date();
-    const yy = date.getFullYear().toString().slice(-2);
-    const mm = (date.getMonth() + 1).toString().padStart(2, '0');
-    this.quotationNumber = `QT${yy}${mm}${(count + 1).toString().padStart(4, '0')}`;
-  }
-});
+// Auto-generate quotation number — done in route, not hook
+// (pre-save hooks with async cause issues on some Mongoose versions)
 
 quotationSchema.index({ status: 1, createdAt: -1 });
 quotationSchema.index({ client: 1 });
