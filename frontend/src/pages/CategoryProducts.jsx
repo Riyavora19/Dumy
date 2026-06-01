@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axiosInstance from '../utils/axios';
+import axios from 'axios';
 import './CategoryProducts.css';
 
 const CategoryProducts = () => {
@@ -94,14 +94,19 @@ const CategoryProducts = () => {
 
   const fetchCategoryAndProducts = async () => {
     try {
+      // Determine API base URL
+      const API_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:5000/api'
+        : 'https://dumy-2-mli2.onrender.com/api';
+
       // Fetch category details
-      const categoryResponse = await axiosInstance.get(`/api/categories/${categoryId}`);
+      const categoryResponse = await axios.get(`${API_URL}/categories/${categoryId}`);
       if (categoryResponse.data.success) {
         setCategory(categoryResponse.data.data);
       }
 
       // Fetch products in this category
-      const productsResponse = await axiosInstance.get(`/api/products/category/${categoryId}`);
+      const productsResponse = await axios.get(`${API_URL}/products/category/${categoryId}`);
       if (productsResponse.data.success) {
         const allProducts = productsResponse.data.data;
         

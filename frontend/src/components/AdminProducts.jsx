@@ -113,7 +113,7 @@ const AdminProducts = () => {
       if (filterItemType) params.itemType = filterItemType;
       if (filterStatus) params.isActive = filterStatus === 'active';
       
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/products', { params });
+      const response = await axios.get('/api/products', { params });
       console.log('Products response:', response.data);
       
       if (response.data.success) {
@@ -150,7 +150,7 @@ const AdminProducts = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/categories');
+      const response = await axios.get('/api/categories');
       if (response.data.success) {
         setCategories(response.data.data);
         
@@ -158,7 +158,7 @@ const AdminProducts = () => {
         const counts = {};
         for (const cat of response.data.data) {
           try {
-            const countResponse = await axios.get('https://dumy-2-mli2.onrender.com/api/products', {
+            const countResponse = await axios.get('/api/products', {
               params: { category: cat._id }
             });
             counts[cat._id] = countResponse.data.count || 0;
@@ -175,7 +175,7 @@ const AdminProducts = () => {
 
   const fetchCompanies = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/companies');
+      const response = await axios.get('/api/companies');
       if (response.data.success) {
         // Show all companies (removed partner filter)
         const allCompanies = response.data.data;
@@ -185,7 +185,7 @@ const AdminProducts = () => {
         const counts = {};
         for (const comp of allCompanies) {
           try {
-            const countResponse = await axios.get('https://dumy-2-mli2.onrender.com/api/products', {
+            const countResponse = await axios.get('/api/products', {
               params: { company: comp._id }
             });
             counts[comp._id] = countResponse.data.count || 0;
@@ -202,14 +202,14 @@ const AdminProducts = () => {
 
   const fetchItemTypes = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/item-types');
+      const response = await axios.get('/api/item-types');
       setItemTypes(response.data);
       
       // Fetch product count for each item type
       const counts = {};
       for (const itemType of response.data) {
         try {
-          const countResponse = await axios.get('https://dumy-2-mli2.onrender.com/api/products', {
+          const countResponse = await axios.get('/api/products', {
             params: { itemType: itemType._id }
           });
           counts[itemType._id] = countResponse.data.count || 0;
@@ -374,7 +374,7 @@ const AdminProducts = () => {
       console.log('Sending request...');
       if (editingProduct) {
         const response = await axios.put(
-          `https://dumy-2-mli2.onrender.com/api/products/${editingProduct._id}`,
+          `/api/products/${editingProduct._id}`,
           data,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -397,7 +397,7 @@ const AdminProducts = () => {
         }
       } else {
         const response = await axios.post(
-          'https://dumy-2-mli2.onrender.com/api/products',
+          '/api/products',
           data,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -530,7 +530,7 @@ const AdminProducts = () => {
       console.log('📦 Full update data:', updateData);
 
       const response = await axios.put(
-        `https://dumy-2-mli2.onrender.com/api/products/${editingProduct._id}`,
+        `/api/products/${editingProduct._id}`,
         updateData
       );
 
@@ -562,7 +562,7 @@ const AdminProducts = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`https://dumy-2-mli2.onrender.com/api/products/${id}`);
+      const response = await axios.delete(`/api/products/${id}`);
       if (response.data.success) {
         showNotification('Product deleted successfully!', 'success');
         fetchProducts();
@@ -629,7 +629,7 @@ const AdminProducts = () => {
       });
 
       const response = await axios.put(
-        `https://dumy-2-mli2.onrender.com/api/products/${imageChangeProduct._id}`,
+        `/api/products/${imageChangeProduct._id}`,
         data,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       );
@@ -802,7 +802,7 @@ const AdminProducts = () => {
         });
 
         const response = await axios.post(
-          'https://dumy-2-mli2.onrender.com/api/products',
+          '/api/products',
           data,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -927,7 +927,7 @@ const AdminProducts = () => {
 
       // Create new category (only if it's one of the 3 allowed)
       try {
-        const catRes = await axios.post('https://dumy-2-mli2.onrender.com/api/categories/find-or-create', {
+        const catRes = await axios.post('/api/categories/find-or-create', {
           name: trimmedName
         });
         if (catRes.data.success) {
@@ -983,7 +983,7 @@ const AdminProducts = () => {
 
         // First, try to find existing product by name
         const searchResponse = await axios.get(
-          `https://dumy-2-mli2.onrender.com/api/products/search/${encodeURIComponent(productName)}`
+          `/api/products/search/${encodeURIComponent(productName)}`
         );
 
         let productId = null;
@@ -1001,14 +1001,14 @@ const AdminProducts = () => {
         if (productId) {
           // UPDATE existing product
           response = await axios.put(
-            `https://dumy-2-mli2.onrender.com/api/products/${productId}`,
+            `/api/products/${productId}`,
             data,
             { headers: { 'Content-Type': 'multipart/form-data' } }
           );
         } else {
           // CREATE new product
           response = await axios.post(
-            'https://dumy-2-mli2.onrender.com/api/products',
+            '/api/products',
             data,
             { headers: { 'Content-Type': 'multipart/form-data' } }
           );
@@ -1310,7 +1310,7 @@ const AdminProducts = () => {
             resolvedCategoryId = categoryCache[catKey];
           } else {
             try {
-              const catRes = await axios.post('https://dumy-2-mli2.onrender.com/api/categories/find-or-create', {
+              const catRes = await axios.post('/api/categories/find-or-create', {
                 name: product.categoryName
               });
               if (catRes.data.success) {
@@ -1340,7 +1340,7 @@ const AdminProducts = () => {
             resolvedCompanyId = companyCache[key];
           } else {
             try {
-              const compRes = await axios.post('https://dumy-2-mli2.onrender.com/api/companies/find-or-create', {
+              const compRes = await axios.post('/api/companies/find-or-create', {
                 name: product.company
               });
               if (compRes.data.success) {
@@ -1406,7 +1406,7 @@ const AdminProducts = () => {
         if (product.schemeType) data.append('schemeType', product.schemeType);
 
         const response = await axios.post(
-          'https://dumy-2-mli2.onrender.com/api/products',
+          '/api/products',
           data,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -1753,7 +1753,7 @@ const AdminProducts = () => {
         if (excelData['GST %']) updateData.gst = parseFloat(excelData['GST %']);
 
         const response = await axios.put(
-          `https://dumy-2-mli2.onrender.com/api/products/${productId}`,
+          `/api/products/${productId}`,
           updateData
         );
 
@@ -1943,7 +1943,7 @@ const AdminProducts = () => {
                   <td>
                     {product.images && product.images[0] ? (
                       <img 
-                        src={`${product.images[0].startsWith('http') ? product.images[0] : 'https://dumy-2-mli2.onrender.com' + product.images[0]}`} 
+                        src={`${product.images[0].startsWith('http') ? product.images[0] : '' + product.images[0]}`} 
                         alt={product.name}
                         className="admin-products__thumb"
                         onError={(e) => {
@@ -2035,103 +2035,105 @@ const AdminProducts = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="admin-products__form">
-              <div className="admin-products__field">
-                <label>Category *</label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select a category</option>
-                  {categories.map(cat => (
-                    <option key={cat._id} value={cat._id}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
+              {/* First Line: Product Name | Category | Item Type | Company Name | Brand */}
+              <div className="admin-products__row-5">
+                <div className="admin-products__field">
+                  <label>Product Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g., Premium Ceramic Toilet Seat"
+                  />
+                </div>
 
-              <div className="admin-products__field">
-                <label>Item Type (for Budget Planner)</label>
-                <select
-                  name="itemType"
-                  value={formData.itemType}
-                  onChange={handleChange}
-                >
-                  <option value="">Select item type (optional)</option>
-                  {itemTypes
-                    .filter(it => !formData.category || (it.category && it.category._id === formData.category))
-                    .map(it => (
-                      <option key={it._id} value={it._id}>
-                        {it.icon} {it.name}
+                <div className="admin-products__field">
+                  <label>Category *</label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map(cat => (
+                      <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="admin-products__field">
+                  <label>Item Type</label>
+                  <select
+                    name="itemType"
+                    value={formData.itemType}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select item type (optional)</option>
+                    {itemTypes
+                      .filter(it => !formData.category || (it.category && it.category._id === formData.category))
+                      .map(it => (
+                        <option key={it._id} value={it._id}>
+                          {it.icon} {it.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div className="admin-products__field">
+                  <label>Company Name</label>
+                  <select
+                    name="company"
+                    value={formData.company}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select company (optional)</option>
+                    {companies.map(comp => (
+                      <option key={comp._id} value={comp._id}>
+                        {comp.name} {comp.isPartner ? '⭐' : ''}
                       </option>
                     ))}
-                </select>
-                <small>Select to make this product appear in budget recommendations</small>
+                  </select>
+                </div>
+
+                <div className="admin-products__field">
+                  <label>Brand</label>
+                  <input
+                    type="text"
+                    name="brand"
+                    value={formData.brand}
+                    onChange={handleChange}
+                    placeholder="e.g., Premium, Standard"
+                  />
+                </div>
               </div>
 
-              <div className="admin-products__field">
-                <label>Company Name</label>
-                <select
-                  name="company"
-                  value={formData.company}
-                  onChange={handleChange}
-                >
-                  <option value="">Select company (optional)</option>
-                  {companies.map(comp => (
-                    <option key={comp._id} value={comp._id}>
-                      {comp.name} {comp.isPartner ? '⭐' : ''}
-                    </option>
-                  ))}
-                </select>
-                <small>⭐ = Partner company (shown in budget planner)</small>
-              </div>
+              {/* Second Line: Variant | Description | Price | Stock | SKU | Rating */}
+              <div className="admin-products__row-5">
+                <div className="admin-products__field">
+                  <label>Variant / Model</label>
+                  <input
+                    type="text"
+                    name="variant"
+                    value={formData.variant}
+                    onChange={handleChange}
+                    placeholder="e.g., White Ceramic"
+                  />
+                </div>
 
-              <div className="admin-products__field">
-                <label>Brand</label>
-                <input
-                  type="text"
-                  name="brand"
-                  value={formData.brand}
-                  onChange={handleChange}
-                  placeholder="e.g., Premium, Standard, Luxury"
-                />
-              </div>
+                <div className="admin-products__field">
+                  <label>Description</label>
+                  <input
+                    type="text"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Product description"
+                  />
+                </div>
 
-              <div className="admin-products__field">
-                <label>Product Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g., Premium Ceramic Toilet Seat"
-                />
-              </div>
-
-              <div className="admin-products__field">
-                <label>Variant / Model</label>
-                <input
-                  type="text"
-                  name="variant"
-                  value={formData.variant}
-                  onChange={handleChange}
-                  placeholder="e.g., White Ceramic, Chrome Finish"
-                />
-              </div>
-
-              <div className="admin-products__field">
-                <label>Description</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows="3"
-                  placeholder="Product description"
-                />
-              </div>
-
-              <div className="admin-products__row">
                 <div className="admin-products__field">
                   <label>Price *</label>
                   <input
@@ -2157,9 +2159,7 @@ const AdminProducts = () => {
                     placeholder="0"
                   />
                 </div>
-              </div>
 
-              <div className="admin-products__row">
                 <div className="admin-products__field">
                   <label>SKU</label>
                   <input
@@ -2170,7 +2170,10 @@ const AdminProducts = () => {
                     placeholder="Product SKU"
                   />
                 </div>
+              </div>
 
+              {/* Third Line: Rating | Tags | Specification | Material | MRP */}
+              <div className="admin-products__row-5">
                 <div className="admin-products__field">
                   <label>Rating (0-5)</label>
                   <input
@@ -2186,76 +2189,43 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="admin-products__field">
-                  <label>Tags (comma separated)</label>
+                  <label>Tags</label>
                   <input
                     type="text"
                     name="tags"
                     value={formData.tags}
                     onChange={handleChange}
-                    placeholder="premium, ceramic, soft-close"
+                    placeholder="premium, ceramic"
                   />
                 </div>
-              </div>
 
-              <div className="admin-products__field">
-                <label>Specifications (Optional)</label>
-                <div className="admin-products__specs-grid">
-                  <input
-                    type="text"
-                    name="spec_material"
-                    value={formData.specifications.material}
-                    onChange={handleChange}
-                    placeholder="Material (e.g., Ceramic)"
-                  />
-                  <input
-                    type="text"
-                    name="spec_size"
-                    value={formData.specifications.size}
-                    onChange={handleChange}
-                    placeholder="Size (e.g., 24x18 inches)"
-                  />
-                  <input
-                    type="text"
-                    name="spec_color"
-                    value={formData.specifications.color}
-                    onChange={handleChange}
-                    placeholder="Color (e.g., White)"
-                  />
-                  <input
-                    type="text"
-                    name="spec_warranty"
-                    value={formData.specifications.warranty}
-                    onChange={handleChange}
-                    placeholder="Warranty (e.g., 2 Years)"
-                  />
+                <div className="admin-products__field">
+                  <label>Specification</label>
                   <input
                     type="text"
                     name="spec_features"
                     value={formData.specifications.features}
                     onChange={handleChange}
-                    placeholder="Features (comma separated)"
+                    placeholder="Features"
                   />
                 </div>
-              </div>
 
-              {/* Additional Product Details */}
-              <div className="admin-products__field">
-                <label>Material</label>
-                <input
-                  type="text"
-                  name="material"
-                  value={formData.specifications?.material || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    specifications: { ...formData.specifications, material: e.target.value }
-                  })}
-                  placeholder="e.g., Ceramic, Brass, Glass"
-                />
-              </div>
-
-              <div className="admin-products__row">
                 <div className="admin-products__field">
-                  <label>MRP (Maximum Retail Price)</label>
+                  <label>Material</label>
+                  <input
+                    type="text"
+                    name="material"
+                    value={formData.specifications?.material || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      specifications: { ...formData.specifications, material: e.target.value }
+                    })}
+                    placeholder="e.g., Ceramic, Brass"
+                  />
+                </div>
+
+                <div className="admin-products__field">
+                  <label>MRP</label>
                   <input
                     type="number"
                     name="mrp"
@@ -2266,9 +2236,12 @@ const AdminProducts = () => {
                     placeholder="0.00"
                   />
                 </div>
+              </div>
 
+              {/* Fourth Line: CLP | HSN | GST | Broad Category | Segment | Item Code */}
+              <div className="admin-products__row-5">
                 <div className="admin-products__field">
-                  <label>CLP (Cost List Price)</label>
+                  <label>CLP</label>
                   <input
                     type="number"
                     name="clp"
@@ -2288,9 +2261,7 @@ const AdminProducts = () => {
                     placeholder="e.g., 6910.10.00"
                   />
                 </div>
-              </div>
 
-              <div className="admin-products__row">
                 <div className="admin-products__field">
                   <label>GST %</label>
                   <input
@@ -2317,26 +2288,26 @@ const AdminProducts = () => {
                   <input
                     type="text"
                     name="segment"
-                    placeholder="e.g., Residential, Commercial"
+                    placeholder="e.g., Residential"
                   />
                 </div>
               </div>
 
-              {/* Additional Product Details */}
-              <div className="admin-products__field">
-                <label>Item Code</label>
-                <input
-                  type="text"
-                  name="itemCode"
-                  value={formData.itemCode || ''}
-                  onChange={handleChange}
-                  placeholder="e.g., SKU-001"
-                />
-              </div>
-
-              <div className="admin-products__row">
+              {/* Fifth Line: Item Code | NRP | SDP | NPP | CLP | Effective Price List Date */}
+              <div className="admin-products__row-5">
                 <div className="admin-products__field">
-                  <label>NRP (Net Retail Price)</label>
+                  <label>Item Code</label>
+                  <input
+                    type="text"
+                    name="itemCode"
+                    value={formData.itemCode || ''}
+                    onChange={handleChange}
+                    placeholder="e.g., SKU-001"
+                  />
+                </div>
+
+                <div className="admin-products__field">
+                  <label>NRP</label>
                   <input
                     type="number"
                     min="0"
@@ -2346,7 +2317,7 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="admin-products__field">
-                  <label>SDP (Suggested Dealer Price)</label>
+                  <label>SDP</label>
                   <input
                     type="number"
                     min="0"
@@ -2356,7 +2327,7 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="admin-products__field">
-                  <label>NPP (Net Purchase Price)</label>
+                  <label>NPP</label>
                   <input
                     type="number"
                     min="0"
@@ -2364,27 +2335,17 @@ const AdminProducts = () => {
                     placeholder="0.00"
                   />
                 </div>
-              </div>
-
-              <div className="admin-products__row">
-                <div className="admin-products__field">
-                  <label>CLP (Cost List Price)</label>
-                  <input
-                    type="number"
-                    name="clp"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                  />
-                </div>
 
                 <div className="admin-products__field">
-                  <label>Effective Price List Date</label>
+                  <label>Effective Price Date</label>
                   <input
                     type="date"
                   />
                 </div>
+              </div>
 
+              {/* Sixth Line: Status | Category | Sub Category | Range */}
+              <div className="admin-products__row-4">
                 <div className="admin-products__field">
                   <label>Status</label>
                   <select>
@@ -2393,9 +2354,7 @@ const AdminProducts = () => {
                     <option value="Draft">Draft</option>
                   </select>
                 </div>
-              </div>
 
-              <div className="admin-products__row">
                 <div className="admin-products__field">
                   <label>CAT (Category)</label>
                   <input
@@ -2405,7 +2364,7 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="admin-products__field">
-                  <label>SUB CAT (Sub Category)</label>
+                  <label>SUB CAT</label>
                   <input
                     type="text"
                     placeholder="e.g., Ceramic"
@@ -2416,12 +2375,13 @@ const AdminProducts = () => {
                   <label>RANGE</label>
                   <input
                     type="text"
-                    placeholder="e.g., Premium, Standard"
+                    placeholder="e.g., Premium"
                   />
                 </div>
               </div>
 
-              <div className="admin-products__row">
+              {/* Seventh Line: Flag | Channel Type | Scheme Type */}
+              <div className="admin-products__row-3">
                 <div className="admin-products__field">
                   <label>Flag</label>
                   <input
@@ -2442,12 +2402,13 @@ const AdminProducts = () => {
                   <label>Scheme Type</label>
                   <input
                     type="text"
-                    placeholder="e.g., Standard, Promotional"
+                    placeholder="e.g., Standard"
                   />
                 </div>
               </div>
 
-              <div className="admin-products__field">
+              {/* Eighth Line: Product Image */}
+              <div className="admin-products__field-standalone">
                 <label>Product Images * {editingProduct && '(Add more images)'}</label>
 
                 {/* Show existing images when editing */}
@@ -2459,7 +2420,7 @@ const AdminProducts = () => {
                     <div className="admin-products__existing-images" style={{ marginTop: '8px' }}>
                       {existingImages.map((img, index) => (
                         <div key={index} className="admin-products__existing-image">
-                          <img src={`${img.startsWith('http') ? img : 'https://dumy-2-mli2.onrender.com' + img}`} alt="" />
+                          <img src={`${img.startsWith('http') ? img : '' + img}`} alt="" />
                           <button type="button" onClick={() => removeExistingImage(index)}>×</button>
                         </div>
                       ))}
@@ -2534,7 +2495,7 @@ const AdminProducts = () => {
                 )}
               </div>
 
-              <div className="admin-products__field">
+              <div className="admin-products__field-standalone">
                 <label className="admin-products__checkbox">
                   <input
                     type="checkbox"
@@ -3796,7 +3757,7 @@ const AdminProducts = () => {
                     {imageChangeProduct.images.map((img, idx) => (
                       <div key={idx} className="admin-products__current-image-item">
                         <img 
-                          src={`${img.startsWith('http') ? img : 'https://dumy-2-mli2.onrender.com' + img}`}
+                          src={`${img.startsWith('http') ? img : '' + img}`}
                           alt={`Current ${idx + 1}`}
                         />
                         <span>Image {idx + 1}</span>

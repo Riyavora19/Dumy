@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
+import { enhancePresets, getImageUrl } from '../utils/imageEnhancer';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -49,7 +50,12 @@ const Home = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/categories/active');
+      // Determine API base URL
+      const API_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:5000/api'
+        : 'https://dumy-2-mli2.onrender.com/api';
+
+      const response = await axios.get(`${API_URL}/categories/active`);
       if (response.data.success) {
         setCategories(response.data.data);
       }
@@ -60,7 +66,12 @@ const Home = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/products?flag=Featured');
+      // Determine API base URL
+      const API_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:5000/api'
+        : 'https://dumy-2-mli2.onrender.com/api';
+
+      const response = await axios.get(`${API_URL}/products?isFeatured=true&isActive=true`);
       if (response.data.success) {
         // Get products marked as Featured, limit to 6
         setFeaturedProducts(response.data.data.slice(0, 6));
@@ -72,14 +83,19 @@ const Home = () => {
 
   const fetchStats = async () => {
     try {
+      // Determine API base URL
+      const API_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:5000/api'
+        : 'https://dumy-2-mli2.onrender.com/api';
+
       // Fetch products count
-      const productsRes = await axios.get('https://dumy-2-mli2.onrender.com/api/products');
+      const productsRes = await axios.get(`${API_URL}/products`);
       if (productsRes.data.success) {
         setStats(prev => ({ ...prev, products: productsRes.data.data.length }));
       }
       
       // Fetch categories count
-      const categoriesRes = await axios.get('https://dumy-2-mli2.onrender.com/api/categories/active');
+      const categoriesRes = await axios.get(`${API_URL}/categories/active`);
       if (categoriesRes.data.success) {
         setStats(prev => ({ ...prev, categories: categoriesRes.data.data.length }));
       }
@@ -243,8 +259,9 @@ const Home = () => {
                   >
                     {product.images && product.images.length > 0 ? (
                       <img 
-                        src={`${product.images[0].startsWith('http') ? product.images[0] : 'https://dumy-2-mli2.onrender.com' + product.images[0]}`} 
+                        src={enhancePresets.card(getImageUrl(product.images[0]))} 
                         alt={product.name}
+                        loading="lazy"
                       />
                     ) : (
                       <div className="home-featured__placeholder">
@@ -531,7 +548,7 @@ const Home = () => {
               <div className="product-modal__image-section">
                 {selectedProduct.images && selectedProduct.images.length > 0 ? (
                   <img 
-                    src={`${selectedProduct.images[0].startsWith('http') ? selectedProduct.images[0] : 'https://dumy-2-mli2.onrender.com' + selectedProduct.images[0]}`} 
+                    src={enhancePresets.detail(getImageUrl(selectedProduct.images[0]))} 
                     alt={selectedProduct.name}
                   />
                 ) : (

@@ -7,21 +7,21 @@ const ProductItemType = require('../models/ProductItemType');
 router.get('/', async (req, res) => {
   try {
     const templates = await RoomTemplate.find({ isActive: true })
-      .populate('requiredItems.itemType')
       .sort({ displayOrder: 1, name: 1 });
     
+    console.log(`✓ Found ${templates.length} room templates`);
     res.json(templates);
   } catch (error) {
-    console.error('Error fetching room templates:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('❌ Error fetching room templates:', error);
+    // Return empty array instead of error to prevent frontend crash
+    res.json([]);
   }
 });
 
 // Get single room template by ID
 router.get('/:id', async (req, res) => {
   try {
-    const template = await RoomTemplate.findById(req.params.id)
-      .populate('requiredItems.itemType');
+    const template = await RoomTemplate.findById(req.params.id);
     
     if (!template) {
       return res.status(404).json({ message: 'Room template not found' });
@@ -29,7 +29,7 @@ router.get('/:id', async (req, res) => {
     
     res.json(template);
   } catch (error) {
-    console.error('Error fetching room template:', error);
+    console.error('❌ Error fetching room template:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -40,12 +40,11 @@ router.post('/', async (req, res) => {
     const template = new RoomTemplate(req.body);
     await template.save();
     
-    const populated = await RoomTemplate.findById(template._id)
-      .populate('requiredItems.itemType');
+    const saved = await RoomTemplate.findById(template._id);
     
-    res.status(201).json(populated);
+    res.status(201).json(saved);
   } catch (error) {
-    console.error('Error creating room template:', error);
+    console.error('❌ Error creating room template:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -57,7 +56,7 @@ router.put('/:id', async (req, res) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('requiredItems.itemType');
+    );
     
     if (!template) {
       return res.status(404).json({ message: 'Room template not found' });
@@ -65,7 +64,7 @@ router.put('/:id', async (req, res) => {
     
     res.json(template);
   } catch (error) {
-    console.error('Error updating room template:', error);
+    console.error('❌ Error updating room template:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNotification } from '../context/NotificationContext';
+import axios from '../utils/axios';
 import './AdminRoomTemplates.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com/api';
 
 function AdminRoomTemplates() {
   const { showNotification } = useNotification();
@@ -33,12 +32,19 @@ function AdminRoomTemplates() {
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/room-templates`);
-      const data = await response.json();
-      setTemplates(data);
+      const response = await axios.get('/room-templates');
+      console.log('Templates response:', response.data);
+      
+      // Handle both array and object responses
+      const templatesData = Array.isArray(response.data) 
+        ? response.data 
+        : response.data.data || response.data.templates || [];
+      
+      setTemplates(templatesData);
     } catch (error) {
       console.error('Error fetching templates:', error);
       showNotification('Failed to fetch templates', 'error');
+      setTemplates([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -46,11 +52,18 @@ function AdminRoomTemplates() {
 
   const fetchItemTypes = async () => {
     try {
-      const response = await fetch(`${API_URL}/item-types`);
-      const data = await response.json();
-      setItemTypes(data);
+      const response = await axios.get('/item-types');
+      console.log('Item types response:', response.data);
+      
+      // Handle both array and object responses
+      const itemTypesData = Array.isArray(response.data)
+        ? response.data
+        : response.data.data || response.data.itemTypes || [];
+      
+      setItemTypes(itemTypesData);
     } catch (error) {
       console.error('Error fetching item types:', error);
+      setItemTypes([]); // Set empty array on error
     }
   };
 
@@ -137,20 +150,10 @@ function AdminRoomTemplates() {
     e.preventDefault();
     
     try {
-      const url = editingTemplate 
-        ? `${API_URL}/room-templates/${editingTemplate._id}`
-        : `${API_URL}/room-templates`;
-      
-      const method = editingTemplate ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save template');
+      if (editingTemplate) {
+        await axios.put(`/room-templates/${editingTemplate._id}`, formData);
+      } else {
+        await axios.post('/room-templates', formData);
       }
 
       showNotification(`Template ${editingTemplate ? 'updated' : 'created'} successfully!`, 'success');
@@ -160,7 +163,7 @@ function AdminRoomTemplates() {
       fetchTemplates();
     } catch (error) {
       console.error('Error saving template:', error);
-      showNotification('Failed to save template', 'error');
+      showNotification(error.response?.data?.message || 'Failed to save template', 'error');
     }
   };
 
@@ -187,20 +190,17 @@ function AdminRoomTemplates() {
   };
 
   const handleDelete = async (id) => {
-    try {
-      const response = await fetch(`${API_URL}/room-templates/${id}`, {
-        method: 'DELETE'
-      });
+    if (!window.confirm('Are you sure you want to delete this template?')) {
+      return;
+    }
 
-      if (response.ok) {
-        showNotification('Template deleted successfully', 'success');
-        fetchTemplates();
-      } else {
-        showNotification('Failed to delete template', 'error');
-      }
+    try {
+      await axios.delete(`/room-templates/${id}`);
+      showNotification('Template deleted successfully', 'success');
+      fetchTemplates();
     } catch (error) {
       console.error('Error deleting template:', error);
-      showNotification('Failed to delete template', 'error');
+      showNotification(error.response?.data?.message || 'Failed to delete template', 'error');
     }
   };
 

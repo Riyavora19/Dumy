@@ -5,10 +5,27 @@
 .oh-header h1 { font-size: 1.8rem; font-weight: 700; color: #1a202c; margin: 0 0 4px; }
 .oh-header p { color: #718096; margin: 0; font-size: 1rem; }
 
-.oh-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
+.oh-layout { 
+  display: grid; 
+  grid-template-columns: 340px 1fr; 
+  gap: 24px; 
+  align-items: start;
+  height: calc(100vh - 140px);
+  overflow: hidden;
+}
 
 /* Left */
-.oh-left { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+.oh-left { 
+  background: #fff; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 12px; 
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 24px;
+}
 
 .oh-search {
   display: flex;
@@ -16,6 +33,7 @@
   gap: 8px;
   padding: 12px;
   border-bottom: 1px solid #f0f4f8;
+  flex-shrink: 0;
 }
 .oh-search svg { color: #a0aec0; flex-shrink: 0; }
 .oh-search input {
@@ -26,7 +44,11 @@
   color: #2d3748;
 }
 
-.oh-list { max-height: calc(100vh - 220px); overflow-y: auto; }
+.oh-list { 
+  flex: 1;
+  overflow-y: auto; 
+  overflow-x: hidden;
+}
 
 .oh-card {
   padding: 14px 16px;
@@ -64,6 +86,9 @@
   border-radius: 12px;
   padding: 28px;
   min-height: 400px;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .oh-placeholder {

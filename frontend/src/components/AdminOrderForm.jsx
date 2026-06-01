@@ -7,6 +7,16 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
   const [products, setProducts] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [relationshipTypes, setRelationshipTypes] = useState([]);
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+  
+  // Runtime API URL detection
+  const API_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:5000/api' 
+    : '/api';
+  
+  const BASE_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:5000' 
+    : '';
   
   const [formData, setFormData] = useState({
     // Step 1: Customer Details
@@ -100,7 +110,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('https://dumy-2-mli2.onrender.com/api/products');
+      const response = await fetch(`${API_URL}/products`);
       const data = await response.json();
       console.log('Products API response:', data); // Debug log
       setProducts(data.data || data.products || []);
@@ -116,7 +126,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
     }
 
     try {
-      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/contacts/search/autocomplete?q=${query}`);
+      const response = await fetch(`${API_URL}/contacts/search/autocomplete?q=${query}`);
       const data = await response.json();
       setSearchResults(data);
     } catch (error) {
@@ -237,7 +247,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
       // If new customer, create contact
       if (formData.isNewCustomer) {
         try {
-          const response = await fetch('https://dumy-2-mli2.onrender.com/api/contacts', {
+          const response = await fetch(`${API_URL}/contacts`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -266,7 +276,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
       // If referrer is not selected from dropdown (new referrer), create them
       if (!formData.referrer && formData.referrerName) {
         try {
-          const response = await fetch('https://dumy-2-mli2.onrender.com/api/contacts', {
+          const response = await fetch(`${API_URL}/contacts`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -282,7 +292,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
             setFormData(prev => ({ ...prev, referrer: newReferrer._id }));
             
             // Create relationship with the new referrer
-            await fetch('https://dumy-2-mli2.onrender.com/api/relationships', {
+            await fetch(`${API_URL}/relationships`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -305,7 +315,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
       } else if (formData.referrer) {
         // Referrer already exists, just create relationship
         try {
-          await fetch('https://dumy-2-mli2.onrender.com/api/relationships', {
+          await fetch(`${API_URL}/relationships`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -388,7 +398,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch('https://dumy-2-mli2.onrender.com/api/orders', {
+      const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(orderData)
@@ -401,7 +411,7 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
         // If order was created from budget plan, update budget plan status
         if (formData.budgetPlanId) {
           try {
-            await fetch(`https://dumy-2-mli2.onrender.com/api/budget-plans/${formData.budgetPlanId}`, {
+            await fetch(`${API_URL}/budget-plans/${formData.budgetPlanId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status: 'completed' })
@@ -541,61 +551,108 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
     </div>
   );
 
-  const renderStep3 = () => (
-    <div className="form-step">
-      <h3>Step 3: Select Products</h3>
-      
-      <div className="products-section">
-        <div className="product-list">
-          <h4>Available Products</h4>
-          <div className="product-grid">
-            {products.map(product => (
-              <div key={product._id} className="product-card" onClick={() => addProduct(product)}>
-                {product.images?.[0] && (
-                  <img src={`${product.images[0].startsWith('http') ? product.images[0] : 'https://dumy-2-mli2.onrender.com' + product.images[0]}`} alt={product.name} />
+  const filterProducts = () => {
+    if (!productSearchQuery.trim()) {
+      return products;
+    }
+    
+    const query = productSearchQuery.toLowerCase();
+    return products.filter(product => 
+      product.name?.toLowerCase().includes(query) ||
+      product.company?.name?.toLowerCase().includes(query) ||
+      product.category?.name?.toLowerCase().includes(query) ||
+      product.sku?.toLowerCase().includes(query)
+    );
+  };
+
+  const renderStep3 = () => {
+    const filteredProducts = filterProducts();
+    
+    return (
+      <div className="form-step">
+        <h3>Step 3: Select Products</h3>
+        
+        <div className="products-section">
+          <div className="product-list">
+            <div className="product-list-header">
+              <h4>Available Products</h4>
+              <div className="product-search-bar">
+                <input
+                  type="text"
+                  placeholder="Search by product name, company, category, or SKU..."
+                  value={productSearchQuery}
+                  onChange={(e) => setProductSearchQuery(e.target.value)}
+                  className="product-search-input"
+                />
+                {productSearchQuery && (
+                  <button 
+                    className="clear-search-btn"
+                    onClick={() => setProductSearchQuery('')}
+                    title="Clear search"
+                  >
+                    ×
+                  </button>
                 )}
-                <div className="product-info">
-                  <strong>{product.name}</strong>
-                  <span>{product.company?.name}</span>
-                  <span className="price">₹{product.price?.toLocaleString()}</span>
-                </div>
               </div>
-            ))}
+            </div>
+            <div className="product-grid">
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map(product => (
+                  <div key={product._id} className="product-card" onClick={() => addProduct(product)}>
+                    {product.images?.[0] && (
+                      <img src={`${product.images[0].startsWith('http') ? product.images[0] : BASE_URL + product.images[0]}`} alt={product.name} />
+                    )}
+                    <div className="product-info">
+                      <strong>{product.name}</strong>
+                      <span>{product.company?.name}</span>
+                      <span className="price">₹{product.price?.toLocaleString()}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="no-results">
+                  <p>No products found matching "{productSearchQuery}"</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="selected-products">
+            <h4>Selected Products ({formData.selectedProducts.length})</h4>
+            {formData.selectedProducts.length === 0 ? (
+              <p className="no-products">No products selected</p>
+            ) : (
+              <div className="selected-products-list">
+                {formData.selectedProducts.map((item, index) => (
+                  <div key={index} className="selected-product-item">
+                    <button onClick={() => removeProduct(index)} className="btn-remove">×</button>
+                    <div className="product-details">
+                      <strong title={item.productName}>{item.productName}</strong>
+                      <span>{item.companyName}</span>
+                    </div>
+                    <div className="product-actions">
+                      <div className="product-quantity">
+                        <label>Qty:</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => updateProductQuantity(index, e.target.value)}
+                        />
+                      </div>
+                      <div className="product-price">
+                        ₹{item.totalPrice.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-
-        <div className="selected-products">
-          <h4>Selected Products ({formData.selectedProducts.length})</h4>
-          {formData.selectedProducts.length === 0 ? (
-            <p className="no-products">No products selected</p>
-          ) : (
-            <div className="selected-products-list">
-              {formData.selectedProducts.map((item, index) => (
-                <div key={index} className="selected-product-item">
-                  <div className="product-details">
-                    <strong>{item.productName}</strong>
-                    <span>{item.companyName}</span>
-                  </div>
-                  <div className="product-quantity">
-                    <input
-                      type="number"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) => updateProductQuantity(index, e.target.value)}
-                    />
-                  </div>
-                  <div className="product-price">
-                    ₹{item.totalPrice.toLocaleString()}
-                  </div>
-                  <button onClick={() => removeProduct(index)} className="btn-remove">×</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderStep4 = () => (
     <div className="form-step">

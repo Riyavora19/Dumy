@@ -1,27 +1,17 @@
-// API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com';
-export const API_URL = `${API_BASE_URL}/api`;
+// Centralized API configuration
+export const API_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:5000/api' 
+  : 'https://dumy-2-mli2.onrender.com/api';
 
-// Helper function to get full API URL
-export const getApiUrl = (endpoint) => {
-  // If endpoint starts with /api, use base URL
-  if (endpoint.startsWith('/api')) {
-    return `${API_BASE_URL}${endpoint}`;
-  }
-  // Otherwise, add /api prefix
-  return `${API_URL}${endpoint}`;
-};
+export const BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:5000' 
+  : 'https://dumy-2-mli2.onrender.com';
 
-// Helper function to get image URL
+// Helper function to get full image URL
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return '';
   if (imagePath.startsWith('http')) return imagePath;
-  return `${API_BASE_URL}${imagePath}`;
+  return `${BASE_URL}${imagePath}`;
 };
 
-export default {
-  API_BASE_URL,
-  API_URL,
-  getApiUrl,
-  getImageUrl
-};
+export default API_URL;

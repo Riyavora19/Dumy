@@ -4,7 +4,7 @@ import './AdminStaff.css';
 
 const API_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api'
-  : 'https://dumy-2-mli2.onrender.com/api';
+  : '/api';
 
 // All admin tabs mapped to permission keys
 const ALL_PERMISSIONS = [
@@ -343,7 +343,8 @@ function AdminStaff() {
             </div>
             
             <form onSubmit={handleSubmit} id="staff-form" className="staff-form" onClick={(e) => e.stopPropagation()}>
-              <div className="form-grid">
+              {/* First Line: Name | Email | Password */}
+              <div className="form-row-3">
                 <div className="form-group">
                   <label>Name *</label>
                   <input
@@ -377,7 +378,10 @@ function AdminStaff() {
                     placeholder={selectedStaff ? 'Leave blank to keep current' : ''}
                   />
                 </div>
+              </div>
 
+              {/* Second Line: Phone | Role | Status */}
+              <div className="form-row-3">
                 <div className="form-group">
                   <label>Phone</label>
                   <input

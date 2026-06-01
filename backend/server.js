@@ -56,7 +56,7 @@ app.use('/api/auth', require('./routes/auth'));
 // User routes
 app.use('/api/users', require('./routes/users'));
 
-// Inquiry routes
+// Inquiry routesin
 app.use('/api/inquiries', require('./routes/inquiries'));
 
 // Category routes
@@ -116,6 +116,12 @@ app.use('/api/deliveries', require('./routes/deliveries'));
 
 // Payment routes
 app.use('/api/payments', require('./routes/payments'));
+
+// Chat routes
+app.use('/api/chat', require('./routes/chat'));
+
+// Chat Settings routes
+app.use('/api/chat-settings', require('./routes/chatSettings'));
 
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5000;

@@ -5,12 +5,34 @@
 .ad-header h1 { font-size: 1.8rem; font-weight: 700; color: #1a202c; margin: 0 0 4px; }
 .ad-header p { color: #718096; margin: 0; font-size: 1rem; }
 
-.ad-layout { display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: start; }
+.ad-layout { 
+  display: grid; 
+  grid-template-columns: 360px 1fr; 
+  gap: 24px; 
+  align-items: start;
+  height: calc(100vh - 140px);
+  overflow: hidden;
+}
 
 /* Left panel */
-.ad-left { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+.ad-left { 
+  background: #fff; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 12px; 
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 24px;
+}
 
-.ad-tabs { display: flex; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
+.ad-tabs { 
+  display: flex; 
+  border-bottom: 1px solid #e2e8f0; 
+  overflow-x: auto;
+  flex-shrink: 0;
+}
 .ad-tab {
   flex: 1;
   padding: 11px 8px;
@@ -27,7 +49,11 @@
 .ad-tab:hover { color: #4f46e5; }
 .ad-tab--active { color: #4f46e5; border-bottom-color: #4f46e5; font-weight: 600; }
 
-.ad-search { padding: 12px; border-bottom: 1px solid #f0f4f8; }
+.ad-search { 
+  padding: 12px; 
+  border-bottom: 1px solid #f0f4f8;
+  flex-shrink: 0;
+}
 .ad-search input {
   width: 100%;
   border: 1px solid #e2e8f0;
@@ -39,7 +65,11 @@
 }
 .ad-search input:focus { border-color: #4f46e5; }
 
-.ad-list { max-height: calc(100vh - 280px); overflow-y: auto; }
+.ad-list { 
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
 .ad-card {
   padding: 14px 16px;
@@ -79,6 +109,9 @@
   border-radius: 12px;
   padding: 28px;
   min-height: 400px;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .ad-placeholder {

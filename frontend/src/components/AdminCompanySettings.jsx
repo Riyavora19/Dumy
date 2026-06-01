@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNotification } from '../context/NotificationContext';
 import './AdminCompanySettings.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 function AdminCompanySettings() {
   const { showNotification } = useNotification();
@@ -10,6 +10,12 @@ function AdminCompanySettings() {
   const [saving, setSaving] = useState(false);
   
   const [settings, setSettings] = useState({
+    companyName: '',
+    address1: '',
+    address2: '',
+    phone: '',
+    helpline: '',
+    email: '',
     bankName: '',
     accountNumber: '',
     ifscCode: '',

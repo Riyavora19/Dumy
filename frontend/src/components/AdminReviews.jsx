@@ -24,7 +24,7 @@ const AdminReviews = () => {
       if (filterStatus) params.status = filterStatus;
       if (filterRating) params.rating = filterRating;
 
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/reviews/admin/all', { params });
+      const response = await axios.get('/api/reviews/admin/all', { params });
       if (response.data.success) {
         setReviews(response.data.data);
       }
@@ -38,7 +38,7 @@ const AdminReviews = () => {
 
   const handleStatusChange = async (reviewId, newStatus) => {
     try {
-      const response = await axios.patch(`https://dumy-2-mli2.onrender.com/api/reviews/${reviewId}/status`, {
+      const response = await axios.patch(`/api/reviews/${reviewId}/status`, {
         status: newStatus
       });
 
@@ -53,7 +53,7 @@ const AdminReviews = () => {
 
   const handleDelete = async (reviewId) => {
     try {
-      const response = await axios.delete(`https://dumy-2-mli2.onrender.com/api/reviews/${reviewId}`);
+      const response = await axios.delete(`/api/reviews/${reviewId}`);
       if (response.data.success) {
         showNotification('Review deleted successfully', 'success');
         fetchReviews();
@@ -73,7 +73,7 @@ const AdminReviews = () => {
       const adminInfo = localStorage.getItem('adminInfo');
       const admin = adminInfo ? JSON.parse(adminInfo) : null;
 
-      const response = await axios.post(`https://dumy-2-mli2.onrender.com/api/reviews/${selectedReview._id}/response`, {
+      const response = await axios.post(`/api/reviews/${selectedReview._id}/response`, {
         text: responseText,
         adminId: admin?.id
       });
@@ -152,7 +152,7 @@ const AdminReviews = () => {
                 <div className="admin-reviews__product">
                   {review.product?.images?.[0] && (
                     <img 
-                      src={`${review.product.images[0].startsWith('http') ? review.product.images[0] : 'https://dumy-2-mli2.onrender.com' + review.product.images[0]}`} 
+                      src={`${review.product.images[0].startsWith('http') ? review.product.images[0] : '' + review.product.images[0]}`} 
                       alt={review.product.name}
                     />
                   )}
@@ -177,7 +177,7 @@ const AdminReviews = () => {
                 {review.images && review.images.length > 0 && (
                   <div className="admin-reviews__images">
                     {review.images.map((img, index) => (
-                      <img key={index} src={`${img.startsWith('http') ? img : 'https://dumy-2-mli2.onrender.com' + img}`} alt="" />
+                      <img key={index} src={`${img.startsWith('http') ? img : '' + img}`} alt="" />
                     ))}
                   </div>
                 )}

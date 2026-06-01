@@ -49,7 +49,8 @@ router.get('/', async (req, res) => {
       company, 
       partnerOnly,
       isActive,
-      flag
+      flag,
+      isFeatured
     } = req.query;
     
     const query = {};
@@ -84,6 +85,11 @@ router.get('/', async (req, res) => {
     // Filter by flag (e.g., Featured)
     if (flag) {
       query.flag = flag;
+    }
+    
+    // Filter by isFeatured
+    if (isFeatured !== undefined) {
+      query.isFeatured = isFeatured === 'true';
     }
     
     // Build populate options for company

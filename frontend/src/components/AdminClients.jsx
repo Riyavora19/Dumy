@@ -62,7 +62,7 @@ const AdminClients = () => {
       if (filterType) params.clientType = filterType;
       if (searchTerm) params.search = searchTerm;
 
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/clients', { params });
+      const response = await axios.get('/api/clients', { params });
       if (response.data.success) {
         setClients(response.data.data);
       }
@@ -135,14 +135,14 @@ const AdminClients = () => {
     try {
       if (editingClient) {
         const response = await axios.put(
-          `https://dumy-2-mli2.onrender.com/api/clients/${editingClient._id}`,
+          `/api/clients/${editingClient._id}`,
           clientData
         );
         if (response.data.success) {
           showNotification('Client updated successfully!', 'success');
         }
       } else {
-        const response = await axios.post('https://dumy-2-mli2.onrender.com/api/clients', clientData);
+        const response = await axios.post('/api/clients', clientData);
         if (response.data.success) {
           showNotification('Client created successfully!', 'success');
         }
@@ -199,7 +199,7 @@ const AdminClients = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`https://dumy-2-mli2.onrender.com/api/clients/${id}`);
+      const response = await axios.delete(`/api/clients/${id}`);
       if (response.data.success) {
         showNotification('Client deleted successfully!', 'success');
         fetchClients();
@@ -423,7 +423,8 @@ const AdminClients = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="admin-clients__form">
-              <div className="admin-clients__row">
+              {/* First Line: Full Name | Email | Phone Number */}
+              <div className="admin-clients__row-3">
                 <div className="admin-clients__field">
                   <label>Full Name *</label>
                   <input
@@ -447,11 +448,9 @@ const AdminClients = () => {
                     placeholder="john@example.com"
                   />
                 </div>
-              </div>
 
-              <div className="admin-clients__row">
                 <div className="admin-clients__field">
-                  <label>Phone *</label>
+                  <label>Phone Number *</label>
                   <input
                     type="tel"
                     name="phone"
@@ -461,7 +460,10 @@ const AdminClients = () => {
                     placeholder="+91-9876543210"
                   />
                 </div>
+              </div>
 
+              {/* Second Line: Company Name | GST | Client Type */}
+              <div className="admin-clients__row-3">
                 <div className="admin-clients__field">
                   <label>Company Name</label>
                   <input
@@ -472,9 +474,7 @@ const AdminClients = () => {
                     placeholder="Company name (if applicable)"
                   />
                 </div>
-              </div>
 
-              <div className="admin-clients__row">
                 <div className="admin-clients__field">
                   <label>GST Number</label>
                   <input
@@ -497,9 +497,9 @@ const AdminClients = () => {
                 </div>
               </div>
 
-              {/* Main Contact Section */}
+              {/* Third Line: Main Contact Information */}
               <div className="admin-clients__section-title">Main Contact Information</div>
-              <div className="admin-clients__row">
+              <div className="admin-clients__row-3">
                 <div className="admin-clients__field">
                   <label>Main Contact Name</label>
                   <input
@@ -534,9 +534,9 @@ const AdminClients = () => {
                 </div>
               </div>
 
-              {/* Wife Contact Section */}
+              {/* Fourth Line: Wife Contact Information */}
               <div className="admin-clients__section-title">Wife Contact Information</div>
-              <div className="admin-clients__row">
+              <div className="admin-clients__row-3">
                 <div className="admin-clients__field">
                   <label>Wife Name</label>
                   <input
@@ -571,9 +571,9 @@ const AdminClients = () => {
                 </div>
               </div>
 
-              {/* Project Incharge Section */}
+              {/* Fifth Line: Project Incharge Information */}
               <div className="admin-clients__section-title">Project Incharge Information</div>
-              <div className="admin-clients__row">
+              <div className="admin-clients__row-3">
                 <div className="admin-clients__field">
                   <label>Incharge Name</label>
                   <input
@@ -595,9 +595,7 @@ const AdminClients = () => {
                     placeholder="Incharge phone number"
                   />
                 </div>
-              </div>
 
-              <div className="admin-clients__row">
                 <div className="admin-clients__field">
                   <label>Incharge Email</label>
                   <input
@@ -608,7 +606,9 @@ const AdminClients = () => {
                     placeholder="Incharge email"
                   />
                 </div>
+              </div>
 
+              <div className="admin-clients__row-3">
                 <div className="admin-clients__field">
                   <label>Designation</label>
                   <input
@@ -621,10 +621,7 @@ const AdminClients = () => {
                 </div>
               </div>
 
-              {/* Address Section */}
-              <div className="admin-clients__section-title">Address Information</div>
-
-              {/* Address Section */}
+              {/* Sixth Line: Address Information */}
               <div className="admin-clients__section-title">Address Information</div>
               <div className="admin-clients__field">
                 <label>Street Address</label>
@@ -637,7 +634,7 @@ const AdminClients = () => {
                 />
               </div>
 
-              <div className="admin-clients__row">
+              <div className="admin-clients__row-3">
                 <div className="admin-clients__field">
                   <label>City</label>
                   <input
@@ -672,9 +669,9 @@ const AdminClients = () => {
                 </div>
               </div>
 
-              {/* Additional Information */}
+              {/* Seventh Line: Additional Information */}
               <div className="admin-clients__section-title">Additional Information</div>
-              <div className="admin-clients__row">
+              <div className="admin-clients__row-4">
                 <div className="admin-clients__field">
                   <label>Status *</label>
                   <select name="status" value={formData.status} onChange={handleChange} required>
@@ -705,17 +702,17 @@ const AdminClients = () => {
                     placeholder="Sales person name"
                   />
                 </div>
-              </div>
 
-              <div className="admin-clients__field">
-                <label>Tags (comma separated)</label>
-                <input
-                  type="text"
-                  name="tags"
-                  value={formData.tags}
-                  onChange={handleChange}
-                  placeholder="vip, premium, repeat-customer"
-                />
+                <div className="admin-clients__field">
+                  <label>Tags (comma separated)</label>
+                  <input
+                    type="text"
+                    name="tags"
+                    value={formData.tags}
+                    onChange={handleChange}
+                    placeholder="vip, premium, repeat-customer"
+                  />
+                </div>
               </div>
 
               <div className="admin-clients__field">

@@ -17,7 +17,7 @@ ChartJS.register(
 
 const API_BASE = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api'
-  : 'https://dumy-2-mli2.onrender.com/api';
+  : '/api';
 
 const AdminDashboard = ({ onNavigate }) => {
   const [stats, setStats] = useState({
@@ -563,7 +563,7 @@ const AdminDashboard = ({ onNavigate }) => {
                           <div className="admin-dashboard__product">
                             {product.images && product.images[0] && (
                               <img 
-                                src={`${product.images[0].startsWith('http') ? product.images[0] : 'https://dumy-2-mli2.onrender.com' + product.images[0]}`} 
+                                src={`${product.images[0].startsWith('http') ? product.images[0] : '' + product.images[0]}`} 
                                 alt={product.name}
                                 onError={(e) => {
                                   e.target.src = 'https://via.placeholder.com/40x40/667eea/ffffff?text=?';

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from '../utils/axios';
 import './AdminBudgetPlanForm.css';
 import './QuotationPreviewPDF.css';
 import QuotationPDFGenerator from './QuotationPDFGenerator';
@@ -248,22 +249,28 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
   const fetchRoomTemplates = async () => {
     try {
-      const response = await fetch('https://dumy-2-mli2.onrender.com/api/room-templates');
-      const data = await response.json();
-      setRoomTemplates(data);
+      const response = await axios.get('/room-templates');
+      console.log('Room templates response:', response.data);
+      
+      // Handle both array and object responses
+      const templatesData = Array.isArray(response.data)
+        ? response.data
+        : response.data.data || response.data.templates || [];
+      
+      setRoomTemplates(templatesData);
     } catch (error) {
       console.error('Error fetching room templates:', error);
+      setRoomTemplates([]); // Set empty array on error
     }
   };
 
   // Fetch DB-backed presets and build a roomName → preset map
   const fetchDbPresets = async () => {
     try {
-      const r = await fetch('https://dumy-2-mli2.onrender.com/api/budget-plan-presets');
-      const d = await r.json();
-      if (d.success && d.data) {
+      const response = await axios.get('/budget-plan-presets');
+      if (response.data.success && response.data.data) {
         const map = {};
-        d.data.forEach(p => { if (p.isActive) map[p.roomName] = p; });
+        response.data.data.forEach(p => { if (p.isActive) map[p.roomName] = p; });
         setDbPresets(map);
         console.log('✅ Loaded DB presets for rooms:', Object.keys(map));
       }
@@ -274,21 +281,17 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('https://dumy-2-mli2.onrender.com/api/products');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log('Products fetched:', data);
+      const response = await axios.get('/products');
+      console.log('Products fetched:', response.data);
       
       // Handle different response structures
       let products = [];
-      if (data.success && data.data) {
-        products = data.data;
-      } else if (data.products) {
-        products = data.products;
-      } else if (Array.isArray(data)) {
-        products = data;
+      if (response.data.success && response.data.data) {
+        products = response.data.data;
+      } else if (response.data.products) {
+        products = response.data.products;
+      } else if (Array.isArray(response.data)) {
+        products = response.data;
       }
       
       // Ensure each product has required fields
@@ -313,10 +316,9 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('https://dumy-2-mli2.onrender.com/api/categories');
-      const data = await response.json();
+      const response = await axios.get('/categories');
       // Ensure categories is always an array
-      setCategories(Array.isArray(data) ? data : []);
+      setCategories(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
       setCategories([]); // Set empty array on error
@@ -370,6 +372,9 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
           (typeof product.itemType === 'object' && product.itemType?.name) ? product.itemType.name : '',
           product.broadCategory || '',
           product.cat || '',
+          // Add company name search
+          (typeof product.company === 'object' && product.company?.name) ? product.company.name : '',
+          product.companyName || '',
         ].join(' ').toLowerCase();
 
         if (knownKeywords) {
@@ -490,9 +495,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
     }
 
     try {
-      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/contacts/search/autocomplete?q=${query}`);
-      const data = await response.json();
-      setSearchResults(data);
+      const response = await axios.get(`/contacts/search/autocomplete?q=${query}`);
+      setSearchResults(response.data);
     } catch (error) {
       console.error('Error searching contacts:', error);
     }
@@ -1344,20 +1348,16 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       // Create customer if new
       if (formData.isNewCustomer && !formData.customer) {
         try {
-          const response = await fetch('https://dumy-2-mli2.onrender.com/api/contacts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: formData.customerName,
-              email: formData.customerEmail,
-              phone: formData.customerPhone,
-              contactType: 'individual',
-              status: 'active'
-            })
+          const response = await axios.post('/contacts', {
+            name: formData.customerName,
+            email: formData.customerEmail,
+            phone: formData.customerPhone,
+            contactType: 'individual',
+            status: 'active'
           });
           
-          if (response.ok) {
-            const newContact = await response.json();
+          if (response.data) {
+            const newContact = response.data;
             setFormData(prev => ({ ...prev, customer: newContact._id }));
           }
         } catch (error) {
@@ -1416,10 +1416,6 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
       // ── SAVE AS QUOTATION → post to /api/quotations ──────────────────────
       if (saveOption === 'quotation') {
-        const API_URL = window.location.hostname === 'localhost'
-          ? 'http://localhost:5000/api'
-          : 'https://dumy-2-mli2.onrender.com/api';
-
         const items = allProductsList.map(item => ({
           product: item.product || item._id || item.productId || null,
           productName: item.productName || item.itemName || '',
@@ -1464,32 +1460,29 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
         console.log('Saving quotation:', quotationPayload);
 
-        const response = await fetch(`${API_URL}/quotations`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('staffToken')}`
-          },
-          body: JSON.stringify(quotationPayload)
-        });
-
-        let result;
         try {
-          result = await response.json();
-        } catch (parseErr) {
-          console.error('Response was not JSON. Status:', response.status, response.statusText);
-          alert(`Server error (${response.status}): The quotation API route is not available on the server. Please ensure the backend is deployed with the latest code.`);
-          return;
-        }
+          const response = await axios.post('/quotations', quotationPayload, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('staffToken')}`
+            }
+          });
 
-        console.log('Quotation save response:', response.status, result);
+          console.log('Quotation save response:', response.data);
 
-        if (result.success) {
-          onSuccess && onSuccess(result.quotation);
-          onClose && onClose();
-        } else {
-          console.error('Server error saving quotation:', result);
-          alert(result.message || 'Failed to save quotation. Please try again.');
+          if (response.data.success) {
+            onSuccess && onSuccess(response.data.quotation);
+            onClose && onClose();
+          } else {
+            console.error('Server error saving quotation:', response.data);
+            alert(response.data.message || 'Failed to save quotation. Please try again.');
+          }
+        } catch (error) {
+          console.error('Error saving quotation:', error);
+          if (error.response) {
+            alert(`Server error (${error.response.status}): ${error.response.data?.message || 'The quotation API route is not available on the server.'}`);
+          } else {
+            alert('Failed to save quotation. Please check your connection and try again.');
+          }
         }
         return;
       }
@@ -1536,22 +1529,20 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
       console.log('Saving budget plan:', budgetPlanData);
 
-      const response = await fetch('https://dumy-2-mli2.onrender.com/api/budget-plans', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('staffToken')}`
-        },
-        body: JSON.stringify(budgetPlanData)
-      });
+      try {
+        const response = await axios.post('/budget-plans', budgetPlanData, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('staffToken')}`
+          }
+        });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        onSuccess && onSuccess(result);
-        onClose && onClose();
-      } else {
-        console.error('Server error:', result);
+        if (response.data) {
+          onSuccess && onSuccess(response.data);
+          onClose && onClose();
+        }
+      } catch (error) {
+        console.error('Server error:', error);
+        alert(error.response?.data?.message || 'Failed to save budget plan');
       }
     } catch (error) {
       console.error('Error saving:', error);
@@ -1625,19 +1616,16 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         }))
       };
 
-      const budgetResponse = await fetch('https://dumy-2-mli2.onrender.com/api/budget-plans', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
+      const budgetResponse = await axios.post('/budget-plans', budgetPlanData, {
+        headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('staffToken')}`
-        },
-        body: JSON.stringify(budgetPlanData)
+        }
       });
 
-      const budgetResult = await budgetResponse.json();
+      const budgetResult = budgetResponse.data;
       
-      if (!budgetResponse.ok) {
-        throw new Error(budgetResult.message || 'Failed to create quotation');
+      if (!budgetResult) {
+        throw new Error('Failed to create quotation');
       }
 
       // Now create the order
@@ -1682,22 +1670,19 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
         budgetPlan: budgetResult._id // Link to the quotation
       };
 
-      const orderResponse = await fetch('https://dumy-2-mli2.onrender.com/api/orders', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
+      const orderResponse = await axios.post('/orders', orderData, {
+        headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('staffToken')}`
-        },
-        body: JSON.stringify(orderData)
+        }
       });
 
-      const orderResult = await orderResponse.json();
+      const orderResult = orderResponse.data;
 
-      if (orderResponse.ok) {
+      if (orderResult) {
         onSuccess && onSuccess(orderResult);
         onClose && onClose();
       } else {
-        throw new Error(orderResult.message || 'Failed to create order');
+        throw new Error('Failed to create order');
       }
     } catch (error) {
       console.error('Error saving as order:', error);
@@ -1720,8 +1705,9 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
       <div className="form-step full-width">
         <h3>Step 1: Customer & Project Details</h3>
         
+        {/* Row 1: Customer Name, Phone, Email */}
         <div className="form-row">
-          <div className="form-group flex-2">
+          <div className="form-group">
             <label>Customer Name *</label>
             <input
               type="text"
@@ -1747,20 +1733,23 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               type="tel"
               value={formData.customerPhone}
               onChange={(e) => setFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
+              placeholder="Phone number"
             />
           </div>
-        </div>
 
-        <div className="form-row">
           <div className="form-group">
             <label>Email</label>
             <input
               type="email"
               value={formData.customerEmail}
               onChange={(e) => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+              placeholder="Email address"
             />
           </div>
+        </div>
 
+        {/* Row 2: GST Number, Address, Project Location */}
+        <div className="form-row">
           <div className="form-group">
             <label>GST Number</label>
             <input
@@ -1770,161 +1759,156 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               placeholder="Optional"
             />
           </div>
-        </div>
 
-        <div className="form-group">
-          <label>Address</label>
-          <input
-            type="text"
-            value={formData.customerAddress}
-            onChange={(e) => setFormData(prev => ({ ...prev, customerAddress: e.target.value }))}
-            placeholder="Full address"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Project Location</label>
-          <input
-            type="text"
-            value={formData.projectLocation}
-            onChange={(e) => setFormData(prev => ({ ...prev, projectLocation: e.target.value }))}
-            placeholder="Project location (e.g., Ahmedabad, Gujarat)"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Attention (Contact Person)</label>
-          <input
-            type="text"
-            value={formData.attention}
-            onChange={(e) => setFormData(prev => ({ ...prev, attention: e.target.value }))}
-            placeholder="Contact person name (e.g., Mr. Rajesh Kumar)"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Attended By *</label>
-          <select
-            value={attendedBy.id}
-            onChange={(e) => {
-              const staff = STAFF_MEMBERS.find(s => s.id === e.target.value);
-              if (staff) setAttendedBy(staff);
-            }}
-            style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', width: '100%', background: '#fff' }}
-          >
-            {STAFF_MEMBERS.map(s => (
-              <option key={s.id} value={s.id}>{s.name} — {s.phone}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label>Project / Room Name</label>
-          <input
-            type="text"
-            value={formData.roomName}
-            onChange={(e) => setFormData(prev => ({ ...prev, roomName: e.target.value }))}
-            placeholder="e.g., Master Bathroom, Kitchen Renovation"
-          />
-        </div>
-
-        {/* SECTION 1: Budget Planning - NOW FIRST */}
-        <div className="budget-option-section">
-          <h4>Budget Planning</h4>
-          <p className="section-description">Choose how you want to plan this project</p>
-          
-          <div className="budget-options">
-            <div 
-              className={`budget-option-card ${formData.hasBudget ? 'selected' : ''}`}
-              onClick={() => setFormData(prev => ({ ...prev, hasBudget: true }))}
-            >
-              <div className="option-icon">💰</div>
-              <h5>With Budget</h5>
-              <p>Set a budget limit and track spending</p>
-            </div>
-
-            <div 
-              className={`budget-option-card ${!formData.hasBudget ? 'selected' : ''}`}
-              onClick={() => setFormData(prev => ({ ...prev, hasBudget: false, totalBudget: 0 }))}
-            >
-              <div className="option-icon">🚀</div>
-              <h5>Without Budget</h5>
-              <p>No budget limit, add products freely</p>
-            </div>
+          <div className="form-group">
+            <label>Address</label>
+            <input
+              type="text"
+              value={formData.customerAddress}
+              onChange={(e) => setFormData(prev => ({ ...prev, customerAddress: e.target.value }))}
+              placeholder="Full address"
+            />
           </div>
 
-          {formData.hasBudget && (
-            <div className="form-group">
-              <label>Estimated Budget (₹) *</label>
-              <input
-                type="number"
-                value={formData.totalBudget}
-                onChange={(e) => setFormData(prev => ({ ...prev, totalBudget: parseFloat(e.target.value) || 0 }))}
-                min="0"
-                step="1000"
-                className="budget-input"
-                placeholder="Enter budget amount"
-              />
-            </div>
-          )}
+          <div className="form-group">
+            <label>Project Location</label>
+            <input
+              type="text"
+              value={formData.projectLocation}
+              onChange={(e) => setFormData(prev => ({ ...prev, projectLocation: e.target.value }))}
+              placeholder="e.g., Ahmedabad, Gujarat"
+            />
+          </div>
         </div>
 
-        {/* SECTION 2: Room Templates - NOW SECOND */}
-        <div className="form-group">
-          <label>Add Rooms - Click template to add multiple rooms</label>
-          <div className="room-templates-grid">
-            {roomTemplates.length === 0 ? (
-              <p style={{ gridColumn: '1 / -1', color: '#666', fontStyle: 'italic' }}>
-                No room templates available.
-              </p>
-            ) : (
-              roomTemplates.map(template => (
-                <div 
-                  key={template._id} 
-                  className="room-template-card"
-                  onClick={() => selectRoomTemplate(template)}
-                >
-                  <span className="template-icon">{template.icon}</span>
-                  <span className="template-name">{template.name}</span>
-                  <span className="template-budget">
-                    ₹{(template.estimatedBudget?.min / 1000).toFixed(0)}k - ₹{(template.estimatedBudget?.max / 1000).toFixed(0)}k
-                  </span>
-                </div>
-              ))
+        {/* Row 3: Attention, Attended By, Project Name */}
+        <div className="form-row">
+          <div className="form-group">
+            <label>Attention (Contact Person)</label>
+            <input
+              type="text"
+              value={formData.attention}
+              onChange={(e) => setFormData(prev => ({ ...prev, attention: e.target.value }))}
+              placeholder="e.g., Mr. Rajesh Kumar"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Attended By *</label>
+            <select
+              value={attendedBy.id}
+              onChange={(e) => {
+                const staff = STAFF_MEMBERS.find(s => s.id === e.target.value);
+                if (staff) setAttendedBy(staff);
+              }}
+            >
+              {STAFF_MEMBERS.map(s => (
+                <option key={s.id} value={s.id}>{s.name} — {s.phone}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Project / Room Name</label>
+            <input
+              type="text"
+              value={formData.roomName}
+              onChange={(e) => setFormData(prev => ({ ...prev, roomName: e.target.value }))}
+              placeholder="e.g., Master Bathroom"
+            />
+          </div>
+        </div>
+
+        {/* Row 4: Budget Planning & Add Rooms (side by side) */}
+        <div className="form-row-split">
+          {/* Budget Planning - Left Side */}
+          <div className="budget-option-section-compact">
+            <h4>Budget Planning</h4>
+            
+            <div className="budget-options-compact">
+              <div 
+                className={`budget-option-card-compact ${formData.hasBudget ? 'selected' : ''}`}
+                onClick={() => setFormData(prev => ({ ...prev, hasBudget: true }))}
+              >
+                <div className="option-icon-small">💰</div>
+                <span>With Budget</span>
+              </div>
+
+              <div 
+                className={`budget-option-card-compact ${!formData.hasBudget ? 'selected' : ''}`}
+                onClick={() => setFormData(prev => ({ ...prev, hasBudget: false, totalBudget: 0 }))}
+              >
+                <div className="option-icon-small">🚀</div>
+                <span>Without Budget</span>
+              </div>
+            </div>
+
+            {formData.hasBudget && (
+              <div className="form-group" style={{ marginTop: '12px' }}>
+                <label>Budget Amount (₹)</label>
+                <input
+                  type="number"
+                  value={formData.totalBudget}
+                  onChange={(e) => setFormData(prev => ({ ...prev, totalBudget: parseFloat(e.target.value) || 0 }))}
+                  min="0"
+                  step="1000"
+                  placeholder="Enter amount"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Add Rooms - Right Side */}
+          <div className="add-rooms-section-compact">
+            <h4>Add Rooms</h4>
+            <div className="room-templates-grid-compact">
+              {roomTemplates.length === 0 ? (
+                <p style={{ color: '#666', fontStyle: 'italic', fontSize: '13px' }}>
+                  No templates available
+                </p>
+              ) : (
+                roomTemplates.map(template => (
+                  <div 
+                    key={template._id} 
+                    className="room-template-card-compact"
+                    onClick={() => selectRoomTemplate(template)}
+                  >
+                    <span className="template-icon-small">{template.icon}</span>
+                    <span className="template-name-small">{template.name}</span>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Added Rooms Display */}
+            {formData.rooms.length > 0 && (
+              <div className="added-rooms-list-compact">
+                {formData.rooms.map(room => (
+                  <div key={room.id} className="added-room-chip-compact">
+                    <span>{room.name}</span>
+                    {formData.hasBudget && (
+                      <span className="room-budget-small">₹{(room.budget / 1000).toFixed(0)}k</span>
+                    )}
+                    <button
+                      className="room-remove-btn-small"
+                      onClick={() => deleteRoom(room.id)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
 
-        {/* SECTION 3: Added Rooms Display - NOW LAST */}
-        {formData.rooms.length > 0 && (
-          <div className="added-rooms-section">
-            <h4>Added Rooms ({formData.rooms.length})</h4>
-            <div className="added-rooms-list">
-              {formData.rooms.map(room => (
-                <div key={room.id} className="added-room-chip">
-                  <span className="room-chip-name">{room.name}</span>
-                  {formData.hasBudget && (
-                    <span className="room-chip-budget">₹{(room.budget / 1000).toFixed(0)}k</span>
-                  )}
-                  <button
-                    className="room-chip-remove"
-                    onClick={() => deleteRoom(room.id)}
-                    title="Remove room"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
+        {/* Row 5: Notes */}
         <div className="form-group">
           <label>Notes / Requirements</label>
           <textarea
             value={formData.notes}
             onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-            rows="3"
+            rows="2"
             placeholder="Add any special requirements or notes..."
           />
         </div>
@@ -2161,7 +2145,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                     >
                       {product.images?.[0] ? (
                         <img 
-                          src={product.images[0].startsWith('http') ? product.images[0] : `${product.images[0].startsWith('http') ? product.images[0] : 'https://dumy-2-mli2.onrender.com' + product.images[0]}`} 
+                          src={product.images[0].startsWith('http') ? product.images[0] : `${product.images[0].startsWith('http') ? product.images[0] : '' + product.images[0]}`} 
                           alt={product.name}
                           onError={(e) => {
                             e.target.src = 'https://via.placeholder.com/150x150/667eea/ffffff?text=Product';
@@ -3052,7 +3036,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                                       
                                       const imageUrl = productImage.startsWith('http') 
                                         ? productImage 
-                                        : `${productImage.startsWith('http') ? productImage : 'https://dumy-2-mli2.onrender.com' + productImage}`;
+                                        : `${productImage.startsWith('http') ? productImage : '' + productImage}`;
                                       
                                       return (
                                         <>
@@ -3595,7 +3579,7 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
                                 
                                 const imageUrl = productImage.startsWith('http') 
                                   ? productImage 
-                                  : `${productImage.startsWith('http') ? productImage : 'https://dumy-2-mli2.onrender.com' + productImage}`;
+                                  : `${productImage.startsWith('http') ? productImage : '' + productImage}`;
                                 
                                 return (
                                   <>

@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNotification } from '../context/NotificationContext';
+import axios from '../utils/axios';
 import './AdminItemTypes.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com/api';
 
 function AdminItemTypes() {
   const { showNotification } = useNotification();
@@ -31,9 +30,8 @@ function AdminItemTypes() {
   const fetchItemTypes = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/item-types`);
-      const data = await response.json();
-      setItemTypes(data);
+      const response = await axios.get('/item-types');
+      setItemTypes(response.data);
     } catch (error) {
       console.error('Error fetching item types:', error);
       showNotification('Failed to fetch item types', 'error');
@@ -44,10 +42,9 @@ function AdminItemTypes() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${API_URL}/categories/active`);
-      const data = await response.json();
-      if (data.success) {
-        setCategories(data.data);
+      const response = await axios.get('/categories/active');
+      if (response.data.success) {
+        setCategories(response.data.data);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -78,20 +75,10 @@ function AdminItemTypes() {
     e.preventDefault();
     
     try {
-      const url = editingItem 
-        ? `${API_URL}/item-types/${editingItem._id}`
-        : `${API_URL}/item-types`;
-      
-      const method = editingItem ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save item type');
+      if (editingItem) {
+        await axios.put(`/item-types/${editingItem._id}`, formData);
+      } else {
+        await axios.post('/item-types', formData);
       }
 
       showNotification(`Item type ${editingItem ? 'updated' : 'created'} successfully!`, 'success');
@@ -120,14 +107,7 @@ function AdminItemTypes() {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`${API_URL}/item-types/${id}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete item type');
-      }
-
+      await axios.delete(`/item-types/${id}`);
       showNotification('Item type deleted successfully!', 'success');
       fetchItemTypes();
     } catch (error) {

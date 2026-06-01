@@ -42,7 +42,7 @@ const AdminContacts = () => {
       if (filterType) params.append('contactType', filterType);
       if (filterReferrer) params.append('isReferrer', filterReferrer);
 
-      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/contacts?${params}`);
+      const response = await fetch(`/api/contacts?${params}`);
       const data = await response.json();
       setContacts(data.contacts || []);
     } catch (error) {
@@ -77,8 +77,8 @@ const AdminContacts = () => {
     
     try {
       const url = selectedContact
-        ? `https://dumy-2-mli2.onrender.com/api/contacts/${selectedContact._id}`
-        : 'https://dumy-2-mli2.onrender.com/api/contacts';
+        ? `/api/contacts/${selectedContact._id}`
+        : '/api/contacts';
       
       const method = selectedContact ? 'PUT' : 'POST';
       
@@ -127,7 +127,7 @@ const AdminContacts = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/contacts/${id}`, {
+      const response = await fetch(`/api/contacts/${id}`, {
         method: 'DELETE'
       });
 

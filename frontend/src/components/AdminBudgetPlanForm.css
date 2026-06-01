@@ -19,8 +19,8 @@
 /* Modal Content - Large but not full screen */
 .modal-content.budget-plan-form-modal.fullscreen {
   background: white;
-  width: 95%;
-  max-width: 1600px;
+  width: 85%; /* Reduced from 95% */
+  max-width: 1400px; /* Reduced from 1600px */
   height: 90vh;
   max-height: 90vh;
   border-radius: 16px;
@@ -35,10 +35,10 @@
 .budget-plan-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  height: 100%;
-  overflow: hidden;
-  padding-bottom: 56px;
+  gap: 0; /* No gap */
+  height: auto; /* Changed from 100% to auto */
+  overflow: visible; /* Changed from hidden */
+  padding-bottom: 0;
 }
 
 /* Modal Header - Simple Clean Design */
@@ -109,16 +109,29 @@
 
 /* Form Content Area - Scrollable */
 .form-content {
-  flex: 1;
+  flex: 0 1 auto; /* Don't expand, only take needed space */
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 2px 30px 20px 30px;
+  padding: 2px 30px 0 30px; /* No bottom padding */
+  min-height: 0;
+  max-height: calc(90vh - 200px);
 }
 
 /* Form Step Container */
 .form-step {
   max-width: 100%;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Prevent minimum height expansion */
+  padding-bottom: 0; /* No bottom padding */
+}
+
+.form-step h3 {
+  margin: 0 0 12px 0; /* Reduced from 16px */
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 .form-step.full-width {
@@ -126,10 +139,11 @@
 }
 
 .form-step.product-selection-step {
-  height: 100%;
+  flex: 1; /* Use flex instead of height: 100% */
   display: flex;
   flex-direction: column;
   padding: 0;
+  min-height: 0; /* Allow shrinking */
 }
 
 .header-left-section {
@@ -425,7 +439,7 @@
 .product-card-mini img {
   width: 100%;
   height: 140px;
-  object-fit: cover;
+  object-fit: contain; /* Changed from cover to contain to show full image */
   background: #f3f4f6;
   border-bottom: 2px solid #e5e7eb;
 }
@@ -900,10 +914,10 @@
 .budget-plan-form__actions {
   display: flex;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 0;
   justify-content: flex-end;
   flex-shrink: 0;
-  padding: 16px 30px;
+  padding: 12px 30px; /* Reduced padding */
   border-top: 2px solid #e0e0e0;
   background: #f8f9fa;
 }
@@ -913,24 +927,31 @@
   display: grid;
   grid-template-columns: 1fr 420px;
   gap: 0;
-  height: calc(90vh - 180px);
+  height: auto; /* Use content height instead of fixed height */
+  max-height: calc(90vh - 180px); /* Set max height to prevent overflow */
   overflow: hidden;
+  align-items: start; /* Align items to start to prevent stretching */
 }
 
 .products-panel {
+  flex: 0 1 auto; /* Don't grow, shrink if needed, use content size */
   display: flex;
   flex-direction: column;
   border-right: none;
   overflow: hidden;
   background: #f9fafb;
+  min-height: 0; /* Allow shrinking */
+  max-height: 100%; /* Prevent expansion */
 }
 
 .cart-panel {
+  flex: 0 0 auto; /* Don't grow, don't shrink, auto size */
   display: flex;
   flex-direction: column;
   background: #fff;
   overflow: hidden;
   border-left: 1px solid #e5e7eb;
+  max-height: 100%; /* Ensure it doesn't overflow */
 }
 
 .cart-header {
@@ -997,10 +1018,12 @@
 }
 
 .products-grid-scroll {
-  flex: 1;
+  flex: 0 1 auto;
   overflow-y: auto;
   padding: 0;
   background: #f9fafb;
+  min-height: 0;
+  max-height: calc(90vh - 300px);
 }
 
 .products-grid-scroll::-webkit-scrollbar {
@@ -1876,18 +1899,180 @@
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 10px; /* Reduced from 16px */
+  margin-bottom: 10px; /* Reduced from 16px */
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px; /* Reduced from 8px */
+}
+
+.form-group:last-child {
+  margin-bottom: 0; /* Remove bottom margin from last form group */
 }
 
 .form-group.flex-2 {
   grid-column: span 2;
+}
+
+.form-group.flex-3 {
+  grid-column: span 3;
+}
+
+/* Compact Row Split Layout for Budget & Rooms */
+.form-row-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px; /* Keep this gap for visual separation */
+  margin-bottom: 10px; /* Reduced from 12px */
+}
+
+/* Compact Budget Planning */
+.budget-option-section-compact {
+  background: #f9fafb;
+  padding: 12px; /* Reduced from 14px */
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+}
+
+.budget-option-section-compact h4 {
+  margin: 0 0 8px 0; /* Reduced from 10px */
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.budget-options-compact {
+  display: flex;
+  gap: 6px; /* Reduced from 8px */
+  margin-bottom: 6px; /* Reduced from 8px */
+}
+
+.budget-option-card-compact {
+  flex: 1;
+  padding: 12px 14px; /* Increased padding */
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Increased gap */
+  font-size: 14px; /* Increased font size */
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.budget-option-card-compact:hover {
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+}
+
+.budget-option-card-compact.selected {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.option-icon-small {
+  font-size: 28px; /* Increased from 20px to 28px */
+}
+
+/* Compact Add Rooms Section */
+.add-rooms-section-compact {
+  background: #f9fafb;
+  padding: 12px; /* Reduced from 14px */
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+}
+
+.add-rooms-section-compact h4 {
+  margin: 0 0 8px 0; /* Reduced from 10px */
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.room-templates-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px; /* Reduced from 8px */
+  margin-bottom: 8px; /* Reduced from 10px */
+}
+
+.room-template-card-compact {
+  padding: 6px 10px; /* Reduced from 8px 12px */
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Reduced from 8px */
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.room-template-card-compact:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  transform: translateY(-2px);
+}
+
+.template-icon-small {
+  font-size: 18px;
+}
+
+.template-name-small {
+  flex: 1;
+  font-size: 12px;
+}
+
+.added-rooms-list-compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px; /* Reduced from 6px */
+}
+
+.added-room-chip-compact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: #3b82f6;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.room-budget-small {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.room-remove-btn-small {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.room-remove-btn-small:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .form-group label {
@@ -1916,7 +2101,8 @@
 
 .form-group textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 60px; /* Reduced from 80px */
+  margin: 0; /* Ensure no extra margin */
 }
 
 /* Search Results */

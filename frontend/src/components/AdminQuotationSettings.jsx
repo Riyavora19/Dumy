@@ -20,7 +20,7 @@ const AdminQuotationSettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('https://dumy-2-mli2.onrender.com/api/quotation-settings');
+      const response = await fetch('/api/quotation-settings');
       const data = await response.json();
       if (data.success) {
         console.log('Fetched logos:', data.data.footerLogos);
@@ -51,7 +51,7 @@ const AdminQuotationSettings = () => {
 
     setUploading(true);
     try {
-      const response = await fetch('https://dumy-2-mli2.onrender.com/api/quotation-settings/upload-logo', {
+      const response = await fetch('/api/quotation-settings/upload-logo', {
         method: 'POST',
         body: formData
       });
@@ -75,7 +75,7 @@ const AdminQuotationSettings = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/quotation-settings/${id}`, {
+      const response = await fetch(`/api/quotation-settings/${id}`, {
         method: 'DELETE'
       });
 
@@ -99,7 +99,7 @@ const AdminQuotationSettings = () => {
     }
 
     try {
-      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/quotation-settings/activate/${id}`, {
+      const response = await fetch(`/api/quotation-settings/activate/${id}`, {
         method: 'PUT'
       });
 
@@ -118,7 +118,7 @@ const AdminQuotationSettings = () => {
 
   const handlePermanentDelete = async (id) => {
     try {
-      const response = await fetch(`https://dumy-2-mli2.onrender.com/api/quotation-settings/permanent/${id}`, {
+      const response = await fetch(`/api/quotation-settings/permanent/${id}`, {
         method: 'DELETE'
       });
 
@@ -161,7 +161,7 @@ const AdminQuotationSettings = () => {
     if (draggedItem === null) return;
 
     try {
-      const response = await fetch('https://dumy-2-mli2.onrender.com/api/quotation-settings/reorder', {
+      const response = await fetch('/api/quotation-settings/reorder', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

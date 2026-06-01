@@ -40,7 +40,7 @@ const AdminUsers = () => {
       if (filterStatus) params.status = filterStatus;
       if (searchTerm) params.search = searchTerm;
 
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/users', { params });
+      const response = await axios.get('/api/users', { params });
       if (response.data.success) {
         setUsers(response.data.data);
       }
@@ -57,7 +57,7 @@ const AdminUsers = () => {
 
   const handleToggleStatus = async (userId) => {
     try {
-      const response = await axios.patch(`https://dumy-2-mli2.onrender.com/api/users/${userId}/toggle-status`);
+      const response = await axios.patch(`/api/users/${userId}/toggle-status`);
       if (response.data.success) {
         showNotification(response.data.message, 'success');
         fetchUsers();
@@ -69,7 +69,7 @@ const AdminUsers = () => {
 
   const handleDelete = async (userId) => {
     try {
-      const response = await axios.delete(`https://dumy-2-mli2.onrender.com/api/users/${userId}`);
+      const response = await axios.delete(`/api/users/${userId}`);
       if (response.data.success) {
         showNotification('User deleted successfully!', 'success');
         fetchUsers();
@@ -124,7 +124,7 @@ const AdminUsers = () => {
     
     try {
       const response = await axios.put(
-        `https://dumy-2-mli2.onrender.com/api/users/${editingUser._id}/admin-update`,
+        `/api/users/${editingUser._id}/admin-update`,
         editFormData
       );
       
@@ -168,7 +168,7 @@ const AdminUsers = () => {
 
     try {
       const response = await axios.put(
-        `https://dumy-2-mli2.onrender.com/api/users/${changingPassword._id}/admin-change-password`,
+        `/api/users/${changingPassword._id}/admin-change-password`,
         { newPassword: passwordFormData.newPassword }
       );
       

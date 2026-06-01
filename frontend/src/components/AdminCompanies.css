@@ -193,45 +193,47 @@
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  background: #f5f5f5;
-  border: 1px solid #e0e0e0;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #333;
+  color: #1e40af;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.admin-companies__category-btn:hover {
+.admin-companies__category-btn:hover,
+.admin-companies__category-btn.active {
   background: #1e40af;
   color: #fff;
   border-color: #1e40af;
 }
 
 .admin-companies__category-btn svg:first-child {
-  color: #1e40af;
+  color: inherit;
 }
 
-.admin-companies__category-btn:hover svg {
+.admin-companies__category-btn:hover svg,
+.admin-companies__category-btn.active svg {
   color: #fff;
 }
 
 .admin-companies__category-dropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   left: 0;
   background: #fff;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  min-width: 280px;
-  max-width: 350px;
-  max-height: 300px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  min-width: 340px;
+  max-width: 420px;
+  max-height: 420px;
   overflow-y: auto;
   z-index: 1000;
   padding: 8px;
-  animation: dropdownFadeIn 0.2s ease-out;
+  animation: dropdownFadeIn 0.15s ease-out;
 }
 
 .admin-companies__category-dropdown::-webkit-scrollbar {
@@ -267,16 +269,38 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 10px 12px 6px;
   border-radius: 6px;
-  transition: all 0.2s;
   cursor: pointer;
+  transition: background 0.15s;
 }
 
 .admin-companies__category-item:hover {
   background: #f0f8ff;
-  transform: translateX(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-companies__category-item.active {
+  background: #eff6ff;
+}
+
+/* Inline products list under each category in the dropdown */
+.admin-companies__inline-products {
+  padding: 0 8px 8px 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-companies__product-img-placeholder {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .admin-companies__category-icon {
@@ -386,10 +410,11 @@
 }
 
 .admin-companies__category-group {
-  margin-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .admin-companies__category-group:last-child {
+  border-bottom: none;
   margin-bottom: 0;
 }
 
@@ -562,7 +587,7 @@
   background: #fff;
   border-radius: 12px;
   width: 100%;
-  max-width: 600px;
+  max-width: 50%; /* Changed to 50% */
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -606,10 +631,15 @@
   margin-bottom: 20px;
 }
 
+.admin-companies__row .admin-companies__field {
+  margin-bottom: 0; /* Remove margin when in row, grid gap handles spacing */
+}
+
 .admin-companies__row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  margin-bottom: 20px; /* Add margin to the row itself */
 }
 
 .admin-companies__field label {

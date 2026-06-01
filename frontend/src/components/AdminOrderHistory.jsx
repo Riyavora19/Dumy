@@ -4,7 +4,7 @@ import './AdminOrderHistory.css';
 
 const API_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api'
-  : 'https://dumy-2-mli2.onrender.com/api';
+  : '/api';
 
 function AdminOrderHistory() {
   const { showNotification } = useNotification();

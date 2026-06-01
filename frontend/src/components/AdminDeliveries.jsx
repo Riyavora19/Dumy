@@ -4,7 +4,7 @@ import './AdminDeliveries.css';
 
 const API_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api'
-  : 'https://dumy-2-mli2.onrender.com/api';
+  : '/api';
 
 const DELIVERY_STATUS = {
   not_started: { label: 'Not Started', cls: 'badge--neutral' },

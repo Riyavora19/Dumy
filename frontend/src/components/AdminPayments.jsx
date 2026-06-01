@@ -4,7 +4,7 @@ import './AdminPayments.css';
 
 const API_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api'
-  : 'https://dumy-2-mli2.onrender.com/api';
+  : '/api';
 
 const PAYMENT_STATUS = {
   unpaid:  { label: 'Unpaid',   cls: 'badge--danger' },

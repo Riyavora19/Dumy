@@ -8,6 +8,7 @@ const AdminCompanies = () => {
   const [companies, setCompanies] = useState([]);
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
+  const [quotationLogos, setQuotationLogos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null);
@@ -29,11 +30,12 @@ const AdminCompanies = () => {
     fetchCompanies();
     fetchCategories();
     fetchProducts();
+    fetchQuotationLogos();
   }, []);
 
   const fetchCompanies = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/companies');
+      const response = await axios.get('/api/companies');
       if (response.data.success) {
         setCompanies(response.data.data);
       }
@@ -46,7 +48,7 @@ const AdminCompanies = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/categories');
+      const response = await axios.get('/api/categories');
       if (response.data.success) {
         setCategories(response.data.data);
       }
@@ -57,13 +59,55 @@ const AdminCompanies = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/products');
+      const response = await axios.get('/api/products');
       if (response.data.success) {
         setProducts(response.data.data);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
     }
+  };
+
+  const fetchQuotationLogos = async () => {
+    try {
+      const response = await axios.get('/api/quotation-settings');
+      console.log('Quotation settings response:', response.data);
+      
+      if (response.data.success && Array.isArray(response.data.data)) {
+        setQuotationLogos(response.data.data);
+      } else if (Array.isArray(response.data)) {
+        setQuotationLogos(response.data);
+      } else {
+        setQuotationLogos([]);
+      }
+    } catch (error) {
+      console.error('Error fetching quotation logos:', error);
+      setQuotationLogos([]);
+    }
+  };
+
+  // Helper function to get logo for a company
+  const getCompanyLogo = (company) => {
+    // First, check if company has its own logo
+    if (company.logo) {
+      return company.logo.startsWith('http') ? company.logo : '' + company.logo;
+    }
+    
+    // If not, try to find matching logo from quotation settings
+    // Ensure quotationLogos is an array before calling find
+    if (!Array.isArray(quotationLogos) || quotationLogos.length === 0) {
+      return null;
+    }
+    
+    const matchingLogo = quotationLogos.find(
+      logo => logo.companyName && logo.companyName.toLowerCase() === company.name.toLowerCase()
+    );
+    
+    if (matchingLogo && matchingLogo.logoUrl) {
+      return matchingLogo.logoUrl.startsWith('http') ? matchingLogo.logoUrl : '' + matchingLogo.logoUrl;
+    }
+    
+    return null;
   };
 
   const toggleCategoryDropdown = (companyId) => {
@@ -175,7 +219,7 @@ const AdminCompanies = () => {
     try {
       if (editingCompany) {
         const response = await axios.put(
-          `https://dumy-2-mli2.onrender.com/api/companies/${editingCompany._id}`,
+          `/api/companies/${editingCompany._id}`,
           data,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -184,7 +228,7 @@ const AdminCompanies = () => {
         }
       } else {
         const response = await axios.post(
-          'https://dumy-2-mli2.onrender.com/api/companies',
+          '/api/companies',
           data,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -218,7 +262,7 @@ const AdminCompanies = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`https://dumy-2-mli2.onrender.com/api/companies/${id}`);
+      const response = await axios.delete(`/api/companies/${id}`);
       if (response.data.success) {
         showNotification('Company deleted successfully!', 'success');
         fetchCompanies();
@@ -300,9 +344,9 @@ const AdminCompanies = () => {
                 return (
                   <tr key={company._id}>
                     <td>
-                      {company.logo ? (
+                      {getCompanyLogo(company) ? (
                         <img 
-                          src={`${company.logo.startsWith('http') ? company.logo : 'https://dumy-2-mli2.onrender.com' + company.logo}`} 
+                          src={getCompanyLogo(company)} 
                           alt={company.name}
                           className="admin-companies__logo-img"
                         />
@@ -430,7 +474,7 @@ const AdminCompanies = () => {
                                   {categoryProducts.map(product => (
                                     <div key={product._id} className="admin-companies__product-item">
                                       <img 
-                                        src={`${product.images[0].startsWith('http') ? product.images[0] : 'https://dumy-2-mli2.onrender.com' + product.images[0]}`} 
+                                        src={`${product.images[0].startsWith('http') ? product.images[0] : '' + product.images[0]}`} 
                                         alt={product.name}
                                         className="admin-companies__product-img"
                                       />
@@ -491,29 +535,33 @@ const AdminCompanies = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="admin-companies__form">
-              <div className="admin-companies__field">
-                <label>Company Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g., Kohler, American Standard"
-                />
+              {/* First Line: Company Name | Description */}
+              <div className="admin-companies__row">
+                <div className="admin-companies__field">
+                  <label>Company Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g., Kohler, American Standard"
+                  />
+                </div>
+
+                <div className="admin-companies__field">
+                  <label>Description</label>
+                  <input
+                    type="text"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Brief description about the company"
+                  />
+                </div>
               </div>
 
-              <div className="admin-companies__field">
-                <label>Description</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows="3"
-                  placeholder="Brief description about the company"
-                />
-              </div>
-
+              {/* Second Line: Email | Phone */}
               <div className="admin-companies__row">
                 <div className="admin-companies__field">
                   <label>Email</label>
@@ -538,41 +586,45 @@ const AdminCompanies = () => {
                 </div>
               </div>
 
-              <div className="admin-companies__field">
-                <label>Website</label>
-                <input
-                  type="url"
-                  name="website"
-                  value={formData.website}
-                  onChange={handleChange}
-                  placeholder="https://www.company.com"
-                />
-              </div>
-
-              <div className="admin-companies__field">
-                <label>Company Logo</label>
-                {existingLogo && !selectedLogo && (
-                  <div className="admin-companies__existing-logo">
-                    <img src={`${existingLogo.startsWith('http') ? existingLogo : 'https://dumy-2-mli2.onrender.com' + existingLogo}`} alt="Current logo" />
-                  </div>
-                )}
-                <label className="admin-companies__upload-label">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="17 8 12 3 7 8"/>
-                    <line x1="12" y1="3" x2="12" y2="15"/>
-                  </svg>
-                  <span>{selectedLogo ? selectedLogo.name : 'Select Logo Image'}</span>
+              {/* Third Line: Website | Company Logo */}
+              <div className="admin-companies__row">
+                <div className="admin-companies__field">
+                  <label>Website</label>
                   <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoChange}
-                    style={{ display: 'none' }}
+                    type="url"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleChange}
+                    placeholder="https://www.company.com"
                   />
-                </label>
-                <small>Recommended: Square image, max 2MB</small>
+                </div>
+
+                <div className="admin-companies__field">
+                  <label>Company Logo</label>
+                  {existingLogo && !selectedLogo && (
+                    <div className="admin-companies__existing-logo">
+                      <img src={`${existingLogo.startsWith('http') ? existingLogo : '' + existingLogo}`} alt="Current logo" />
+                    </div>
+                  )}
+                  <label className="admin-companies__upload-label">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span>{selectedLogo ? selectedLogo.name : 'Select Logo Image'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                  <small>Recommended: Square image, max 2MB</small>
+                </div>
               </div>
 
+              {/* Categories Section - Full Width */}
               <div className="admin-companies__field">
                 <label>Categories This Company Sells *</label>
                 <div className="admin-companies__category-selector">

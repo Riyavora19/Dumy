@@ -65,7 +65,7 @@ const AdminLiveRequests = () => {
       if (filterUrgency) params.urgency = filterUrgency;
       if (searchTerm) params.search = searchTerm;
 
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/live-requests', { params });
+      const response = await axios.get('/api/live-requests', { params });
       if (response.data.success) {
         setRequests(response.data.data);
       }
@@ -78,7 +78,7 @@ const AdminLiveRequests = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/categories');
+      const response = await axios.get('/api/categories');
       if (response.data.success) {
         setCategories(response.data.data);
       }
@@ -123,14 +123,14 @@ const AdminLiveRequests = () => {
     try {
       if (editingRequest) {
         const response = await axios.put(
-          `https://dumy-2-mli2.onrender.com/api/live-requests/${editingRequest._id}`,
+          `/api/live-requests/${editingRequest._id}`,
           requestData
         );
         if (response.data.success) {
           showNotification('Request updated successfully!', 'success');
         }
       } else {
-        const response = await axios.post('https://dumy-2-mli2.onrender.com/api/live-requests', requestData);
+        const response = await axios.post('/api/live-requests', requestData);
         if (response.data.success) {
           showNotification('Request created successfully!', 'success');
         }
@@ -243,7 +243,7 @@ const AdminLiveRequests = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`https://dumy-2-mli2.onrender.com/api/live-requests/${id}`);
+      const response = await axios.delete(`/api/live-requests/${id}`);
       if (response.data.success) {
         showNotification('Request deleted successfully!', 'success');
         fetchRequests();
@@ -369,7 +369,7 @@ Valid Until: ${quoteData.validUntil}
       
       // Update the request status to 'quoted' and add the quote information
       const response = await axios.put(
-        `https://dumy-2-mli2.onrender.com/api/live-requests/${viewingRequest._id}`,
+        `/api/live-requests/${viewingRequest._id}`,
         {
           status: 'quoted',
           estimatedCost: quoteData.grandTotal,
@@ -389,7 +389,7 @@ Valid Until: ${quoteData.validUntil}
         // Send quotation email
         try {
           const emailResponse = await axios.post(
-            `https://dumy-2-mli2.onrender.com/api/live-requests/${viewingRequest._id}/send-quotation-email`,
+            `/api/live-requests/${viewingRequest._id}/send-quotation-email`,
             {
               quotationData: {
                 items: validItems,

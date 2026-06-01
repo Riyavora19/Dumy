@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../utils/axios';
+import axios from 'axios';
 import './AdminLogin.css';
 
 const AdminLogin = () => {
@@ -26,17 +26,22 @@ const AdminLogin = () => {
     setError('');
 
     try {
+      // Determine API base URL
+      const API_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:5000/api'
+        : 'https://dumy-2-mli2.onrender.com/api';
+
       // Try staff login first
       let response;
       let isStaff = false;
       
       try {
-        response = await axiosInstance.post('/api/staff/login', formData);
+        response = await axios.post(`${API_URL}/staff/login`, formData);
         isStaff = true;
       } catch (staffError) {
         // If staff login fails, try admin login
         try {
-          response = await axiosInstance.post('/api/auth/login', formData);
+          response = await axios.post(`${API_URL}/auth/login`, formData);
           isStaff = false;
         } catch (adminError) {
           throw new Error('Invalid credentials');

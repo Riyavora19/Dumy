@@ -4,7 +4,7 @@ import './AdminBudgetPlanPresets.css';
 
 const API = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api'
-  : 'https://dumy-2-mli2.onrender.com/api';
+  : '${API_URL}';
 
 const ROOM_ICONS = ['🏠','🚿','🛁','🚽','🍳','🛏️','🪟','🔧'];
 
@@ -351,7 +351,7 @@ export default function AdminBudgetPlanPresets() {
                         const areaId = getProductArea(p._id);
                         const areaColor = areaId ? AREA_COLORS[areaId] : null;
                         const imgSrc = p.images?.[0]
-                          ? (p.images[0].startsWith('http') ? p.images[0] : `https://dumy-2-mli2.onrender.com${p.images[0]}`)
+                          ? (p.images[0].startsWith('http') ? p.images[0] : `${p.images[0]}`)
                           : null;
                         return (
                           <div key={p._id}
@@ -468,7 +468,7 @@ export default function AdminBudgetPlanPresets() {
 // ── Small selected-item row component ─────────────────────────────────────────
 function SelItem({ prod, areas, onRemove, onQty, onArea }) {
   const imgSrc = prod.images?.[0]
-    ? (prod.images[0].startsWith('http') ? prod.images[0] : `https://dumy-2-mli2.onrender.com${prod.images[0]}`)
+    ? (prod.images[0].startsWith('http') ? prod.images[0] : `${prod.images[0]}`)
     : null;
   return (
     <div className="abpp__sel-item">

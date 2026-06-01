@@ -5,12 +5,34 @@
 .ap-header h1 { font-size: 1.8rem; font-weight: 700; color: #1a202c; margin: 0 0 4px; }
 .ap-header p { color: #718096; margin: 0; font-size: 1rem; }
 
-.ap-layout { display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: start; }
+.ap-layout { 
+  display: grid; 
+  grid-template-columns: 360px 1fr; 
+  gap: 24px; 
+  align-items: start;
+  height: calc(100vh - 140px);
+  overflow: hidden;
+}
 
 /* Left */
-.ap-left { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+.ap-left { 
+  background: #fff; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 12px; 
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 24px;
+}
 
-.ap-tabs { display: flex; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
+.ap-tabs { 
+  display: flex; 
+  border-bottom: 1px solid #e2e8f0; 
+  overflow-x: auto;
+  flex-shrink: 0;
+}
 .ap-tab {
   flex: 1;
   padding: 11px 8px;
@@ -27,7 +49,11 @@
 .ap-tab:hover { color: #4f46e5; }
 .ap-tab--active { color: #4f46e5; border-bottom-color: #4f46e5; font-weight: 600; }
 
-.ap-search { padding: 12px; border-bottom: 1px solid #f0f4f8; }
+.ap-search { 
+  padding: 12px; 
+  border-bottom: 1px solid #f0f4f8;
+  flex-shrink: 0;
+}
 .ap-search input {
   width: 100%;
   border: 1px solid #e2e8f0;
@@ -39,7 +65,11 @@
 }
 .ap-search input:focus { border-color: #4f46e5; }
 
-.ap-list { max-height: calc(100vh - 280px); overflow-y: auto; }
+.ap-list { 
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
 .ap-card {
   padding: 14px 16px;
@@ -78,6 +108,9 @@
   border-radius: 12px;
   padding: 28px;
   min-height: 400px;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .ap-placeholder {

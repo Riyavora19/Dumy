@@ -53,6 +53,13 @@
   flex: 1;
   padding: 16px 12px;
   overflow-y: auto;
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.admin__nav::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 .admin__nav-item {

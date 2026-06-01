@@ -2,6 +2,7 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import ChatWidget from './components/ChatWidget'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Contact from './pages/Contact'
@@ -51,6 +52,7 @@ function App() {
         } />
       </Routes>
       {!isAdminRoute && !isStaffRoute && <Footer />}
+      {!isAdminRoute && !isStaffRoute && <ChatWidget />}
     </CartProvider>
   )
 }

@@ -285,7 +285,7 @@
   background: #fff;
   border-radius: 12px;
   width: 100%;
-  max-width: 600px;
+  max-width: 75%; /* Changed to 75% */
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -326,6 +326,11 @@
 }
 
 .admin-products__field {
+  margin-bottom: 0; /* Remove margin when in grid, grid gap handles spacing */
+}
+
+/* Field with margin for standalone fields */
+.admin-products__field-standalone {
   margin-bottom: 20px;
 }
 
@@ -333,6 +338,28 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+}
+
+/* Multi-column grid layouts for form */
+.admin-products__row-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.admin-products__row-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.admin-products__row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .admin-products__field label {

@@ -23,7 +23,7 @@ const roomTemplateSchema = new mongoose.Schema({
     itemType: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ProductItemType',
-      required: true
+      required: false // Made optional since we may not have item types
     },
     itemName: {
       type: String,

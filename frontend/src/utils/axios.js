@@ -1,11 +1,13 @@
 import axios from 'axios';
 
-// Get API URL from environment variable
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dumy-2-mli2.onrender.com';
+// Runtime API URL detection
+const API_BASE_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : 'https://dumy-2-mli2.onrender.com/api';
 
-// Debug log to verify environment variable
+// Debug log to verify URL
 console.log('🔧 API_BASE_URL:', API_BASE_URL);
-console.log('🔧 VITE_API_URL from env:', import.meta.env.VITE_API_URL);
+console.log('🔧 Hostname:', window.location.hostname);
 
 // Create axios instance with base URL
 const axiosInstance = axios.create({

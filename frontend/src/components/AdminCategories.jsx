@@ -28,7 +28,7 @@ const AdminCategories = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/categories');
+      const response = await axios.get('/api/categories');
       if (response.data.success) {
         setCategories(response.data.data);
       }
@@ -41,7 +41,7 @@ const AdminCategories = () => {
 
   const fetchCompanies = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/companies');
+      const response = await axios.get('/api/companies');
       if (response.data.success) {
         setCompanies(response.data.data);
       }
@@ -52,7 +52,7 @@ const AdminCategories = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/products');
+      const response = await axios.get('/api/products');
       if (response.data.success) {
         setProducts(response.data.data);
       }
@@ -90,7 +90,7 @@ const AdminCategories = () => {
       if (editingCategory) {
         // Update existing category
         const response = await axios.put(
-          `https://dumy-2-mli2.onrender.com/api/categories/${editingCategory._id}`,
+          `/api/categories/${editingCategory._id}`,
           formData
         );
         if (response.data.success) {
@@ -98,7 +98,7 @@ const AdminCategories = () => {
         }
       } else {
         // Create new category
-        const response = await axios.post('https://dumy-2-mli2.onrender.com/api/categories', formData);
+        const response = await axios.post('/api/categories', formData);
         if (response.data.success) {
           showNotification('Category created successfully!', 'success');
         }
@@ -125,7 +125,7 @@ const AdminCategories = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`https://dumy-2-mli2.onrender.com/api/categories/${id}`);
+      const response = await axios.delete(`/api/categories/${id}`);
       if (response.data.success) {
         showNotification('Category deleted successfully!', 'success');
         fetchCategories();
@@ -249,7 +249,7 @@ const AdminCategories = () => {
                             {categoryCompanies.map(company => (
                               <div key={company._id} className="admin-categories__company-item">
                                 {company.logo ? (
-                                  <img src={`${company.logo.startsWith('http') ? company.logo : 'https://dumy-2-mli2.onrender.com' + company.logo}`} alt={company.name} />
+                                  <img src={`${company.logo.startsWith('http') ? company.logo : '' + company.logo}`} alt={company.name} />
                                 ) : (
                                   <div className="admin-categories__company-placeholder">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

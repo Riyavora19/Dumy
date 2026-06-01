@@ -204,7 +204,7 @@
   background: white;
   border-radius: 12px;
   width: 100%;
-  max-width: 680px;
+  max-width: 50%; /* Changed to 50% */
   max-height: 90vh;
   overflow: hidden;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
@@ -264,10 +264,19 @@
   margin-bottom: 20px;
 }
 
+/* 3-column row for organized layout */
+.form-row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
 }
 
 .form-group label {

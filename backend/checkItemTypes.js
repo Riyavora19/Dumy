@@ -1,36 +1,44 @@
-const mongoose = require('mongoose');
 require('dotenv').config();
-const Product = require('./models/Product');
+const mongoose = require('mongoose');
 const ProductItemType = require('./models/ProductItemType');
-
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/mernapp';
+const RoomTemplate = require('./models/RoomTemplate');
 
 async function checkItemTypes() {
   try {
-    await mongoose.connect(MONGO_URI);
-    console.log('MongoDB connected\n');
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    await mongoose.connect(mongoUri);
+    console.log('✓ Connected to MongoDB\n');
 
-    const withItemType = await Product.countDocuments({ itemType: { $ne: null } });
-    const withoutItemType = await Product.countDocuments({ itemType: null });
-    const total = await Product.countDocuments();
+    // Check item types
+    const itemTypes = await ProductItemType.find();
+    console.log(`📦 Found ${itemTypes.length} ProductItemTypes:`);
+    itemTypes.forEach(it => {
+      console.log(`  - ${it.name} (ID: ${it._id})`);
+    });
+
+    // Check room template references
+    console.log('\n🔍 Checking room template references...');
+    const templates = await RoomTemplate.find();
     
-    console.log('Products with itemType:', withItemType);
-    console.log('Products without itemType:', withoutItemType);
-    console.log('Total products:', total);
-    
-    if (withItemType > 0) {
-      console.log('\nSample products with itemType:');
-      const samples = await Product.find({ itemType: { $ne: null } }).populate('itemType').limit(5);
-      samples.forEach(p => {
-        console.log(`  - ${p.name}: ${p.itemType?.name || 'N/A'}`);
-      });
+    for (const template of templates) {
+      console.log(`\n📋 ${template.name}:`);
+      for (const item of template.requiredItems) {
+        const exists = itemTypes.find(it => it._id.toString() === item.itemType.toString());
+        if (exists) {
+          console.log(`  ✓ ${item.itemName} → ${exists.name}`);
+        } else {
+          console.log(`  ❌ ${item.itemName} → BROKEN REFERENCE (${item.itemType})`);
+        }
+      }
     }
 
+    console.log('\n💡 Solution: Either create the missing ProductItemTypes or update room templates with valid itemType IDs');
+    
   } catch (error) {
     console.error('❌ Error:', error);
   } finally {
     await mongoose.connection.close();
-    process.exit(0);
+    console.log('\n✓ Disconnected from MongoDB');
   }
 }
 
