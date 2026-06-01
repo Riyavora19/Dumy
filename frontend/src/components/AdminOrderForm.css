@@ -545,21 +545,6 @@
   color: white;
   transform: scale(1.1);
 }
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.btn-remove:hover {
-  background: #ffcdd2;
-  transform: scale(1.1);
-}
 
 /* Address Section */
 .address-section {
