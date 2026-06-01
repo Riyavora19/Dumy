@@ -375,8 +375,8 @@ const AdminOrders = () => {
       )}
 
       {showDetailsModal && selectedOrder && (
-        <div className="modal-overlay" onClick={() => setShowDetailsModal(false)}>
-          <div className="modal-content order-details-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-content order-details-modal">
             <div className="modal-header">
               <h3>Order Details - {selectedOrder.orderNumber}</h3>
               <button className="modal-close" onClick={() => setShowDetailsModal(false)}>×</button>

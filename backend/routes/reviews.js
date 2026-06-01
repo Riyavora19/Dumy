@@ -10,7 +10,7 @@ const { reviewStorage } = require('../config/cloudinary');
 // Configure multer with Cloudinary storage
 const upload = multer({
   storage: reviewStorage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 4 * 1024 * 1024 }, // 4MB limit
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());

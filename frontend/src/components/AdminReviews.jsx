@@ -251,8 +251,8 @@ const AdminReviews = () => {
 
       {/* Response Modal */}
       {showResponseModal && selectedReview && (
-        <div className="admin-reviews__modal-overlay" onClick={() => setShowResponseModal(false)}>
-          <div className="admin-reviews__modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-reviews__modal-overlay">
+          <div className="admin-reviews__modal">
             <div className="admin-reviews__modal-header">
               <h2>Respond to Review</h2>
               <button onClick={() => setShowResponseModal(false)}>×</button>

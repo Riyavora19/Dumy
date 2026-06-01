@@ -1,7 +1,7 @@
       {/* Combined View & Send Quote Modal */}
       {viewingRequest && (
-        <div className="admin-live-requests__modal-overlay" onClick={closeModal}>
-          <div className="admin-live-requests__modal admin-live-requests__modal--combined" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-live-requests__modal-overlay">
+          <div className="admin-live-requests__modal admin-live-requests__modal--combined">
             <div className="admin-live-requests__modal-header">
               <h2>📋 Request Details - {viewingRequest.requestNumber}</h2>
               <button onClick={closeModal}>×</button>

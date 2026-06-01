@@ -8,7 +8,7 @@ const { quotationStorage } = require('../config/cloudinary');
 // Configure multer with Cloudinary storage
 const upload = multer({
   storage: quotationStorage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 4 * 1024 * 1024 }, // 4MB limit
   fileFilter: function (req, file, cb) {
     const allowedTypes = /jpeg|jpg|png|gif|svg/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());

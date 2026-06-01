@@ -309,8 +309,8 @@ const AdminCategories = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="admin-categories__modal-overlay" onClick={closeModal}>
-          <div className="admin-categories__modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-categories__modal-overlay">
+          <div className="admin-categories__modal">
             <div className="admin-categories__modal-header">
               <h2>{editingCategory ? 'Edit Category' : 'Add New Category'}</h2>
               <button onClick={closeModal}>×</button>

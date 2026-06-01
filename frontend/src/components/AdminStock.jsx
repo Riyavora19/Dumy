@@ -21,22 +21,56 @@ function AdminStock() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
+      console.log('Starting to fetch products...');
       const response = await axios.get('/products');
-      setProducts(response.data);
+      console.log('Products API Response:', response);
+      console.log('Products API Response Data:', response.data);
+      
+      // Handle different response structures
+      let productsData = [];
+      if (Array.isArray(response.data)) {
+        productsData = response.data;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        productsData = response.data.data;
+      } else if (response.data.products && Array.isArray(response.data.products)) {
+        productsData = response.data.products;
+      }
+      
+      console.log('Processed Products Data:', productsData);
+      console.log('Products Count:', productsData.length);
+      
+      setProducts(productsData);
     } catch (error) {
       console.error('Error fetching products:', error);
+      console.error('Error details:', error.response);
       showNotification('Failed to fetch products', 'error');
+      setProducts([]); // Set empty array on error
     } finally {
       setLoading(false);
+      console.log('Finished fetching products');
     }
   };
 
   const fetchCompanies = async () => {
     try {
       const response = await axios.get('/companies');
-      setCompanies(response.data);
+      console.log('Companies API Response:', response.data);
+      
+      // Handle different response structures
+      let companiesData = [];
+      if (Array.isArray(response.data)) {
+        companiesData = response.data;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        companiesData = response.data.data;
+      } else if (response.data.companies && Array.isArray(response.data.companies)) {
+        companiesData = response.data.companies;
+      }
+      
+      console.log('Processed Companies Data:', companiesData);
+      setCompanies(companiesData);
     } catch (error) {
       console.error('Error fetching companies:', error);
+      setCompanies([]); // Set empty array on error
     }
   };
 
@@ -50,20 +84,47 @@ function AdminStock() {
   const updateStock = async (productId) => {
     const newStock = editingStock[productId];
     
+    console.log('=== UPDATE STOCK DEBUG ===');
+    console.log('Product ID:', productId);
+    console.log('New Stock Value:', newStock);
+    console.log('Type:', typeof newStock);
+    
     if (newStock === undefined || newStock === '') {
       showNotification('Please enter a valid stock value', 'error');
       return;
     }
 
-    try {
-      await axios.put(`/products/${productId}`, {
-        stock: parseInt(newStock)
-      });
+    const stockValue = parseInt(newStock);
+    console.log('Parsed Stock Value:', stockValue);
+    
+    if (isNaN(stockValue) || stockValue < 0) {
+      showNotification('Please enter a valid positive number', 'error');
+      return;
+    }
 
-      // Update local state
-      setProducts(prev => prev.map(p => 
-        p._id === productId ? { ...p, stock: parseInt(newStock) } : p
-      ));
+    try {
+      console.log('Sending PUT request to:', `/products/${productId}`);
+      console.log('Request body:', { stock: stockValue });
+      
+      const response = await axios.put(`/products/${productId}`, {
+        stock: stockValue
+      });
+      
+      console.log('✅ Update response:', response.data);
+      console.log('Updated product stock:', response.data.data?.stock);
+
+      // Update local state immediately
+      setProducts(prev => {
+        const updated = prev.map(p => {
+          if (p._id === productId) {
+            console.log('Updating product in state:', p.name, 'from', p.stock, 'to', stockValue);
+            return { ...p, stock: stockValue };
+          }
+          return p;
+        });
+        console.log('Updated products state');
+        return updated;
+      });
 
       // Clear editing state
       setEditingStock(prev => {
@@ -72,10 +133,13 @@ function AdminStock() {
         return newState;
       });
 
-      showNotification('Stock updated successfully!', 'success');
+      showNotification(`Stock updated to ${stockValue} successfully!`, 'success');
+      console.log('=== UPDATE COMPLETE ===');
     } catch (error) {
-      console.error('Error updating stock:', error);
-      showNotification('Failed to update stock', 'error');
+      console.error('❌ Error updating stock:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      showNotification(error.response?.data?.message || 'Failed to update stock', 'error');
     }
   };
 
@@ -102,22 +166,29 @@ function AdminStock() {
   };
 
   const getFilteredProducts = () => {
+    // Safety check: ensure products is an array
+    if (!Array.isArray(products)) {
+      console.log('Products is not an array:', products);
+      return [];
+    }
+
     return products.filter(product => {
       // Search filter
       const matchesSearch = 
         product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.variant?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.itemCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.company?.name?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Stock filter
+      // Stock filter - handle undefined/null stock values and convert to number
+      const productStock = parseInt(product.stock) || 0;
       let matchesStock = true;
       if (filterStock === 'in-stock') {
-        matchesStock = product.stock > 10;
+        matchesStock = productStock > 10;
       } else if (filterStock === 'low-stock') {
-        matchesStock = product.stock > 0 && product.stock <= 10;
+        matchesStock = productStock >= 1 && productStock <= 10;
       } else if (filterStock === 'out-of-stock') {
-        matchesStock = product.stock === 0;
+        matchesStock = productStock === 0;
       }
 
       // Company filter
@@ -128,20 +199,35 @@ function AdminStock() {
   };
 
   const getStockStatus = (stock) => {
-    if (stock === 0) return { label: 'Out of Stock', class: 'out-of-stock' };
-    if (stock <= 10) return { label: 'Low Stock', class: 'low-stock' };
+    const stockValue = parseInt(stock) || 0;
+    if (stockValue === 0) return { label: 'Out of Stock', class: 'out-of-stock' };
+    if (stockValue <= 10) return { label: 'Low Stock', class: 'low-stock' };
     return { label: 'In Stock', class: 'in-stock' };
   };
 
   const filteredProducts = getFilteredProducts();
 
+  // Safety check for stock statistics
+  const safeProducts = Array.isArray(products) ? products : [];
+  
+  console.log('🔄 Component render - Total products:', safeProducts.length);
+  console.log('🔄 Filtered products:', filteredProducts.length);
+  
   const stockStats = {
-    total: products.length,
-    inStock: products.filter(p => p.stock > 10).length,
-    lowStock: products.filter(p => p.stock > 0 && p.stock <= 10).length,
-    outOfStock: products.filter(p => p.stock === 0).length,
-    totalUnits: products.reduce((sum, p) => sum + (p.stock || 0), 0)
+    total: safeProducts.length,
+    inStock: safeProducts.filter(p => parseInt(p.stock) > 10).length,
+    lowStock: safeProducts.filter(p => {
+      const stock = parseInt(p.stock) || 0;
+      return stock >= 1 && stock <= 10;
+    }).length,
+    outOfStock: safeProducts.filter(p => (parseInt(p.stock) || 0) === 0).length,
+    totalUnits: safeProducts.reduce((sum, p) => sum + (parseInt(p.stock) || 0), 0)
   };
+
+  console.log('Current products state:', products);
+  console.log('Safe products:', safeProducts);
+  console.log('Filtered products:', filteredProducts);
+  console.log('Stock stats:', stockStats);
 
   if (loading) {
     return <div className="admin-section-loading">Loading stock data...</div>;
@@ -164,28 +250,44 @@ function AdminStock() {
 
       {/* Stock Statistics */}
       <div className="stock-stats">
-        <div className="stat-card">
+        <div 
+          className={`stat-card ${filterStock === 'all' ? 'active' : ''}`}
+          onClick={() => setFilterStock('all')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="stat-icon">📊</div>
           <div className="stat-info">
             <div className="stat-value">{stockStats.total}</div>
             <div className="stat-label">Total Products</div>
           </div>
         </div>
-        <div className="stat-card in-stock">
+        <div 
+          className={`stat-card in-stock ${filterStock === 'in-stock' ? 'active' : ''}`}
+          onClick={() => setFilterStock('in-stock')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="stat-icon">✅</div>
           <div className="stat-info">
             <div className="stat-value">{stockStats.inStock}</div>
             <div className="stat-label">In Stock</div>
           </div>
         </div>
-        <div className="stat-card low-stock">
+        <div 
+          className={`stat-card low-stock ${filterStock === 'low-stock' ? 'active' : ''}`}
+          onClick={() => setFilterStock('low-stock')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="stat-icon">⚠️</div>
           <div className="stat-info">
             <div className="stat-value">{stockStats.lowStock}</div>
             <div className="stat-label">Low Stock</div>
           </div>
         </div>
-        <div className="stat-card out-of-stock">
+        <div 
+          className={`stat-card out-of-stock ${filterStock === 'out-of-stock' ? 'active' : ''}`}
+          onClick={() => setFilterStock('out-of-stock')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="stat-icon">❌</div>
           <div className="stat-info">
             <div className="stat-value">{stockStats.outOfStock}</div>
@@ -206,7 +308,7 @@ function AdminStock() {
         <div className="filter-group">
           <input
             type="text"
-            placeholder="🔍 Search by name, variant, SKU, or company..."
+            placeholder="🔍 Search by name, variant, item code, or company..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -261,7 +363,7 @@ function AdminStock() {
 
       {/* Results Count */}
       <div className="results-info">
-        Showing {filteredProducts.length} of {products.length} products
+        Showing {filteredProducts.length} of {safeProducts.length} products
       </div>
 
       {/* Stock Table */}
@@ -273,17 +375,16 @@ function AdminStock() {
               <th>Product Name</th>
               <th>Variant</th>
               <th>Company</th>
-              <th>SKU</th>
+              <th>Item Code</th>
               <th>Current Stock</th>
               <th>Status</th>
               <th>Update Stock</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan="9" className="no-data">
+                <td colSpan="8" className="no-data">
                   No products found matching your filters
                 </td>
               </tr>
@@ -294,7 +395,7 @@ function AdminStock() {
                 const editValue = isEditing ? editingStock[product._id] : product.stock;
 
                 return (
-                  <tr key={product._id}>
+                  <tr key={`${product._id}-${product.stock}`}>
                     <td>
                       {product.images && product.images.length > 0 ? (
                         <img 
@@ -311,7 +412,7 @@ function AdminStock() {
                     <td className="product-company">
                       {product.company?.name || '-'}
                     </td>
-                    <td className="product-sku">{product.sku || '-'}</td>
+                    <td className="product-item-code">{product.itemCode || '-'}</td>
                     <td className="stock-value">
                       <span className={`stock-badge ${status.class}`}>
                         {product.stock}
@@ -323,43 +424,29 @@ function AdminStock() {
                       </span>
                     </td>
                     <td>
-                      <input
-                        type="number"
-                        min="0"
-                        value={editValue}
-                        onChange={(e) => handleStockChange(product._id, e.target.value)}
-                        className="stock-input"
-                        placeholder="New stock"
-                      />
-                    </td>
-                    <td>
-                      <div className="action-buttons">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                          type="number"
+                          min="0"
+                          value={editValue}
+                          onChange={(e) => handleStockChange(product._id, e.target.value)}
+                          className="stock-input"
+                          placeholder="New stock"
+                          style={{ width: '80px' }}
+                        />
                         <button
                           className="btn-update"
-                          onClick={() => updateStock(product._id)}
-                          disabled={!isEditing || editValue === product.stock}
+                          onClick={() => {
+                            console.log('Update button clicked for product:', product._id);
+                            console.log('isEditing:', editingStock.hasOwnProperty(product._id));
+                            console.log('editValue:', editingStock[product._id]);
+                            console.log('product.stock:', product.stock);
+                            updateStock(product._id);
+                          }}
+                          disabled={!editingStock.hasOwnProperty(product._id) || parseInt(editingStock[product._id]) === parseInt(product.stock)}
+                          style={{ padding: '6px 12px', fontSize: '13px' }}
                         >
                           Update
-                        </button>
-                        <button
-                          className="btn-quick"
-                          onClick={() => {
-                            handleStockChange(product._id, product.stock + 1);
-                            setTimeout(() => updateStock(product._id), 100);
-                          }}
-                          title="Add 1"
-                        >
-                          +1
-                        </button>
-                        <button
-                          className="btn-quick"
-                          onClick={() => {
-                            handleStockChange(product._id, Math.max(0, product.stock - 1));
-                            setTimeout(() => updateStock(product._id), 100);
-                          }}
-                          title="Remove 1"
-                        >
-                          -1
                         </button>
                       </div>
                     </td>

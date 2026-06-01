@@ -420,3 +420,47 @@
   padding-bottom: 0.375rem; /* Reduced from 0.5rem */
   border-bottom: 2px solid #e2e8f0;
 }
+
+/* Add More Button */
+.admin-clients__add-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  margin: 16px 0;
+  background: #f0f9ff;
+  color: #1e40af;
+  border: 2px dashed #3b82f6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-clients__add-more-btn:hover {
+  background: #dbeafe;
+  border-style: solid;
+}
+
+.admin-clients__add-more-btn svg {
+  flex-shrink: 0;
+}
+
+/* Remove Button */
+.admin-clients__remove-btn {
+  padding: 8px 16px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-clients__remove-btn:hover {
+  background: #fecaca;
+  border-color: #f87171;
+}

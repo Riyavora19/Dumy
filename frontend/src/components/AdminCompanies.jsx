@@ -25,6 +25,12 @@ const AdminCompanies = () => {
   });
   const [selectedLogo, setSelectedLogo] = useState(null);
   const [existingLogo, setExistingLogo] = useState('');
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategory, setNewCategory] = useState({
+    name: '',
+    icon: '📦',
+    color: '#3b82f6'
+  });
 
   useEffect(() => {
     fetchCompanies();
@@ -295,6 +301,42 @@ const AdminCompanies = () => {
     setExistingLogo('');
   };
 
+  const handleCreateCategory = async (e) => {
+    e.preventDefault();
+    
+    if (!newCategory.name.trim()) {
+      showNotification('Please enter a category name', 'error');
+      return;
+    }
+
+    try {
+      const response = await axios.post('/api/categories', {
+        name: newCategory.name,
+        icon: newCategory.icon,
+        color: newCategory.color,
+        isActive: true
+      });
+
+      if (response.data.success) {
+        showNotification('Category created successfully!', 'success');
+        await fetchCategories();
+        
+        // Auto-select the newly created category
+        const newCategoryId = response.data.data._id;
+        setFormData({
+          ...formData,
+          categories: [...formData.categories, newCategoryId]
+        });
+        
+        // Reset and close category modal
+        setNewCategory({ name: '', icon: '📦', color: '#3b82f6' });
+        setShowCategoryModal(false);
+      }
+    } catch (error) {
+      showNotification(error.response?.data?.message || 'Failed to create category', 'error');
+    }
+  };
+
   return (
     <div className="admin-companies">
       <header className="admin-companies__header">
@@ -527,8 +569,8 @@ const AdminCompanies = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="admin-companies__modal-overlay" onClick={closeModal}>
-          <div className="admin-companies__modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-companies__modal-overlay">
+          <div className="admin-companies__modal">
             <div className="admin-companies__modal-header">
               <h2>{editingCompany ? 'Edit Company' : 'Add New Company'}</h2>
               <button onClick={closeModal}>×</button>
@@ -570,6 +612,22 @@ const AdminCompanies = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
+                    onInput={(e) => {
+                      if (!e.target.value) {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                        return;
+                      }
+                      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                      if (!emailPattern.test(e.target.value)) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Please enter a valid email (e.g., user@gmail.com)');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
                     placeholder="contact@company.com"
                   />
                 </div>
@@ -581,7 +639,19 @@ const AdminCompanies = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="+1 234 567 8900"
+                    onInput={(e) => {
+                      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                      if (e.target.value && e.target.value.length !== 10) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Phone number must be exactly 10 digits');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
+                    maxLength="10"
+                    placeholder="9876543210"
                   />
                 </div>
               </div>
@@ -644,6 +714,17 @@ const AdminCompanies = () => {
                     </label>
                   ))}
                 </div>
+                <button 
+                  type="button"
+                  className="admin-companies__add-category-btn"
+                  onClick={() => setShowCategoryModal(true)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  Add New Category
+                </button>
                 {formData.categories.length === 0 && (
                   <small style={{ color: '#e94560' }}>Please select at least one category</small>
                 )}
@@ -667,6 +748,74 @@ const AdminCompanies = () => {
                 </button>
                 <button type="submit" className="admin-companies__btn-submit">
                   {editingCompany ? 'Update' : 'Create'} Company
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Category Creation Modal */}
+      {showCategoryModal && (
+        <div className="admin-companies__modal-overlay">
+          <div className="admin-companies__category-modal">
+            <div className="admin-companies__modal-header">
+              <h2>Add New Category</h2>
+              <button onClick={() => setShowCategoryModal(false)}>×</button>
+            </div>
+
+            <form onSubmit={handleCreateCategory} className="admin-companies__form">
+              <div className="admin-companies__field">
+                <label>Category Name *</label>
+                <input
+                  type="text"
+                  value={newCategory.name}
+                  onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                  placeholder="e.g., Tiles, Faucets, Accessories"
+                  required
+                />
+              </div>
+
+              <div className="admin-companies__row">
+                <div className="admin-companies__field">
+                  <label>Icon (Emoji)</label>
+                  <input
+                    type="text"
+                    value={newCategory.icon}
+                    onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value })}
+                    placeholder="📦"
+                    maxLength="2"
+                  />
+                  <small>Use an emoji to represent this category</small>
+                </div>
+
+                <div className="admin-companies__field">
+                  <label>Color</label>
+                  <input
+                    type="color"
+                    value={newCategory.color}
+                    onChange={(e) => setNewCategory({ ...newCategory, color: e.target.value })}
+                  />
+                  <small>Choose a color for this category</small>
+                </div>
+              </div>
+
+              <div className="admin-companies__category-preview">
+                <label>Preview:</label>
+                <div className="admin-companies__category-option" style={{ borderColor: newCategory.color }}>
+                  <span className="admin-companies__category-icon" style={{ background: newCategory.color }}>
+                    {newCategory.icon}
+                  </span>
+                  {newCategory.name || 'Category Name'}
+                </div>
+              </div>
+
+              <div className="admin-companies__modal-actions">
+                <button type="button" onClick={() => setShowCategoryModal(false)} className="admin-companies__btn-cancel">
+                  Cancel
+                </button>
+                <button type="submit" className="admin-companies__btn-submit">
+                  Create Category
                 </button>
               </div>
             </form>

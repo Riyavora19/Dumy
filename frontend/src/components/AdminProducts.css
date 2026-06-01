@@ -285,8 +285,8 @@
   background: #fff;
   border-radius: 12px;
   width: 100%;
-  max-width: 75%; /* Changed to 75% */
-  max-height: 90vh;
+  max-width: 80%; /* Increased to 80% for better space utilization */
+  max-height: 95vh;
   overflow-y: auto;
 }
 
@@ -323,6 +323,7 @@
 
 .admin-products__form {
   padding: 24px;
+  max-width: 100%;
 }
 
 .admin-products__field {
@@ -334,6 +335,163 @@
   margin-bottom: 20px;
 }
 
+.admin-products__field-standalone > label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 12px;
+  display: block;
+  padding-left: 4px;
+  border-left: 3px solid #3b82f6;
+  padding-left: 12px;
+  background: linear-gradient(to right, #eff6ff 0%, transparent 100%);
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-radius: 4px;
+}
+
+/* Image Grid - 10 boxes, 5 per row */
+.admin-products__image-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.admin-products__image-box {
+  position: relative;
+  aspect-ratio: 1;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.admin-products__image-box:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.admin-products__image-box:focus {
+  outline: none;
+  border-color: #3b82f6;
+  border-style: solid;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.admin-products__image-box:focus .admin-products__image-box-hint::after {
+  content: ' - Ready to paste!';
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.admin-products__image-box-upload {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 16px;
+  text-align: center;
+}
+
+.admin-products__image-box-upload svg {
+  color: #94a3b8;
+  margin-bottom: 8px;
+  transition: color 0.2s;
+}
+
+.admin-products__image-box:hover .admin-products__image-box-upload svg {
+  color: #3b82f6;
+}
+
+.admin-products__image-box-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.admin-products__image-box-hint {
+  font-size: 11px;
+  color: #94a3b8;
+  display: block;
+}
+
+.admin-products__image-box-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-products__image-box-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.95);
+  color: white;
+  border: none;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.admin-products__image-box-remove:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+.admin-products__image-box-number {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.95);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+@media (max-width: 1200px) {
+  .admin-products__image-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-products__image-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-products__image-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .admin-products__row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -341,6 +499,13 @@
 }
 
 /* Multi-column grid layouts for form */
+.admin-products__row-6 {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
 .admin-products__row-5 {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -372,6 +537,7 @@
 
 .admin-products__field input[type="text"],
 .admin-products__field input[type="number"],
+.admin-products__field input[type="date"],
 .admin-products__field select,
 .admin-products__field textarea {
   width: 100%;
@@ -389,6 +555,44 @@
 .admin-products__field textarea:focus {
   outline: none;
   border-color: #1e40af;
+}
+
+/* Date input specific styling */
+.admin-products__field input[type="date"] {
+  color: #333;
+  cursor: pointer;
+}
+
+.admin-products__field input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.admin-products__field input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Required field highlighting */
+.admin-products__field label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+}
+
+.admin-products__field input[required],
+.admin-products__field select[required],
+.admin-products__field textarea[required] {
+  border-left: 3px solid #3b82f6;
+  background: linear-gradient(to right, #eff6ff 0%, #ffffff 20%);
+}
+
+.admin-products__field input[required]:focus,
+.admin-products__field select[required]:focus,
+.admin-products__field textarea[required]:focus {
+  border-left-color: #1e40af;
+  background: #ffffff;
 }
 
 .admin-products__field small {

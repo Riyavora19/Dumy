@@ -1733,7 +1733,14 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               type="tel"
               value={formData.customerPhone}
               onChange={(e) => setFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
-              placeholder="Phone number"
+              onInput={(e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+              }}
+              pattern="[0-9]{10}"
+              title="Please enter exactly 10 digits"
+              maxLength="10"
+              minLength="10"
+              placeholder="9876543210"
             />
           </div>
 
@@ -1743,6 +1750,19 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
               type="email"
               value={formData.customerEmail}
               onChange={(e) => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+              onBlur={(e) => {
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (e.target.value && !emailPattern.test(e.target.value)) {
+                  e.target.setCustomValidity('Please enter a valid email (e.g., user@gmail.com)');
+                } else {
+                  e.target.setCustomValidity('');
+                }
+              }}
+              onInput={(e) => {
+                e.target.setCustomValidity('');
+              }}
+              pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+              title="Please enter a valid email address (e.g., user@gmail.com)"
               placeholder="Email address"
             />
           </div>
@@ -2647,8 +2667,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
   return (
     <>
-    <div className="modal-overlay fullscreen" onClick={handleOverlayClick}>
-      <div className={`modal-content budget-plan-form-modal fullscreen ${currentStep === 1 ? 'step-1-compact' : ''}`} onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay fullscreen">
+      <div className={`modal-content budget-plan-form-modal fullscreen ${currentStep === 1 ? 'step-1-compact' : ''}`}>
         <div className="modal-header">
           <div className="title-with-progress">
             <h2>Create Budget Plan / Order</h2>
@@ -2748,12 +2768,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
     {/* Room Name Selection Modal - At component level for proper z-index */}
     {showTemplateModal && selectedTemplate && (
-      <div className="room-name-modal-overlay" onClick={() => {
-        setShowTemplateModal(false);
-        setSelectedRoomNames([]);
-        setCustomRoomName('');
-      }}>
-        <div className="room-name-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="room-name-modal-overlay">
+        <div className="room-name-modal">
           <div className="modal-header-simple">
             <h3>Select Room Names for {selectedTemplate.name}</h3>
             <button className="btn-close-simple" onClick={() => {
@@ -2838,8 +2854,8 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
 
     {/* Preview Modal */}
     {showPreview && (
-      <div className="modal-overlay fullscreen" onClick={() => setShowPreview(false)}>
-        <div className="modal-content preview-modal preview-modal-quotation" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-overlay fullscreen">
+        <div className="modal-content preview-modal preview-modal-quotation">
           <div className="modal-header">
             <h2>📋 Quotation Preview</h2>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>

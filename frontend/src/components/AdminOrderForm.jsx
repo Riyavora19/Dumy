@@ -462,6 +462,22 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
           type="email"
           value={formData.customerEmail}
           onChange={(e) => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+          onInput={(e) => {
+            if (!e.target.value) {
+              e.target.style.borderColor = '';
+              e.target.setCustomValidity('');
+              return;
+            }
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailPattern.test(e.target.value)) {
+              e.target.style.borderColor = 'red';
+              e.target.setCustomValidity('Please enter a valid email (e.g., user@gmail.com)');
+              e.target.reportValidity();
+            } else {
+              e.target.style.borderColor = '';
+              e.target.setCustomValidity('');
+            }
+          }}
         />
       </div>
 
@@ -471,6 +487,20 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
           type="tel"
           value={formData.customerPhone}
           onChange={(e) => setFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
+          onInput={(e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            if (e.target.value && e.target.value.length !== 10) {
+              e.target.style.borderColor = 'red';
+              e.target.setCustomValidity('Phone number must be exactly 10 digits');
+              e.target.reportValidity();
+            } else {
+              e.target.style.borderColor = '';
+              e.target.setCustomValidity('');
+            }
+          }}
+          maxLength="10"
+          placeholder="9876543210"
+          required
         />
       </div>
     </div>
@@ -682,6 +712,19 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
                 ...prev,
                 shippingAddress: { ...prev.shippingAddress, phone: e.target.value }
               }))}
+              onInput={(e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                if (e.target.value && e.target.value.length !== 10) {
+                  e.target.style.borderColor = 'red';
+                  e.target.setCustomValidity('Phone number must be exactly 10 digits');
+                  e.target.reportValidity();
+                } else {
+                  e.target.style.borderColor = '';
+                  e.target.setCustomValidity('');
+                }
+              }}
+              maxLength="10"
+              placeholder="9876543210"
             />
           </div>
 
@@ -983,8 +1026,8 @@ const AdminOrderForm = ({ onClose, onSuccess, budgetPlan = null }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-content order-form-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="modal-content order-form-modal">
         <div className="modal-header">
           <h2>{budgetPlan ? 'Convert Budget Plan to Order' : 'Create New Order'}</h2>
           <button className="modal-close" onClick={handleCloseClick} type="button">×</button>

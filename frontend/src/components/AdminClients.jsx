@@ -17,7 +17,9 @@ const AdminClients = () => {
     companyName: '',
     email: '',
     phone: '',
+    additionalPhones: [], // Array for multiple phone numbers
     clientType: 'individual',
+    customClientType: '', // For "Other" option
     status: 'active',
     address: {
       street: '',
@@ -26,6 +28,7 @@ const AdminClients = () => {
       pincode: '',
       country: 'India'
     },
+    additionalAddresses: [], // Array for multiple addresses
     gstNumber: '',
     mainContact: {
       name: '',
@@ -129,8 +132,13 @@ const AdminClients = () => {
 
     const clientData = {
       ...formData,
+      // If "other" is selected, use customClientType, otherwise use clientType
+      clientType: formData.clientType === 'other' ? formData.customClientType : formData.clientType,
       tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : []
     };
+
+    // Remove customClientType from the data being sent
+    delete clientData.customClientType;
 
     try {
       if (editingClient) {
@@ -157,13 +165,20 @@ const AdminClients = () => {
 
   const handleEdit = (client) => {
     setEditingClient(client);
+    
+    // Check if clientType is a custom one (not in predefined list)
+    const predefinedTypes = ['individual', 'business', 'contractor', 'architect'];
+    const isCustomType = !predefinedTypes.includes(client.clientType);
+    
     setFormData({
       name: client.name,
       companyName: client.companyName || '',
       email: client.email,
       phone: client.phone,
+      additionalPhones: client.additionalPhones || [],
       gstNumber: client.gstNumber || '',
-      clientType: client.clientType,
+      clientType: isCustomType ? 'other' : client.clientType,
+      customClientType: isCustomType ? client.clientType : '',
       status: client.status,
       address: client.address || {
         street: '',
@@ -172,6 +187,7 @@ const AdminClients = () => {
         pincode: '',
         country: 'India'
       },
+      additionalAddresses: client.additionalAddresses || [],
       mainContact: client.mainContact || {
         name: '',
         phone: '',
@@ -216,7 +232,9 @@ const AdminClients = () => {
       companyName: '',
       email: '',
       phone: '',
+      additionalPhones: [],
       clientType: 'individual',
+      customClientType: '',
       status: 'active',
       address: {
         street: '',
@@ -225,6 +243,7 @@ const AdminClients = () => {
         pincode: '',
         country: 'India'
       },
+      additionalAddresses: [],
       gstNumber: '',
       mainContact: {
         name: '',
@@ -254,6 +273,65 @@ const AdminClients = () => {
   const closeModal = () => {
     setShowModal(false);
     setEditingClient(null);
+  };
+
+  // Add phone number
+  const addPhoneNumber = () => {
+    setFormData({
+      ...formData,
+      additionalPhones: [...formData.additionalPhones, { label: '', number: '' }]
+    });
+  };
+
+  // Remove phone number
+  const removePhoneNumber = (index) => {
+    setFormData({
+      ...formData,
+      additionalPhones: formData.additionalPhones.filter((_, i) => i !== index)
+    });
+  };
+
+  // Update phone number
+  const updatePhoneNumber = (index, field, value) => {
+    const updated = [...formData.additionalPhones];
+    updated[index][field] = value;
+    setFormData({
+      ...formData,
+      additionalPhones: updated
+    });
+  };
+
+  // Add address
+  const addAddress = () => {
+    setFormData({
+      ...formData,
+      additionalAddresses: [...formData.additionalAddresses, {
+        label: '',
+        street: '',
+        city: '',
+        state: '',
+        pincode: '',
+        country: 'India'
+      }]
+    });
+  };
+
+  // Remove address
+  const removeAddress = (index) => {
+    setFormData({
+      ...formData,
+      additionalAddresses: formData.additionalAddresses.filter((_, i) => i !== index)
+    });
+  };
+
+  // Update address
+  const updateAddress = (index, field, value) => {
+    const updated = [...formData.additionalAddresses];
+    updated[index][field] = value;
+    setFormData({
+      ...formData,
+      additionalAddresses: updated
+    });
   };
 
   const getStatusBadge = (status) => {
@@ -415,8 +493,8 @@ const AdminClients = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="admin-clients__modal-overlay" onClick={closeModal}>
-          <div className="admin-clients__modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-clients__modal-overlay">
+          <div className="admin-clients__modal">
             <div className="admin-clients__modal-header">
               <h2>{editingClient ? 'Edit Client' : 'Add New Client'}</h2>
               <button onClick={closeModal}>×</button>
@@ -432,6 +510,10 @@ const AdminClients = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
+                    onInput={(e) => {
+                      // Remove numbers and special characters, allow only letters and spaces
+                      e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                    }}
                     required
                     placeholder="John Doe"
                   />
@@ -444,6 +526,17 @@ const AdminClients = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
+                    onInput={(e) => {
+                      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                      if (e.target.value && !emailPattern.test(e.target.value)) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Please enter a valid email (e.g., user@gmail.com)');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
                     required
                     placeholder="john@example.com"
                   />
@@ -456,11 +549,87 @@ const AdminClients = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
+                    onInput={(e) => {
+                      // Remove all non-numeric characters
+                      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                      // Validate length
+                      if (e.target.value && e.target.value.length !== 10) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Phone number must be exactly 10 digits');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
+                    maxLength="10"
                     required
-                    placeholder="+91-9876543210"
+                    placeholder="9876543210"
                   />
                 </div>
               </div>
+
+              {/* Additional Phone Numbers */}
+              {formData.additionalPhones.map((phone, index) => (
+                <div key={index} className="admin-clients__row-3" style={{ marginTop: '12px' }}>
+                  <div className="admin-clients__field">
+                    <label>Phone Label</label>
+                    <input
+                      type="text"
+                      value={phone.label}
+                      onChange={(e) => updatePhoneNumber(index, 'label', e.target.value)}
+                      placeholder="e.g., Office, Home, Mobile"
+                    />
+                  </div>
+
+                  <div className="admin-clients__field">
+                    <label>Phone Number</label>
+                    <input
+                      type="tel"
+                      value={phone.number}
+                      onChange={(e) => updatePhoneNumber(index, 'number', e.target.value)}
+                      onInput={(e) => {
+                        // Remove all non-numeric characters
+                        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                        // Validate length
+                        if (e.target.value && e.target.value.length !== 10) {
+                          e.target.style.borderColor = 'red';
+                          e.target.setCustomValidity('Phone number must be exactly 10 digits');
+                          e.target.reportValidity();
+                        } else {
+                          e.target.style.borderColor = '';
+                          e.target.setCustomValidity('');
+                        }
+                      }}
+                      maxLength="10"
+                      placeholder="9876543210"
+                    />
+                  </div>
+
+                  <div className="admin-clients__field" style={{ display: 'flex', alignItems: 'flex-end' }}>
+                    <button
+                      type="button"
+                      onClick={() => removePhoneNumber(index)}
+                      className="admin-clients__remove-btn"
+                      style={{ width: '100%' }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addPhoneNumber}
+                className="admin-clients__add-more-btn"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Add Phone Number
+              </button>
 
               {/* Second Line: Company Name | GST | Client Type */}
               <div className="admin-clients__row-3">
@@ -488,12 +657,46 @@ const AdminClients = () => {
 
                 <div className="admin-clients__field">
                   <label>Client Type *</label>
-                  <select name="clientType" value={formData.clientType} onChange={handleChange} required>
-                    <option value="individual">👤 Individual</option>
-                    <option value="business">🏢 Business</option>
-                    <option value="contractor">👷 Contractor</option>
-                    <option value="architect">📐 Architect</option>
-                  </select>
+                  {formData.clientType === 'other' ? (
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        name="customClientType"
+                        value={formData.customClientType}
+                        onChange={handleChange}
+                        required
+                        placeholder="e.g., Interior Designer, Builder, Supplier"
+                        style={{ paddingRight: '80px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, clientType: 'individual', customClientType: '' })}
+                        style={{
+                          position: 'absolute',
+                          right: '8px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          padding: '4px 12px',
+                          background: '#f3f4f6',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          color: '#6b7280'
+                        }}
+                      >
+                        Change
+                      </button>
+                    </div>
+                  ) : (
+                    <select name="clientType" value={formData.clientType} onChange={handleChange} required>
+                      <option value="individual">👤 Individual</option>
+                      <option value="business">🏢 Business</option>
+                      <option value="contractor">👷 Contractor</option>
+                      <option value="architect">📐 Architect</option>
+                      <option value="other">✏️ Other (Specify)</option>
+                    </select>
+                  )}
                 </div>
               </div>
 
@@ -507,6 +710,10 @@ const AdminClients = () => {
                     name="mainContact.name"
                     value={formData.mainContact.name}
                     onChange={handleChange}
+                    onInput={(e) => {
+                      // Remove numbers and special characters, allow only letters and spaces
+                      e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                    }}
                     placeholder="Primary contact person"
                   />
                 </div>
@@ -518,7 +725,21 @@ const AdminClients = () => {
                     name="mainContact.phone"
                     value={formData.mainContact.phone}
                     onChange={handleChange}
-                    placeholder="Contact phone number"
+                    onInput={(e) => {
+                      // Remove all non-numeric characters
+                      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                      // Validate length
+                      if (e.target.value && e.target.value.length !== 10) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Phone number must be exactly 10 digits');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
+                    maxLength="10"
+                    placeholder="9876543210"
                   />
                 </div>
 
@@ -529,6 +750,22 @@ const AdminClients = () => {
                     name="mainContact.email"
                     value={formData.mainContact.email}
                     onChange={handleChange}
+                    onInput={(e) => {
+                      if (!e.target.value) {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                        return;
+                      }
+                      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                      if (!emailPattern.test(e.target.value)) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Please enter a valid email (e.g., user@gmail.com)');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
                     placeholder="Contact email"
                   />
                 </div>
@@ -544,6 +781,10 @@ const AdminClients = () => {
                     name="wifeContact.name"
                     value={formData.wifeContact.name}
                     onChange={handleChange}
+                    onInput={(e) => {
+                      // Remove numbers and special characters, allow only letters and spaces
+                      e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                    }}
                     placeholder="Wife's name"
                   />
                 </div>
@@ -555,7 +796,21 @@ const AdminClients = () => {
                     name="wifeContact.phone"
                     value={formData.wifeContact.phone}
                     onChange={handleChange}
-                    placeholder="Wife's phone number"
+                    onInput={(e) => {
+                      // Remove all non-numeric characters
+                      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                      // Validate length
+                      if (e.target.value && e.target.value.length !== 10) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Phone number must be exactly 10 digits');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
+                    maxLength="10"
+                    placeholder="9876543210"
                   />
                 </div>
 
@@ -566,6 +821,22 @@ const AdminClients = () => {
                     name="wifeContact.email"
                     value={formData.wifeContact.email}
                     onChange={handleChange}
+                    onInput={(e) => {
+                      if (!e.target.value) {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                        return;
+                      }
+                      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                      if (!emailPattern.test(e.target.value)) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Please enter a valid email (e.g., user@gmail.com)');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
                     placeholder="Wife's email"
                   />
                 </div>
@@ -581,6 +852,10 @@ const AdminClients = () => {
                     name="projectIncharge.name"
                     value={formData.projectIncharge.name}
                     onChange={handleChange}
+                    onInput={(e) => {
+                      // Remove numbers and special characters, allow only letters and spaces
+                      e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                    }}
                     placeholder="Project incharge name"
                   />
                 </div>
@@ -592,7 +867,21 @@ const AdminClients = () => {
                     name="projectIncharge.phone"
                     value={formData.projectIncharge.phone}
                     onChange={handleChange}
-                    placeholder="Incharge phone number"
+                    onInput={(e) => {
+                      // Remove all non-numeric characters
+                      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                      // Validate length
+                      if (e.target.value && e.target.value.length !== 10) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Phone number must be exactly 10 digits');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
+                    maxLength="10"
+                    placeholder="9876543210"
                   />
                 </div>
 
@@ -603,6 +892,22 @@ const AdminClients = () => {
                     name="projectIncharge.email"
                     value={formData.projectIncharge.email}
                     onChange={handleChange}
+                    onInput={(e) => {
+                      if (!e.target.value) {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                        return;
+                      }
+                      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                      if (!emailPattern.test(e.target.value)) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Please enter a valid email (e.g., user@gmail.com)');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
                     placeholder="Incharge email"
                   />
                 </div>
@@ -668,6 +973,84 @@ const AdminClients = () => {
                   />
                 </div>
               </div>
+
+              {/* Additional Addresses */}
+              {formData.additionalAddresses.map((addr, index) => (
+                <div key={index} style={{ marginTop: '20px', padding: '16px', background: '#f9f9f9', borderRadius: '8px', position: 'relative' }}>
+                  <button
+                    type="button"
+                    onClick={() => removeAddress(index)}
+                    className="admin-clients__remove-btn"
+                    style={{ position: 'absolute', top: '12px', right: '12px' }}
+                  >
+                    Remove
+                  </button>
+                  
+                  <div className="admin-clients__field" style={{ marginBottom: '12px' }}>
+                    <label>Address Label</label>
+                    <input
+                      type="text"
+                      value={addr.label}
+                      onChange={(e) => updateAddress(index, 'label', e.target.value)}
+                      placeholder="e.g., Office, Home, Site"
+                    />
+                  </div>
+
+                  <div className="admin-clients__field" style={{ marginBottom: '12px' }}>
+                    <label>Street Address</label>
+                    <input
+                      type="text"
+                      value={addr.street}
+                      onChange={(e) => updateAddress(index, 'street', e.target.value)}
+                      placeholder="123 Main Street"
+                    />
+                  </div>
+
+                  <div className="admin-clients__row-3">
+                    <div className="admin-clients__field">
+                      <label>City</label>
+                      <input
+                        type="text"
+                        value={addr.city}
+                        onChange={(e) => updateAddress(index, 'city', e.target.value)}
+                        placeholder="Mumbai"
+                      />
+                    </div>
+
+                    <div className="admin-clients__field">
+                      <label>State</label>
+                      <input
+                        type="text"
+                        value={addr.state}
+                        onChange={(e) => updateAddress(index, 'state', e.target.value)}
+                        placeholder="Maharashtra"
+                      />
+                    </div>
+
+                    <div className="admin-clients__field">
+                      <label>Pincode</label>
+                      <input
+                        type="text"
+                        value={addr.pincode}
+                        onChange={(e) => updateAddress(index, 'pincode', e.target.value)}
+                        placeholder="400001"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addAddress}
+                className="admin-clients__add-more-btn"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Add Address
+              </button>
 
               {/* Seventh Line: Additional Information */}
               <div className="admin-clients__section-title">Additional Information</div>

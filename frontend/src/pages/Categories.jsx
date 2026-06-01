@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../utils/axios';
 import './Categories.css';
 
 // Smart icon fallback based on category name - Returns SVG icons with light colors
@@ -119,7 +119,7 @@ const Categories = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('https://dumy-2-mli2.onrender.com/api/categories/active');
+      const response = await axios.get('/categories/active');
       if (response.data.success) {
         const validCategories = response.data.data.filter(item =>
           !item.hasOwnProperty('isPartner') &&

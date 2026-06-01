@@ -312,8 +312,8 @@ const AdminUsers = () => {
 
       {/* View User Modal */}
       {viewingUser && (
-        <div className="admin-users__modal-overlay" onClick={closeModal}>
-          <div className="admin-users__modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-users__modal-overlay">
+          <div className="admin-users__modal">
             <div className="admin-users__modal-header">
               <h2>User Details</h2>
               <button onClick={closeModal}>×</button>
@@ -390,8 +390,8 @@ const AdminUsers = () => {
 
       {/* Edit User Modal */}
       {editingUser && (
-        <div className="admin-users__modal-overlay" onClick={closeModal}>
-          <div className="admin-users__modal admin-users__modal--edit" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-users__modal-overlay">
+          <div className="admin-users__modal admin-users__modal--edit">
             <div className="admin-users__modal-header">
               <h2>Edit User</h2>
               <button onClick={closeModal}>×</button>
@@ -416,6 +416,17 @@ const AdminUsers = () => {
                   name="email"
                   value={editFormData.email}
                   onChange={handleEditChange}
+                  onInput={(e) => {
+                    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                    if (e.target.value && !emailPattern.test(e.target.value)) {
+                      e.target.style.borderColor = 'red';
+                      e.target.setCustomValidity('Please enter a valid email (e.g., user@gmail.com)');
+                      e.target.reportValidity();
+                    } else {
+                      e.target.style.borderColor = '';
+                      e.target.setCustomValidity('');
+                    }
+                  }}
                   required
                 />
               </div>
@@ -427,7 +438,19 @@ const AdminUsers = () => {
                   name="phone"
                   value={editFormData.phone}
                   onChange={handleEditChange}
-                  placeholder="+91-9876543210"
+                  onInput={(e) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    if (e.target.value && e.target.value.length !== 10) {
+                      e.target.style.borderColor = 'red';
+                      e.target.setCustomValidity('Phone number must be exactly 10 digits');
+                      e.target.reportValidity();
+                    } else {
+                      e.target.style.borderColor = '';
+                      e.target.setCustomValidity('');
+                    }
+                  }}
+                  maxLength="10"
+                  placeholder="9876543210"
                 />
               </div>
 
@@ -506,8 +529,8 @@ const AdminUsers = () => {
 
       {/* Change Password Modal */}
       {changingPassword && (
-        <div className="admin-users__modal-overlay" onClick={closeModal}>
-          <div className="admin-users__modal admin-users__modal--password" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-users__modal-overlay">
+          <div className="admin-users__modal admin-users__modal--password">
             <div className="admin-users__modal-header">
               <h2>Change Password</h2>
               <button onClick={closeModal}>×</button>

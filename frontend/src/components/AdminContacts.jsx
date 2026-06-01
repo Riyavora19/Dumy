@@ -282,8 +282,8 @@ const AdminContacts = () => {
       )}
 
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-content">
             <div className="modal-header">
               <h3>{selectedContact ? 'Edit Contact' : 'Add New Contact'}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
@@ -322,6 +322,22 @@ const AdminContacts = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
+                    onInput={(e) => {
+                      if (!e.target.value) {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                        return;
+                      }
+                      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                      if (!emailPattern.test(e.target.value)) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Please enter a valid email (e.g., user@gmail.com)');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
                   />
                 </div>
 
@@ -332,6 +348,19 @@ const AdminContacts = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
+                    onInput={(e) => {
+                      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                      if (e.target.value && e.target.value.length !== 10) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Phone number must be exactly 10 digits');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
+                    maxLength="10"
+                    placeholder="9876543210"
                   />
                 </div>
 
@@ -460,8 +489,8 @@ const AdminContacts = () => {
       )}
 
       {showViewModal && selectedContact && (
-        <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
-          <div className="modal-content view-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-content view-modal">
             <div className="modal-header">
               <h3>Contact Details</h3>
               <button className="modal-close" onClick={() => setShowViewModal(false)}>×</button>

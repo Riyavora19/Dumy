@@ -252,8 +252,8 @@ const AdminInquiries = () => {
 
       {/* Detail Modal */}
       {showDetailModal && selectedInquiry && (
-        <div className="admin-inquiries__modal-overlay" onClick={closeDetailModal}>
-          <div className="admin-inquiries__modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-inquiries__modal-overlay">
+          <div className="admin-inquiries__modal">
             <div className="admin-inquiries__modal-header">
               <h2>Inquiry Details</h2>
               <button onClick={closeDetailModal}>×</button>

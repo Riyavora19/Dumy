@@ -68,8 +68,8 @@ function MarginModal({ quotation, onClose }) {
   };
 
   return (
-    <div className="aq-modal-overlay" onClick={onClose}>
-      <div className="aq-margin-modal" onClick={e => e.stopPropagation()}>
+    <div className="aq-modal-overlay">
+      <div className="aq-margin-modal">
         <div className="aq-margin-modal__header">
           <div>
             <h3>📊 Margin Analysis — {quotation.quotationNumber}</h3>
@@ -456,8 +456,8 @@ function AdminQuotations() {
 
       {/* Reject Modal */}
       {showRejectModal && (
-        <div className="aq-modal-overlay" onClick={() => setShowRejectModal(false)}>
-          <div className="aq-modal" onClick={e => e.stopPropagation()}>
+        <div className="aq-modal-overlay">
+          <div className="aq-modal">
             <h3>Reject Quotation</h3>
             <p>Quotation: <strong>{rejectTarget?.quotationNumber}</strong></p>
             <label>Reason (optional)</label>

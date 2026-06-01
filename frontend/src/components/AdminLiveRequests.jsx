@@ -601,8 +601,8 @@ Valid Until: ${quoteData.validUntil}
 
       {/* Combined View & Send Quote Modal */}
       {viewingRequest && (
-        <div className="admin-live-requests__modal-overlay" onClick={closeModal}>
-          <div className="admin-live-requests__modal admin-live-requests__modal--combined" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-live-requests__modal-overlay">
+          <div className="admin-live-requests__modal admin-live-requests__modal--combined">
             <div className="admin-live-requests__modal-header">
               <h2>📋 Request Details - {viewingRequest.requestNumber}</h2>
               <button onClick={closeModal}>×</button>
@@ -874,8 +874,8 @@ Valid Until: ${quoteData.validUntil}
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="admin-live-requests__modal-overlay" onClick={closeModal}>
-          <div className="admin-live-requests__modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-live-requests__modal-overlay">
+          <div className="admin-live-requests__modal">
             <div className="admin-live-requests__modal-header">
               <h2>{editingRequest ? 'Edit Request' : 'Add New Request'}</h2>
               <button onClick={closeModal}>×</button>
@@ -903,6 +903,19 @@ Valid Until: ${quoteData.validUntil}
                     name="clientEmail"
                     value={formData.clientEmail}
                     onChange={handleChange}
+                    onBlur={(e) => {
+                      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                      if (e.target.value && !emailPattern.test(e.target.value)) {
+                        e.target.setCustomValidity('Please enter a valid email (e.g., user@gmail.com)');
+                      } else {
+                        e.target.setCustomValidity('');
+                      }
+                    }}
+                    onInput={(e) => {
+                      e.target.setCustomValidity('');
+                    }}
+                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                    title="Please enter a valid email address (e.g., user@gmail.com)"
                     required
                     placeholder="e.g., rajesh@example.com"
                   />
@@ -916,10 +929,17 @@ Valid Until: ${quoteData.validUntil}
                     name="clientPhone"
                     value={formData.clientPhone}
                     onChange={handleChange}
+                    onInput={(e) => {
+                      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    }}
+                    pattern="[0-9]{10}"
+                    title="Please enter exactly 10 digits"
+                    maxLength="10"
+                    minLength="10"
                     required
-                    placeholder="e.g., +91-9876543210"
+                    placeholder="9876543210"
                   />
-                  <small className="field-hint">💡 Include country code for international clients</small>
+                  <small className="field-hint">💡 Exactly 10 digits required</small>
                 </div>
               </div>
 

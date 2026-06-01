@@ -40,6 +40,7 @@ const AdminProducts = () => {
     isActive: true,
     tags: '',
     rating: 0,
+    gst: 18, // Default GST 18%
     specifications: {
       material: '',
       size: '',
@@ -51,21 +52,6 @@ const AdminProducts = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [showBulkModal, setShowBulkModal] = useState(false);
-  const [bulkProducts, setBulkProducts] = useState([
-    {
-      id: Date.now(),
-      name: '',
-      description: '',
-      category: '',
-      company: '',
-      brand: '',
-      price: '',
-      sku: '',
-      stock: 0,
-      images: [],
-      isActive: true
-    }
-  ]);
   const [showBulkImageModal, setShowBulkImageModal] = useState(false);
   const [bulkImages, setBulkImages] = useState([]);
   const [bulkImageCategory, setBulkImageCategory] = useState('');
@@ -350,7 +336,7 @@ const AdminProducts = () => {
     data.append('variant', formData.variant || 'Standard');
     data.append('price', formData.price);
     data.append('originalPrice', formData.originalPrice || formData.price);
-    data.append('sku', formData.sku || `SKU-${Date.now()}`);
+    data.append('sku', formData.sku || '');
     data.append('itemCode', formData.itemCode || '');
     data.append('stock', formData.stock || 0);
     data.append('isActive', formData.isActive);
@@ -704,130 +690,11 @@ const AdminProducts = () => {
 
   // Bulk upload functions
   const openBulkModal = () => {
-    setBulkProducts([
-      {
-        id: Date.now(),
-        name: '',
-        description: '',
-        category: '',
-        company: '',
-        price: '',
-        sku: '',
-        stock: 0,
-        images: [],
-        isActive: true
-      }
-    ]);
     setShowBulkModal(true);
   };
 
   const closeBulkModal = () => {
     setShowBulkModal(false);
-    setBulkProducts([]);
-  };
-
-  const addBulkProduct = () => {
-    setBulkProducts([
-      ...bulkProducts,
-      {
-        id: Date.now(),
-        name: '',
-        description: '',
-        category: '',
-        company: '',
-        price: '',
-        sku: '',
-        stock: 0,
-        images: [],
-        isActive: true
-      }
-    ]);
-  };
-
-  const removeBulkProduct = (id) => {
-    if (bulkProducts.length === 1) {
-      showNotification('You must have at least one product', 'warning');
-      return;
-    }
-    setBulkProducts(bulkProducts.filter(p => p.id !== id));
-  };
-
-  const handleBulkChange = (id, field, value) => {
-    setBulkProducts(bulkProducts.map(p => 
-      p.id === id ? { ...p, [field]: value } : p
-    ));
-  };
-
-  const handleBulkFileChange = (id, files) => {
-    const fileArray = Array.from(files);
-    setBulkProducts(bulkProducts.map(p => 
-      p.id === id ? { ...p, images: fileArray } : p
-    ));
-  };
-
-  const handleBulkSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Validate all products have required fields
-    const validProducts = bulkProducts.filter(product => 
-      product.name && product.category && product.price && product.images.length > 0
-    );
-
-    if (validProducts.length === 0) {
-      showNotification('Please fill in all required fields for at least one product', 'error');
-      return;
-    }
-
-    // Upload products directly
-    let successCount = 0;
-    let failCount = 0;
-    const errors = [];
-
-    for (const product of validProducts) {
-      try {
-        const data = new FormData();
-        data.append('name', product.name);
-        data.append('description', product.description);
-        data.append('category', product.category);
-        data.append('company', product.company || '');
-        data.append('brand', product.brand || '');
-        data.append('price', product.price);
-        data.append('sku', product.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
-        data.append('stock', product.stock);
-        data.append('isActive', product.isActive);
-        data.append('variant', 'Standard');
-
-        product.images.forEach(file => {
-          data.append('images', file);
-        });
-
-        const response = await axios.post(
-          '/api/products',
-          data,
-          { headers: { 'Content-Type': 'multipart/form-data' } }
-        );
-
-        if (response.data.success) {
-          successCount++;
-        } else {
-          failCount++;
-          errors.push(`${product.name}: ${response.data.message || 'Unknown error'}`);
-        }
-      } catch (error) {
-        console.error('Error creating product:', error);
-        failCount++;
-        errors.push(`${product.name}: ${error.response?.data?.message || error.message}`);
-      }
-    }
-
-    let message = `Bulk upload complete!\nSuccess: ${successCount}\nFailed: ${failCount}`;
-    if (errors.length > 0 && errors.length <= 3) {
-      message += `\n\nErrors:\n${errors.join('\n')}`;
-    }
-
-    showNotification(message, successCount > 0 ? 'success' : 'error');
-    fetchProducts();
-    closeBulkModal();
   };
 
   // Image-based bulk upload functions
@@ -976,7 +843,7 @@ const AdminProducts = () => {
         data.append('company', bulkImageCompany || ''); // Use selected company
         data.append('price', randomPrice);
         data.append('variant', 'Standard');
-        data.append('sku', `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+        data.append('sku', '');
         data.append('stock', 0);
         data.append('isActive', true);
         data.append('images', imageFile);
@@ -1142,7 +1009,7 @@ const AdminProducts = () => {
             price: parseFloat(detectColumn(row, ['Price', 'CLP (Cost List Price)', 'CLP', 'Selling Price'])) || 0,
             originalPrice: parseFloat(detectColumn(row, ['Original Price (MRP)', 'MRP', 'Original Price'])) || 0,
             stock: parseInt(detectColumn(row, ['Stock', 'Quantity', 'qty'])) || 0,
-            sku: detectColumn(row, ['SKU', 'sku_code', 'Code']) || `SKU-${Date.now()}-${index}`,
+            sku: detectColumn(row, ['SKU', 'sku_code', 'Code']) || '',
             rating: parseFloat(detectColumn(row, ['Rating (0-5)', 'Rating'])) || 0,
             tags: detectColumn(row, ['Tags', 'Tag']),
             // Specifications
@@ -1366,7 +1233,7 @@ const AdminProducts = () => {
         data.append('variant', product.variant || 'Standard');
         data.append('price', product.price || 0);
         data.append('originalPrice', product.originalPrice || product.mrp || product.price || 0);
-        data.append('sku', product.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+        data.append('sku', product.sku || '');
         data.append('stock', product.stock || 0);
         data.append('isActive', product.isActive !== false);
         data.append('rating', product.rating || 0);
@@ -2027,8 +1894,8 @@ const AdminProducts = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="admin-products__modal-overlay" onClick={closeModal}>
-          <div className="admin-products__modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-products__modal-overlay">
+          <div className="admin-products__modal">
             <div className="admin-products__modal-header">
               <h2>{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
               <button onClick={closeModal}>×</button>
@@ -2110,30 +1977,8 @@ const AdminProducts = () => {
                 </div>
               </div>
 
-              {/* Second Line: Variant | Description | Price | Stock | SKU | Rating */}
+              {/* Second Line: Price | Stock | MRP | HSN Code | Item Code */}
               <div className="admin-products__row-5">
-                <div className="admin-products__field">
-                  <label>Variant / Model</label>
-                  <input
-                    type="text"
-                    name="variant"
-                    value={formData.variant}
-                    onChange={handleChange}
-                    placeholder="e.g., White Ceramic"
-                  />
-                </div>
-
-                <div className="admin-products__field">
-                  <label>Description</label>
-                  <input
-                    type="text"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Product description"
-                  />
-                </div>
-
                 <div className="admin-products__field">
                   <label>Price *</label>
                   <input
@@ -2161,6 +2006,79 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="admin-products__field">
+                  <label>MRP</label>
+                  <input
+                    type="number"
+                    name="mrp"
+                    value={formData.originalPrice}
+                    onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div className="admin-products__field">
+                  <label>HSN Code</label>
+                  <input
+                    type="text"
+                    name="hsnCode"
+                    placeholder="e.g., 6910.10.00"
+                  />
+                </div>
+
+                <div className="admin-products__field">
+                  <label>Item Code</label>
+                  <input
+                    type="text"
+                    name="itemCode"
+                    value={formData.itemCode || ''}
+                    onChange={handleChange}
+                    placeholder="e.g., SKU-001"
+                  />
+                </div>
+              </div>
+
+              {/* Third Line: GST | Variant | Description | SKU | Rating */}
+              <div className="admin-products__row-5">
+                <div className="admin-products__field">
+                  <label>GST %</label>
+                  <select
+                    name="gst"
+                    value={formData.gst || 18}
+                    onChange={handleChange}
+                  >
+                    <option value="0">0%</option>
+                    <option value="5">5%</option>
+                    <option value="12">12%</option>
+                    <option value="18">18%</option>
+                    <option value="28">28%</option>
+                  </select>
+                </div>
+
+                <div className="admin-products__field">
+                  <label>Variant / Model</label>
+                  <input
+                    type="text"
+                    name="variant"
+                    value={formData.variant}
+                    onChange={handleChange}
+                    placeholder="e.g., White Ceramic"
+                  />
+                </div>
+
+                <div className="admin-products__field">
+                  <label>Description</label>
+                  <input
+                    type="text"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Product description"
+                  />
+                </div>
+
+                <div className="admin-products__field">
                   <label>SKU</label>
                   <input
                     type="text"
@@ -2170,10 +2088,7 @@ const AdminProducts = () => {
                     placeholder="Product SKU"
                   />
                 </div>
-              </div>
 
-              {/* Third Line: Rating | Tags | Specification | Material | MRP */}
-              <div className="admin-products__row-5">
                 <div className="admin-products__field">
                   <label>Rating (0-5)</label>
                   <input
@@ -2187,7 +2102,10 @@ const AdminProducts = () => {
                     placeholder="4.5"
                   />
                 </div>
+              </div>
 
+              {/* Fourth Line: Tags | Specification | Material | Broad Category | Segment */}
+              <div className="admin-products__row-5">
                 <div className="admin-products__field">
                   <label>Tags</label>
                   <input
@@ -2225,56 +2143,6 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="admin-products__field">
-                  <label>MRP</label>
-                  <input
-                    type="number"
-                    name="mrp"
-                    value={formData.originalPrice}
-                    onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                  />
-                </div>
-              </div>
-
-              {/* Fourth Line: CLP | HSN | GST | Broad Category | Segment | Item Code */}
-              <div className="admin-products__row-5">
-                <div className="admin-products__field">
-                  <label>CLP</label>
-                  <input
-                    type="number"
-                    name="clp"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div className="admin-products__field">
-                  <label>HSN Code</label>
-                  <input
-                    type="text"
-                    name="hsnCode"
-                    placeholder="e.g., 6910.10.00"
-                  />
-                </div>
-
-                <div className="admin-products__field">
-                  <label>GST %</label>
-                  <input
-                    type="number"
-                    name="gst"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    placeholder="e.g., 18"
-                  />
-                </div>
-
-                <div className="admin-products__field">
                   <label>Broad Category</label>
                   <input
                     type="text"
@@ -2293,16 +2161,18 @@ const AdminProducts = () => {
                 </div>
               </div>
 
-              {/* Fifth Line: Item Code | NRP | SDP | NPP | CLP | Effective Price List Date */}
+              {/* Fifth Line: CLP | NRP | SDP | NPP | Effective Price Date */}
               <div className="admin-products__row-5">
                 <div className="admin-products__field">
-                  <label>Item Code</label>
+                  <label>CLP</label>
                   <input
-                    type="text"
-                    name="itemCode"
-                    value={formData.itemCode || ''}
-                    onChange={handleChange}
-                    placeholder="e.g., SKU-001"
+                    type="number"
+                    name="clp"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
                   />
                 </div>
 
@@ -2340,6 +2210,8 @@ const AdminProducts = () => {
                   <label>Effective Price Date</label>
                   <input
                     type="date"
+                    name="effectivePriceDate"
+                    style={{ colorScheme: 'light' }}
                   />
                 </div>
               </div>
@@ -2435,64 +2307,83 @@ const AdminProducts = () => {
                   </small>
                 )}
 
-                <div
-                  className={`admin-products__drop-zone ${isDragging ? 'admin-products__drop-zone--active' : ''}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onPaste={handlePaste}
-                  tabIndex={0}
-                  onFocus={() => {}}
-                >
-                  <div className="admin-products__drop-zone-inner">
-                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <rect x="3" y="3" width="18" height="18" rx="2"/>
-                      <circle cx="8.5" cy="8.5" r="1.5"/>
-                      <polyline points="21 15 16 10 5 21"/>
-                    </svg>
-                    <p className="admin-products__drop-title">
-                      {isDragging ? 'Drop images here' : 'Drag & drop images here'}
-                    </p>
-                    <p className="admin-products__drop-sub">
-                      or paste with <kbd>Ctrl+V</kbd> · or click to browse
-                    </p>
-                    <label className="admin-products__drop-browse-btn">
-                      Browse Files
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleFileChange}
-                        style={{ display: 'none' }}
-                      />
-                    </label>
-                  </div>
-                </div>
-                <small>Max 10 images · 5MB each · JPG, PNG, WEBP</small>
-
-                {selectedFiles.length > 0 && (
-                  <div className="admin-products__image-preview-grid">
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className="admin-products__image-preview-item">
-                        <img
-                          src={URL.createObjectURL(file)}
-                          alt={file.name}
-                        />
-                        <button
-                          type="button"
-                          className="admin-products__image-preview-remove"
-                          onClick={() => removeSelectedFile(index)}
-                          title="Remove"
-                        >
-                          ×
-                        </button>
-                        <span className="admin-products__image-preview-name">
-                          {file.name.length > 14 ? file.name.slice(0, 12) + '…' : file.name}
-                        </span>
+                {/* 10 Image Upload Boxes - 5 per row */}
+                <div className="admin-products__image-grid">
+                  {[...Array(10)].map((_, index) => {
+                    const file = selectedFiles[index];
+                    return (
+                      <div 
+                        key={index} 
+                        className="admin-products__image-box"
+                        tabIndex={0}
+                        onPaste={(e) => {
+                          e.preventDefault();
+                          const items = e.clipboardData?.items;
+                          if (items) {
+                            for (let i = 0; i < items.length; i++) {
+                              if (items[i].type.indexOf('image') !== -1) {
+                                const blob = items[i].getAsFile();
+                                if (blob) {
+                                  const newFiles = [...selectedFiles];
+                                  newFiles[index] = blob;
+                                  setSelectedFiles(newFiles.filter(f => f !== undefined));
+                                  showNotification(`Image pasted to slot ${index + 1}!`, 'success');
+                                  break;
+                                }
+                              }
+                            }
+                          }
+                        }}
+                      >
+                        {file ? (
+                          <>
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={`Image ${index + 1}`}
+                              className="admin-products__image-box-preview"
+                            />
+                            <button
+                              type="button"
+                              className="admin-products__image-box-remove"
+                              onClick={() => removeSelectedFile(index)}
+                              title="Remove"
+                            >
+                              ×
+                            </button>
+                            <span className="admin-products__image-box-number">{index + 1}</span>
+                          </>
+                        ) : (
+                          <label className="admin-products__image-box-upload">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                  const newFiles = [...selectedFiles];
+                                  newFiles[index] = e.target.files[0];
+                                  setSelectedFiles(newFiles.filter(f => f !== undefined));
+                                }
+                              }}
+                              style={{ display: 'none' }}
+                            />
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <rect x="3" y="3" width="18" height="18" rx="2"/>
+                              <circle cx="8.5" cy="8.5" r="1.5"/>
+                              <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                            <span className="admin-products__image-box-text">
+                              Image {index + 1}
+                            </span>
+                            <span className="admin-products__image-box-hint">
+                              Click or paste (Ctrl+V)
+                            </span>
+                          </label>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
+                <small>Max 10 images · 4MB each · JPG, PNG, WEBP</small>
               </div>
 
               <div className="admin-products__field-standalone">
@@ -2522,8 +2413,8 @@ const AdminProducts = () => {
 
       {/* Bulk Upload Modal */}
       {showBulkModal && (
-        <div className="admin-products__modal-overlay" onClick={closeBulkModal}>
-          <div className="admin-products__bulk-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-products__modal-overlay">
+          <div className="admin-products__bulk-modal">
             <div className="admin-products__modal-header">
               <h2>Bulk Upload Products</h2>
               <button onClick={closeBulkModal}>×</button>
@@ -2571,398 +2462,14 @@ const AdminProducts = () => {
                 <small>Columns: Product Name, Price, Company, Stock, SKU, Variant, Description, etc.</small>
               </div>
             </div>
-
-            {/* Form-based Upload Option */}
-            <div className="admin-products__bulk-upload-divider">
-              <span>OR</span>
-            </div>
-
-            <form onSubmit={handleBulkSubmit} className="admin-products__bulk-form">
-              <h3>📝 Manual Product Entry</h3>
-              <div className="admin-products__bulk-products">
-                {bulkProducts.map((product, index) => (
-                  <div key={product.id} className="admin-products__bulk-item">
-                    <div className="admin-products__bulk-item-header">
-                      <h3>Product {index + 1}</h3>
-                      {bulkProducts.length > 1 && (
-                        <button 
-                          type="button" 
-                          onClick={() => removeBulkProduct(product.id)}
-                          className="admin-products__remove-bulk"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="admin-products__bulk-grid">
-                      <div className="admin-products__field">
-                        <label>Category *</label>
-                        <select
-                          value={product.category}
-                          onChange={(e) => handleBulkChange(product.id, 'category', e.target.value)}
-                          required
-                        >
-                          <option value="">Select category</option>
-                          {categories.map(cat => (
-                            <option key={cat._id} value={cat._id}>{cat.name}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Product Name *</label>
-                        <input
-                          type="text"
-                          value={product.name}
-                          onChange={(e) => handleBulkChange(product.id, 'name', e.target.value)}
-                          required
-                          placeholder="Product name"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Company Name</label>
-                        <input
-                          type="text"
-                          value={product.company || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'company', e.target.value)}
-                          placeholder="e.g., Kohler, Jaguar, Vanity"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Brand</label>
-                        <input
-                          type="text"
-                          value={product.brand || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'brand', e.target.value)}
-                          placeholder="e.g., Premium, Standard, Luxury"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Price *</label>
-                        <input
-                          type="number"
-                          value={product.price}
-                          onChange={(e) => handleBulkChange(product.id, 'price', e.target.value)}
-                          required
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Stock</label>
-                        <input
-                          type="number"
-                          value={product.stock}
-                          onChange={(e) => handleBulkChange(product.id, 'stock', e.target.value)}
-                          min="0"
-                          placeholder="0"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>SKU</label>
-                        <input
-                          type="text"
-                          value={product.sku}
-                          onChange={(e) => handleBulkChange(product.id, 'sku', e.target.value)}
-                          placeholder="SKU"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="admin-products__field">
-                      <label>Description</label>
-                      <textarea
-                        value={product.description}
-                        onChange={(e) => handleBulkChange(product.id, 'description', e.target.value)}
-                        rows="2"
-                        placeholder="Product description"
-                      />
-                    </div>
-
-                    {/* Additional Product Details */}
-                    <div className="admin-products__bulk-grid">
-                      <div className="admin-products__field">
-                        <label>Item Code</label>
-                        <input
-                          type="text"
-                          value={product.itemCode || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'itemCode', e.target.value)}
-                          placeholder="e.g., SKU-001"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Material</label>
-                        <input
-                          type="text"
-                          value={product.material || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'material', e.target.value)}
-                          placeholder="e.g., Ceramic, Brass, Glass"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>MRP (Maximum Retail Price)</label>
-                        <input
-                          type="number"
-                          value={product.originalPrice || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'originalPrice', e.target.value)}
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>NRP (Net Retail Price)</label>
-                        <input
-                          type="number"
-                          value={product.nrp || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'nrp', e.target.value)}
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>SDP (Suggested Dealer Price)</label>
-                        <input
-                          type="number"
-                          value={product.sdp || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'sdp', e.target.value)}
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>NPP (Net Purchase Price)</label>
-                        <input
-                          type="number"
-                          value={product.npp || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'npp', e.target.value)}
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>CLP (Cost List Price)</label>
-                        <input
-                          type="number"
-                          value={product.clp || product.price}
-                          onChange={(e) => handleBulkChange(product.id, 'clp', e.target.value)}
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Effective Price List Date</label>
-                        <input
-                          type="date"
-                          value={product.effectivePriceListDate || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'effectivePriceListDate', e.target.value)}
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>HSN Code</label>
-                        <input
-                          type="text"
-                          value={product.hsnCode || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'hsnCode', e.target.value)}
-                          placeholder="e.g., 6910.10.00"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>GST %</label>
-                        <input
-                          type="number"
-                          value={product.gst || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'gst', e.target.value)}
-                          min="0"
-                          max="100"
-                          step="0.01"
-                          placeholder="e.g., 18"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Broad Category</label>
-                        <input
-                          type="text"
-                          value={product.broadCategory || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'broadCategory', e.target.value)}
-                          placeholder="e.g., Bathroom Fixtures"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>CAT (Category)</label>
-                        <input
-                          type="text"
-                          value={product.cat || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'cat', e.target.value)}
-                          placeholder="e.g., Toilet Seats"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>SUB CAT (Sub Category)</label>
-                        <input
-                          type="text"
-                          value={product.subCat || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'subCat', e.target.value)}
-                          placeholder="e.g., Ceramic"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>RANGE</label>
-                        <input
-                          type="text"
-                          value={product.range || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'range', e.target.value)}
-                          placeholder="e.g., Premium, Standard"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Segment</label>
-                        <input
-                          type="text"
-                          value={product.segment || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'segment', e.target.value)}
-                          placeholder="e.g., Residential, Commercial"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Status</label>
-                        <select
-                          value={product.status || 'Active'}
-                          onChange={(e) => handleBulkChange(product.id, 'status', e.target.value)}
-                        >
-                          <option value="Active">Active</option>
-                          <option value="Inactive">Inactive</option>
-                          <option value="Draft">Draft</option>
-                        </select>
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Flag</label>
-                        <input
-                          type="text"
-                          value={product.flag || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'flag', e.target.value)}
-                          placeholder="e.g., New, Featured"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Channel Type</label>
-                        <input
-                          type="text"
-                          value={product.channelType || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'channelType', e.target.value)}
-                          placeholder="e.g., Retail, Wholesale"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Scheme Type</label>
-                        <input
-                          type="text"
-                          value={product.schemeType || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'schemeType', e.target.value)}
-                          placeholder="e.g., Standard, Promotional"
-                        />
-                      </div>
-
-                      <div className="admin-products__field">
-                        <label>Variant / Model</label>
-                        <input
-                          type="text"
-                          value={product.variant || ''}
-                          onChange={(e) => handleBulkChange(product.id, 'variant', e.target.value)}
-                          placeholder="e.g., White Ceramic, Chrome Finish"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="admin-products__field">
-                      <label>Product Images *</label>
-                      <label className="admin-products__upload-label">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                          <polyline points="17 8 12 3 7 8"/>
-                          <line x1="12" y1="3" x2="12" y2="15"/>
-                        </svg>
-                        <span>Select Images for This Product</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={(e) => handleBulkFileChange(product.id, e.target.files)}
-                          required
-                          style={{ display: 'none' }}
-                        />
-                      </label>
-                      {product.images.length > 0 && (
-                        <div className="admin-products__file-list">
-                          <strong>{product.images.length} image(s) selected</strong>
-                          {product.images.map((file, idx) => (
-                            <span key={idx}>📷 {file.name}</span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <button 
-                type="button" 
-                onClick={addBulkProduct}
-                className="admin-products__add-more-btn"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                Add Another Product
-              </button>
-
-              <div className="admin-products__modal-actions">
-                <button type="button" onClick={closeBulkModal} className="admin-products__btn-cancel">
-                  Cancel
-                </button>
-                <button type="submit" className="admin-products__btn-submit">
-                  Upload All Products ({bulkProducts.length})
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
 
       {/* Bulk Image Upload Modal */}
       {showBulkImageModal && (
-        <div className="admin-products__modal-overlay" onClick={closeBulkImageModal}>
-          <div className="admin-products__bulk-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-products__modal-overlay">
+          <div className="admin-products__bulk-modal">
             <div className="admin-products__modal-header">
               <h2>📸 Bulk Upload Product Images</h2>
               <button onClick={closeBulkImageModal}>×</button>
@@ -3088,8 +2595,8 @@ const AdminProducts = () => {
 
       {/* Excel Preview Modal */}
       {showExcelPreview && excelData && (
-        <div className="admin-products__modal-overlay" onClick={closeExcelPreview}>
-          <div className="admin-products__bulk-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-products__modal-overlay">
+          <div className="admin-products__bulk-modal">
             <div className="admin-products__modal-header">
               <h2>📊 Excel Preview - {excelData.file}</h2>
               <button onClick={closeExcelPreview}>×</button>
@@ -3420,8 +2927,8 @@ const AdminProducts = () => {
 
       {/* Quick Edit Modal */}
       {showQuickEditModal && (
-        <div className="admin-products__modal-overlay" onClick={closeQuickEditModal}>
-          <div className="admin-products__modal admin-products__quick-edit-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-products__modal-overlay">
+          <div className="admin-products__modal admin-products__quick-edit-modal">
             <div className="admin-products__modal-header">
               <h2>Quick Edit Product</h2>
               <button onClick={closeQuickEditModal}>×</button>
@@ -3610,8 +3117,8 @@ const AdminProducts = () => {
 
       {/* Update from Excel Modal */}
       {showUpdateExcelModal && (
-        <div className="admin-products__modal-overlay" onClick={closeUpdateExcelModal}>
-          <div className="admin-products__bulk-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-products__modal-overlay">
+          <div className="admin-products__bulk-modal">
             <div className="admin-products__modal-header">
               <h2>📝 Update Products from Excel</h2>
               <button onClick={closeUpdateExcelModal}>×</button>
@@ -3726,8 +3233,8 @@ const AdminProducts = () => {
 
       {/* Image Change Modal */}
       {showImageChangeModal && imageChangeProduct && (
-        <div className="admin-products__modal-overlay" onClick={closeImageChangeModal}>
-          <div className="admin-products__image-change-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-products__modal-overlay">
+          <div className="admin-products__image-change-modal">
             <div className="admin-products__image-change-header">
               <div className="admin-products__image-change-title">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

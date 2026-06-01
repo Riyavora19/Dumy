@@ -840,3 +840,66 @@
 
 
 
+
+/* Add New Category Button */
+.admin-companies__add-category-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  margin-top: 12px;
+  background: #f0f9ff;
+  color: #1e40af;
+  border: 2px dashed #3b82f6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-companies__add-category-btn:hover {
+  background: #dbeafe;
+  border-style: solid;
+}
+
+.admin-companies__add-category-btn svg {
+  flex-shrink: 0;
+}
+
+/* Category Creation Modal */
+.admin-companies__category-modal {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.admin-companies__category-preview {
+  margin: 20px 0;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.admin-companies__category-preview label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.admin-companies__category-preview .admin-companies__category-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border: 2px solid;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #fff;
+}

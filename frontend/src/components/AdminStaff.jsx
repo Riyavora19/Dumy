@@ -363,6 +363,17 @@ function AdminStaff() {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
+                    onInput={(e) => {
+                      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                      if (e.target.value && !emailPattern.test(e.target.value)) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Please enter a valid email (e.g., user@gmail.com)');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
                     required
                   />
                 </div>
@@ -389,6 +400,19 @@ function AdminStaff() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
+                    onInput={(e) => {
+                      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                      if (e.target.value && e.target.value.length !== 10) {
+                        e.target.style.borderColor = 'red';
+                        e.target.setCustomValidity('Phone number must be exactly 10 digits');
+                        e.target.reportValidity();
+                      } else {
+                        e.target.style.borderColor = '';
+                        e.target.setCustomValidity('');
+                      }
+                    }}
+                    maxLength="10"
+                    placeholder="9876543210"
                   />
                 </div>
 
