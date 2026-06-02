@@ -41,11 +41,27 @@ let quotationSettings = {
   ]
 };
 
-// Initialize - ensure all logos have active property
-quotationSettings.footerLogos = quotationSettings.footerLogos.map(logo => ({
-  ...logo,
-  active: logo.active !== undefined ? logo.active : true
-}));
+// Function to reset to default logos (ensures all 13 are active on server restart)
+const resetToDefaultLogos = () => {
+  quotationSettings.footerLogos = [
+    { id: 1, name: 'Artize', path: '/company-logos/Artize.png', order: 1, active: true },
+    { id: 2, name: 'Duravit', path: '/company-logos/Duravit.png', order: 2, active: true },
+    { id: 3, name: 'Jaguar', path: '/company-logos/Jaguar.png', order: 3, active: true },
+    { id: 4, name: 'Johnson', path: '/company-logos/Johnson.png', order: 4, active: true },
+    { id: 5, name: 'Kajaria', path: '/company-logos/Kajaria.png', order: 5, active: true },
+    { id: 6, name: 'Kohler', path: '/company-logos/Kohler.png', order: 6, active: true },
+    { id: 7, name: 'Milagro', path: '/company-logos/Milagro.png', order: 7, active: true },
+    { id: 8, name: 'Parryware', path: '/company-logos/Parryware.png', order: 8, active: true },
+    { id: 9, name: 'Qutone', path: '/company-logos/Qutone.png', order: 9, active: true },
+    { id: 10, name: 'Simero', path: '/company-logos/Simero.png', order: 10, active: true },
+    { id: 11, name: 'Simpolo', path: '/company-logos/Simpolo.png', order: 11, active: true },
+    { id: 12, name: 'TrueBlock', path: '/company-logos/TrueBlock.png', order: 12, active: true },
+    { id: 13, name: 'Woven', path: '/company-logos/Woven.png', order: 13, active: true }
+  ];
+};
+
+// Initialize on server start
+resetToDefaultLogos();
 
 // GET - Get quotation settings
 router.get('/', (req, res) => {
