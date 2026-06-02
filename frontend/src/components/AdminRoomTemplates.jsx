@@ -32,7 +32,17 @@ function AdminRoomTemplates() {
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/room-templates');
+      console.log('Fetching templates from API...');
+      
+      // Add timeout to prevent infinite loading
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await axios.get('/room-templates', {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
       console.log('Templates response:', response.data);
       
       // Handle both array and object responses
@@ -41,9 +51,16 @@ function AdminRoomTemplates() {
         : response.data.data || response.data.templates || [];
       
       setTemplates(templatesData);
+      console.log('Templates loaded:', templatesData.length);
     } catch (error) {
       console.error('Error fetching templates:', error);
-      showNotification('Failed to fetch templates', 'error');
+      
+      if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+        showNotification('Request timeout. Please check your connection and try again.', 'error');
+      } else {
+        showNotification('Failed to fetch templates. Using empty list.', 'error');
+      }
+      
       setTemplates([]); // Set empty array on error
     } finally {
       setLoading(false);

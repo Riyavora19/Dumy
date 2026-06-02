@@ -20,8 +20,14 @@ const AdminQuotationSettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('/api/quotation-settings');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      console.log('Fetching from:', `${API_URL}/quotation-settings`);
+      
+      const response = await fetch(`${API_URL}/quotation-settings`);
       const data = await response.json();
+      
+      console.log('API Response:', data);
+      
       if (data.success) {
         console.log('Fetched logos:', data.data.footerLogos);
         setLogos(data.data.footerLogos || []);
@@ -51,7 +57,8 @@ const AdminQuotationSettings = () => {
 
     setUploading(true);
     try {
-      const response = await fetch('/api/quotation-settings/upload-logo', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/quotation-settings/upload-logo`, {
         method: 'POST',
         body: formData
       });
@@ -75,7 +82,8 @@ const AdminQuotationSettings = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`/api/quotation-settings/${id}`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/quotation-settings/${id}`, {
         method: 'DELETE'
       });
 
@@ -99,7 +107,8 @@ const AdminQuotationSettings = () => {
     }
 
     try {
-      const response = await fetch(`/api/quotation-settings/activate/${id}`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/quotation-settings/activate/${id}`, {
         method: 'PUT'
       });
 
@@ -118,7 +127,8 @@ const AdminQuotationSettings = () => {
 
   const handlePermanentDelete = async (id) => {
     try {
-      const response = await fetch(`/api/quotation-settings/permanent/${id}`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/quotation-settings/permanent/${id}`, {
         method: 'DELETE'
       });
 
@@ -161,7 +171,8 @@ const AdminQuotationSettings = () => {
     if (draggedItem === null) return;
 
     try {
-      const response = await fetch('/api/quotation-settings/reorder', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/quotation-settings/reorder`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

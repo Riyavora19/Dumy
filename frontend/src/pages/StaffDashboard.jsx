@@ -54,7 +54,7 @@ function StaffDashboard() {
         throw new Error('Authentication failed');
       }
 
-      const data = await response.json();
+      const data = await response.json();                          
       setStaffInfo(data);
       setLoading(false);
     } catch (error) {

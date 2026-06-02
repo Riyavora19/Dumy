@@ -1458,7 +1458,10 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
           attendedByPhone: attendedBy.phone
         };
 
-        console.log('Saving quotation:', quotationPayload);
+        console.log('=== SAVING QUOTATION ===');
+        console.log('Payload:', JSON.stringify(quotationPayload, null, 2));
+        console.log('Items count:', items.length);
+        console.log('Total amount:', total);
 
         try {
           const response = await axios.post('/quotations', quotationPayload, {
@@ -1467,20 +1470,26 @@ const AdminBudgetPlanForm = ({ onClose, onSuccess }) => {
             }
           });
 
-          console.log('Quotation save response:', response.data);
+          console.log('✅ Quotation save response:', response.data);
 
           if (response.data.success) {
+            alert(`✅ Quotation saved successfully!\nQuotation #: ${response.data.quotation?.quotationNumber || 'N/A'}`);
             onSuccess && onSuccess(response.data.quotation);
             onClose && onClose();
           } else {
-            console.error('Server error saving quotation:', response.data);
+            console.error('❌ Server error saving quotation:', response.data);
             alert(response.data.message || 'Failed to save quotation. Please try again.');
           }
         } catch (error) {
-          console.error('Error saving quotation:', error);
+          console.error('❌ Error saving quotation:', error);
           if (error.response) {
-            alert(`Server error (${error.response.status}): ${error.response.data?.message || 'The quotation API route is not available on the server.'}`);
+            console.error('Error response:', error.response.data);
+            alert(`Server error (${error.response.status}): ${error.response.data?.message || 'Unknown error'}`);
+          } else if (error.request) {
+            console.error('No response received:', error.request);
+            alert('No response from server. Please check if the backend is running.');
           } else {
+            console.error('Error setting up request:', error.message);
             alert('Failed to save quotation. Please check your connection and try again.');
           }
         }
